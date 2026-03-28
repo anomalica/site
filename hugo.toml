@@ -1,96 +1,42 @@
-######################## default configuration ####################
 baseURL = "/"
 title = "Anomalica"
-theme = "hugoplate"
 timeZone = "UTC"
-summaryLength = 20
 hasCJKLanguage = true
-defaultContentLanguage = 'en'
-defaultContentLanguageInSubdir = false
+defaultContentLanguage = "en"
 
-########################## Pagination ############################
+[languages.en]
+languageName = "English"
+languageCode = "en-GB"
+contentDir = "content/english"
+weight = 1
+
 [pagination]
 pagerSize = 20
-path = 'page'
 
-############################# Build ##############################
 [build]
 [build.buildStats]
 enable = true
 [[build.cachebusters]]
-source = 'assets/notwatching/hugo_stats\.json'
-target = 'css'
+source = "assets/notwatching/hugo_stats\\.json"
+target = "css"
 
-############################# Modules ############################
 [module]
 [[module.mounts]]
-source = 'assets'
-target = 'assets'
+source = "assets"
+target = "assets"
 [[module.mounts]]
 disableWatch = true
-source = 'hugo_stats.json'
-target = 'assets/notwatching/hugo_stats.json'
+source = "hugo_stats.json"
+target = "assets/notwatching/hugo_stats.json"
 
-############################# Outputs ############################
 [outputs]
-home = ["HTML", "RSS", "SearchIndex"]
+home = ["HTML", "RSS"]
 
-############################# Imaging ############################
 [imaging]
 quality = 80
-resampleFilter = "Lanczos"
 
-############################ Caches ##############################
-[caches]
-[caches.images]
-dir = ":resourceDir/_gen"
-maxAge = "720h"
-
-[caches.assets]
-dir = ":resourceDir/_gen"
-maxAge = "720h"
-
-############################ Markup ##############################
 [markup]
 [markup.goldmark.renderer]
 unsafe = true
-
 [markup.highlight]
-style = 'monokai'
-lineNumbersInTable = false
-
-[markup.tableOfContents]
-startLevel = 2
-endLevel = 5
-ordered = true
-
-########################### Media types ###########################
-[mediaTypes]
-[mediaTypes."application/manifest+json"]
-suffixes = ["webmanifest"]
-
-########################### Output Format ##########################
-[outputFormats]
-[outputFormats.SearchIndex]
-mediaType = "application/json"
-baseName = "searchindex"
-isPlainText = true
-notAlternative = true
-
-############################# Plugins ##############################
-
-# CSS Plugins
-[[params.plugins.css]]
-link = "plugins/font-awesome/v6/brands.css"
-lazy = true
-[[params.plugins.css]]
-link = "plugins/font-awesome/v6/solid.css"
-lazy = true
-[[params.plugins.css]]
-link = "plugins/font-awesome/v6/icons.css"
-lazy = true
-
-# JS Plugins
-[[params.plugins.js]]
-link = "js/search.js"
-lazy = false
+style = "monokai"

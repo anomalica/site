@@ -1,0 +1,202 @@
+@import "tailwindcss";
+@source "hugo_stats.json";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ================================================================
+   Anomalica palette
+   Derived from brand/brand-board.html
+   ================================================================ */
+@theme {
+  /* Primary teal */
+  --color-teal-950: #031F1F;
+  --color-teal-900: #064D4D;
+  --color-teal-800: #085E5E;
+  --color-teal-700: #0B6E6E;
+  --color-teal-600: #0E8888;
+  --color-teal-500: #14A3A3;
+  --color-teal-400: #4BB8B8;
+  --color-teal-300: #72D3D3;
+  --color-teal-200: #A8E3E3;
+  --color-teal-100: #D1F1F1;
+  --color-teal-50: #EDF8F8;
+
+  /* Warm neutrals */
+  --color-paper: #F8F6F1;
+  --color-bone: #E9E5DC;
+  --color-fog: #D6D2C9;
+  --color-stone: #B5B0A6;
+  --color-pebble: #8A8579;
+  --color-slate: #5E5A50;
+  --color-graphite: #3D3B35;
+  --color-charcoal: #2A2926;
+  --color-ink: #1E1D19;
+
+  /* Accents */
+  --color-copper: #B35A28;
+  --color-copper-light: #D4915E;
+  --color-amber: #D49F3D;
+
+  /* Font families */
+  --font-ui: "Outfit", sans-serif;
+  --font-content: "Noto Sans", sans-serif;
+}
+
+/* ================================================================
+   Base styles
+   ================================================================ */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-content);
+  background: var(--color-paper);
+  color: var(--color-graphite);
+  line-height: 1.6;
+}
+
+.dark body {
+  background: var(--color-teal-950);
+  color: var(--color-bone);
+}
+
+/* ================================================================
+   Typography
+   ================================================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-content);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-ink);
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #FFFFFF;
+}
+
+/* UI text (nav, buttons, labels, metadata) */
+.font-ui {
+  font-family: var(--font-ui);
+}
+
+/* ================================================================
+   Links (content)
+   ================================================================ */
+.content a {
+  color: var(--color-teal-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-teal-300);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.content a:hover {
+  color: var(--color-teal-900);
+  text-decoration-color: var(--color-teal-700);
+}
+
+.dark .content a {
+  color: var(--color-teal-300);
+  text-decoration-color: var(--color-teal-700);
+}
+
+.dark .content a:hover {
+  color: #FFFFFF;
+  text-decoration-color: var(--color-teal-400);
+}
+
+/* ================================================================
+   Section label (small uppercase tracked headings)
+   ================================================================ */
+.section-label {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-teal-700);
+}
+
+.dark .section-label {
+  color: var(--color-teal-300);
+}
+
+/* ================================================================
+   Tags (pill-shaped labels)
+   ================================================================ */
+.tag {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.75rem;
+  border-radius: 100px;
+  display: inline-block;
+}
+
+.tag-teal {
+  background: var(--color-teal-100);
+  color: var(--color-teal-800);
+}
+
+.dark .tag-teal {
+  background: var(--color-teal-900);
+  color: var(--color-teal-300);
+}
+
+.tag-copper {
+  background: #F5E0CC;
+  color: #7A3E1A;
+}
+
+.tag-neutral {
+  background: var(--color-bone);
+  color: var(--color-slate);
+}
+
+.dark .tag-neutral {
+  background: var(--color-teal-900);
+  color: var(--color-stone);
+}
+
+/* ================================================================
+   Buttons
+   ================================================================ */
+.btn {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
+  border: none;
+  border-radius: 4px;
+  padding: 0.625rem 1.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-teal-700);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover {
+  background: var(--color-teal-800);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-teal-700);
+  box-shadow: inset 0 0 0 1.5px var(--color-teal-700);
+}
+
+.btn-secondary:hover {
+  background: var(--color-teal-50);
+}

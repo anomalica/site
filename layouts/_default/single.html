@@ -1,63 +1,52 @@
 {{ define "main" }}
-  <section class="section pt-14">
-    <div class="container">
-      <div class="row justify-center">
-        <div class="lg:col-8 md:col-10">
-          <!-- Node type label -->
-          {{ with .Section }}
-            <p class="mb-2 font-primary text-xs uppercase tracking-widest text-primary dark:text-darkmode-primary">
-              {{ . | humanize }}
-            </p>
-          {{ end }}
+  <article class="bg-white py-16 dark:bg-charcoal">
+    <div class="mx-auto max-w-3xl px-6">
+      <!-- Node type label -->
+      {{ with .Section }}
+        <p class="section-label mb-2">{{ . | humanize }}</p>
+      {{ end }}
 
-          <!-- Title -->
-          <h1 class="mb-4 font-secondary text-h3 lg:text-h2 font-semibold">
-            {{ .Title }}
-          </h1>
+      <!-- Title -->
+      <h1 class="mb-2 text-3xl font-semibold lg:text-4xl">{{ .Title }}</h1>
 
-          <!-- Description -->
-          {{ with .Params.description }}
-            <p class="mb-6 text-lg text-text dark:text-darkmode-text">{{ . }}</p>
-          {{ end }}
+      <!-- Description -->
+      {{ with .Params.description }}
+        <p class="mb-4 text-lg text-slate dark:text-stone">{{ . }}</p>
+      {{ end }}
 
-          <!-- Metadata -->
-          {{ with .Params.metadata }}
-            <div class="mb-8 flex flex-wrap gap-3">
-              {{ range $key, $value := . }}
-                <span class="inline-block rounded border border-border px-3 py-1 text-xs font-primary dark:border-darkmode-border">
-                  <span class="text-text-light dark:text-darkmode-text-light">{{ $key | humanize }}:</span>
-                  <span class="text-text-dark dark:text-darkmode-text-dark">{{ $value }}</span>
-                </span>
-              {{ end }}
-            </div>
-          {{ end }}
-
-          <!-- Article body -->
-          <article class="content font-secondary">
-            {{ .Content }}
-          </article>
-
-          <!-- References -->
-          {{ with .Params.references }}
-            <div class="mt-12 border-t border-border pt-6 dark:border-darkmode-border">
-              <h2 class="mb-4 font-primary text-sm uppercase tracking-widest text-text-light dark:text-darkmode-text-light">References</h2>
-              <ol class="list-decimal pl-6 text-sm text-text dark:text-darkmode-text">
-                {{ range . }}
-                  <li class="mb-2">
-                    <span class="font-secondary">{{ .text }}</span>
-                    {{ with .source }}
-                      <span class="text-text-light dark:text-darkmode-text-light"> - {{ . }}</span>
-                    {{ end }}
-                    {{ with .location }}
-                      <span class="text-text-light dark:text-darkmode-text-light"> ({{ . }})</span>
-                    {{ end }}
-                  </li>
-                {{ end }}
-              </ol>
-            </div>
+      <!-- Metadata tags -->
+      {{ with .Params.metadata }}
+        <div class="mb-8 flex flex-wrap gap-2">
+          {{ range $key, $value := . }}
+            <span class="tag tag-teal">{{ $value }}</span>
           {{ end }}
         </div>
+      {{ end }}
+
+      <!-- Article body -->
+      <div class="content text-graphite leading-relaxed dark:text-bone">
+        {{ .Content }}
       </div>
+
+      <!-- References -->
+      {{ with .Params.references }}
+        <div class="mt-12 border-l-2 border-teal-500 pl-4">
+          <p class="section-label mb-4">References</p>
+          <ol class="list-decimal space-y-3 pl-4 text-sm text-pebble dark:text-stone">
+            {{ range . }}
+              <li>
+                <span class="text-graphite dark:text-bone">{{ .text }}</span>
+                {{ with .source }}
+                  <span class="text-pebble dark:text-stone"> - {{ . }}</span>
+                {{ end }}
+                {{ with .location }}
+                  <span class="text-stone dark:text-teal-400"> ({{ . }})</span>
+                {{ end }}
+              </li>
+            {{ end }}
+          </ol>
+        </div>
+      {{ end }}
     </div>
-  </section>
+  </article>
 {{ end }}

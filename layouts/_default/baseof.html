@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="{{ site.LanguageCode | default `en-GB` }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if not .IsHome }}{{ .Title }} - {{ end }}{{ site.Title }}</title>
+  <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}Encyclopaedia of Anomalous Phenomena{{ end }}">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  {{ with resources.Get "images/favicon.svg" }}
+    <link rel="icon" href="{{ .RelPermalink }}" type="image/svg+xml">
+  {{ end }}
+
+  <!-- CSS -->
+  {{ with resources.Get "css/compiled.css" }}
+    {{ if hugo.IsProduction }}
+      {{ $css := . | minify | fingerprint }}
+      <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+    {{ else }}
+      <link rel="stylesheet" href="{{ .RelPermalink }}">
+    {{ end }}
+  {{ end }}
+
+  <!-- Dark mode: apply before render to prevent flash -->
+  <script>
+    (function() {
+      var d = localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (d) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+</head>
+<body x-data="{ darkMode: document.documentElement.classList.contains('dark') }" x-effect="
+  document.documentElement.classList.toggle('dark', darkMode);
+  localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+">
+  {{ partial "header.html" . }}
+
+  <main>
+    {{ block "main" . }}{{ end }}
+  </main>
+
+  {{ partial "footer.html" . }}
+</body>
+</html>

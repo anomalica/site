@@ -1,0 +1,91 @@
+<header class="sticky top-0 z-30 bg-teal-950/95 backdrop-blur-sm" x-data="{ mobileOpen: false, langOpen: false, unitsOpen: false }" @click.outside="langOpen = false; unitsOpen = false">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-2">
+    <!-- Logo -->
+    <a href="{{ site.Home.RelPermalink }}" class="flex-none">
+      {{ with resources.Get "images/logo-darkmode.svg" }}
+        <img src="{{ .RelPermalink }}" alt="{{ site.Title }}" class="h-5">
+      {{ end }}
+    </a>
+
+    <!-- Desktop nav -->
+    <ul class="hidden lg:flex items-center gap-6 font-ui text-sm">
+      {{ $currentPage := . }}
+      <li>
+        <a href="/" class="text-teal-300 hover:text-white transition-colors{{ if .IsHome }} text-white border-b border-teal-400 pb-0.5{{ end }}">Home</a>
+      </li>
+      <li class="relative group">
+        <button class="text-teal-300 hover:text-white transition-colors inline-flex items-center gap-1 cursor-pointer">
+          Browse
+          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+        </button>
+        <ul class="invisible absolute left-0 top-full mt-1 w-44 rounded bg-teal-900 py-1 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+          {{ range (slice "People" "Organisations" "Places" "Events" "Matters" "Objects") }}
+            <li><a href="/{{ . | urlize }}/" class="block px-4 py-1.5 text-sm text-teal-200 hover:text-white hover:bg-teal-800/50">{{ . }}</a></li>
+          {{ end }}
+        </ul>
+      </li>
+      <li>
+        <a href="/about/" class="text-teal-300 hover:text-white transition-colors">About</a>
+      </li>
+    </ul>
+
+    <!-- Right controls -->
+    <div class="flex items-center gap-1">
+      <!-- Language selector -->
+      <div class="relative hidden sm:block">
+        <button @click="langOpen = !langOpen; unitsOpen = false" class="flex items-center gap-1 rounded px-2 py-1 text-sm font-ui text-teal-300 hover:text-white transition-colors cursor-pointer">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
+          <span class="hidden md:inline">EN</span>
+          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+        </button>
+        <div x-show="langOpen" x-transition class="absolute right-0 mt-1 w-52 max-h-80 overflow-y-auto rounded bg-teal-900 py-1 shadow-lg z-50">
+          {{ range site.Data.languages }}
+            <a href="#" class="flex items-center justify-between px-4 py-1.5 text-sm {{ if eq .code "en" }}text-white font-medium{{ else }}text-teal-200 hover:text-white hover:bg-teal-800/50{{ end }}" data-lang="{{ .code }}">
+              <span>{{ .name }}</span>
+              <span class="text-xs text-teal-400">{{ .native }}</span>
+            </a>
+          {{ end }}
+        </div>
+      </div>
+
+      <!-- Units selector -->
+      <div class="relative hidden md:block">
+        <button @click="unitsOpen = !unitsOpen; langOpen = false" class="flex items-center gap-1 rounded px-2 py-1 text-xs font-ui font-semibold text-teal-300 hover:text-white transition-colors cursor-pointer">
+          <span class="rounded bg-teal-800 px-1.5 py-0.5">m</span>
+          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+        </button>
+        <div x-show="unitsOpen" x-transition class="absolute right-0 mt-1 w-36 rounded bg-teal-900 py-1 shadow-lg z-50">
+          <a href="#" class="block px-4 py-1.5 text-sm text-white font-medium" data-unit="metric">Metric</a>
+          <a href="#" class="block px-4 py-1.5 text-sm text-teal-200 hover:text-white hover:bg-teal-800/50" data-unit="imperial">Imperial</a>
+        </div>
+      </div>
+
+      <!-- Dark mode toggle -->
+      <button @click="darkMode = !darkMode" class="rounded p-2 text-teal-300 hover:text-white transition-colors cursor-pointer" aria-label="Toggle dark mode">
+        <!-- Sun (shown in dark mode) -->
+        <svg x-show="darkMode" class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+        <!-- Moon (shown in light mode) -->
+        <svg x-show="!darkMode" class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      </button>
+
+      <!-- Mobile hamburger -->
+      <button @click="mobileOpen = !mobileOpen" class="lg:hidden rounded p-2 text-teal-300 hover:text-white transition-colors cursor-pointer" aria-label="Menu">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path x-show="!mobileOpen" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+          <path x-show="mobileOpen" stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div x-show="mobileOpen" x-transition class="lg:hidden border-t border-teal-800 px-6 py-4">
+    <ul class="space-y-3 font-ui text-sm">
+      <li><a href="/" class="text-teal-200 hover:text-white">Home</a></li>
+      {{ range (slice "People" "Organisations" "Places" "Events" "Matters" "Objects") }}
+        <li><a href="/{{ . | urlize }}/" class="text-teal-200 hover:text-white">{{ . }}</a></li>
+      {{ end }}
+      <li><a href="/about/" class="text-teal-200 hover:text-white">About</a></li>
+    </ul>
+  </div>
+</header>

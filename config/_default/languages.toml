@@ -1,6 +1,0 @@
-################ English language ##################
-[en]
-languageName = "English"
-languageCode = "en-GB"
-contentDir = "content/english"
-weight = 1
