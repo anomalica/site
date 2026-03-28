@@ -1,0 +1,63 @@
+{{ define "main" }}
+  <section class="section pt-14">
+    <div class="container">
+      <div class="row justify-center">
+        <div class="lg:col-8 md:col-10">
+          <!-- Node type label -->
+          {{ with .Section }}
+            <p class="mb-2 font-primary text-xs uppercase tracking-widest text-primary dark:text-darkmode-primary">
+              {{ . | humanize }}
+            </p>
+          {{ end }}
+
+          <!-- Title -->
+          <h1 class="mb-4 font-secondary text-h3 lg:text-h2 font-semibold">
+            {{ .Title }}
+          </h1>
+
+          <!-- Description -->
+          {{ with .Params.description }}
+            <p class="mb-6 text-lg text-text dark:text-darkmode-text">{{ . }}</p>
+          {{ end }}
+
+          <!-- Metadata -->
+          {{ with .Params.metadata }}
+            <div class="mb-8 flex flex-wrap gap-3">
+              {{ range $key, $value := . }}
+                <span class="inline-block rounded border border-border px-3 py-1 text-xs font-primary dark:border-darkmode-border">
+                  <span class="text-text-light dark:text-darkmode-text-light">{{ $key | humanize }}:</span>
+                  <span class="text-text-dark dark:text-darkmode-text-dark">{{ $value }}</span>
+                </span>
+              {{ end }}
+            </div>
+          {{ end }}
+
+          <!-- Article body -->
+          <article class="content font-secondary">
+            {{ .Content }}
+          </article>
+
+          <!-- References -->
+          {{ with .Params.references }}
+            <div class="mt-12 border-t border-border pt-6 dark:border-darkmode-border">
+              <h2 class="mb-4 font-primary text-sm uppercase tracking-widest text-text-light dark:text-darkmode-text-light">References</h2>
+              <ol class="list-decimal pl-6 text-sm text-text dark:text-darkmode-text">
+                {{ range . }}
+                  <li class="mb-2">
+                    <span class="font-secondary">{{ .text }}</span>
+                    {{ with .source }}
+                      <span class="text-text-light dark:text-darkmode-text-light"> - {{ . }}</span>
+                    {{ end }}
+                    {{ with .location }}
+                      <span class="text-text-light dark:text-darkmode-text-light"> ({{ . }})</span>
+                    {{ end }}
+                  </li>
+                {{ end }}
+              </ol>
+            </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+  </section>
+{{ end }}

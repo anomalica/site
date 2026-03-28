@@ -1,5 +1,5 @@
 ######################## default configuration ####################
-baseURL = "https://anomalica.is/"
+baseURL = "/"
 title = "Anomalica"
 theme = "hugoplate"
 timeZone = "UTC"
