@@ -1,0 +1,43 @@
+<!-- JS Plugins + Main script -->
+{{ $scripts := slice }}
+{{ $scriptsLazy := slice }}
+{{ range site.Params.plugins.js }}
+  {{ if findRE "^http" .link }}
+    <script
+      src="{{ .link | relURL }}"
+      type="application/javascript"
+      {{ .attributes | safeHTMLAttr }}></script>
+  {{ else }}
+    {{ if not .lazy }}
+      {{ $scripts = $scripts | append (resources.Get .link) }}
+    {{ else }}
+      {{ $scriptsLazy = $scriptsLazy | append (resources.Get .link) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+<!-- main script -->
+{{ $scripts = $scripts | append (resources.Get "js/main.js") }}
+{{ $scripts = $scripts | resources.Concat "js/script.js" }}
+
+{{ if hugo.IsProduction }}
+  {{ $scripts = $scripts | minify | fingerprint }}
+{{ end }}
+
+<script
+  crossorigin="anonymous"
+  integrity="{{ $scripts.Data.Integrity }}"
+  src="{{ $scripts.RelPermalink }}"></script>
+
+{{ if $scriptsLazy }}
+  {{ $scriptsLazy = $scriptsLazy | resources.Concat "js/script-lazy.js" }}
+  {{ if hugo.IsProduction }}
+    {{ $scriptsLazy = $scriptsLazy | minify | fingerprint }}
+  {{ end }}
+  <script
+    defer
+    async
+    crossorigin="anonymous"
+    integrity="{{ $scriptsLazy.Data.Integrity }}"
+    src="{{ $scriptsLazy.RelPermalink }}"></script>
+{{ end }}

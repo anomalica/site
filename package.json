@@ -1,0 +1,21 @@
+{
+  "name": "anomalica-site",
+  "description": "Static website for Anomalica",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"node scripts/themeGenerator.js --watch\" \"hugo server\"",
+    "build": "node scripts/themeGenerator.js && hugo --gc --minify --forceSyncStatic",
+    "preview": "node scripts/themeGenerator.js && hugo server --disableFastRender --navigateToChanged --watch --forceSyncStatic -e production --minify",
+    "update-modules": "node ./scripts/clearModules.js && hugo mod clean --all && hugo mod get -u ./... && hugo mod tidy"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.19",
+    "concurrently": "^9.2.1",
+    "tailwind-bootstrap-grid": "^7.0.0",
+    "tailwindcss": "^4.2.1"
+  }
+}

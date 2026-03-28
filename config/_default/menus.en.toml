@@ -1,0 +1,56 @@
+############# English navigation ##############
+
+[[main]]
+name = "Home"
+url = "/"
+weight = 1
+
+[[main]]
+weight = 2
+name = "Browse"
+
+[[main]]
+parent = "Browse"
+name = "People"
+url = "/people"
+
+[[main]]
+parent = "Browse"
+name = "Organisations"
+url = "/organisations"
+
+[[main]]
+parent = "Browse"
+name = "Places"
+url = "/places"
+
+[[main]]
+parent = "Browse"
+name = "Events"
+url = "/events"
+
+[[main]]
+parent = "Browse"
+name = "Matters"
+url = "/matters"
+
+[[main]]
+parent = "Browse"
+name = "Objects"
+url = "/objects"
+
+[[main]]
+name = "About"
+url = "/about"
+weight = 3
+
+# footer menu
+[[footer]]
+name = "About"
+url = "/about"
+weight = 1
+
+[[footer]]
+name = "GitHub"
+url = "https://github.com/anomalica"
+weight = 2
