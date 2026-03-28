@@ -1,74 +1,65 @@
 {{ define "main" }}
   <!-- Hero -->
-  <section class="bg-teal-900 py-16 text-center">
-    <div class="mx-auto max-w-3xl px-6">
-      <svg class="mx-auto mb-6 h-16 w-16 text-teal-300" viewBox="0 0 7.9375 7.4083" fill="currentColor">
+  <section class="bg-teal-900 py-20 text-center">
+    <div class="mx-auto max-w-2xl px-6">
+      <svg class="mx-auto mb-6 h-14 w-14 text-teal-300" viewBox="0 0 7.9375 7.4083" fill="currentColor">
         <path d="m4.5275 0.66553 3.1814 5.5102c0.30866 0.53461 0.058439 0.96804-0.55888 0.96804h-6.3626c-0.61732 0-0.86753-0.4334-0.55888-0.96804l3.1814-5.5102c0.30866-0.53461 0.8091-0.53461 1.1178 0z"/>
       </svg>
-      <h1 class="mb-3 text-3xl font-semibold text-white lg:text-5xl">
+      <h1 class="mb-4 text-3xl font-semibold text-white lg:text-4xl">
         Encyclopaedia of<br>Anomalous Phenomena
       </h1>
-      <p class="text-lg text-teal-200 font-light tracking-wide">
+      <hr class="mx-auto my-4 w-12 border-teal-500">
+      <p class="text-base text-teal-200 font-ui font-light tracking-wider">
         Source-attributed. Algorithmically scored. Open data.
       </p>
     </div>
   </section>
 
-  <!-- Browse -->
-  <section class="bg-white py-16 dark:bg-charcoal">
-    <div class="mx-auto max-w-6xl px-6">
-      <p class="section-label mb-8">Browse</p>
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {{ $types := slice
-          (dict "name" "People" "desc" "Named individuals connected to anomalous phenomena")
-          (dict "name" "Organisations" "desc" "Groups, agencies, and institutions")
-          (dict "name" "Places" "desc" "Geographic locations of significance")
-          (dict "name" "Events" "desc" "Discrete incidents at specific times")
-          (dict "name" "Matters" "desc" "Ongoing situations spanning time")
-          (dict "name" "Objects" "desc" "Named physical things and artefacts")
-        }}
-        {{ range $types }}
-          <a href="/{{ .name | urlize }}/" class="group block rounded-lg border border-fog p-6 transition-all hover:border-teal-500 hover:shadow-sm dark:border-teal-900 dark:hover:border-teal-600">
-            <h3 class="mb-1 font-ui text-base font-semibold text-ink group-hover:text-teal-700 dark:text-bone dark:group-hover:text-teal-300">{{ .name }}</h3>
-            <p class="text-sm text-pebble dark:text-stone">{{ .desc }}</p>
+  <!-- Main content -->
+  <section class="bg-white py-14 dark:bg-charcoal">
+    <div class="mx-auto max-w-4xl px-6">
+      <!-- Browse -->
+      <p class="section-label mb-6">Browse</p>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-16">
+        {{ range (slice
+          (dict "name" "People" "desc" "Named individuals")
+          (dict "name" "Organisations" "desc" "Groups and agencies")
+          (dict "name" "Places" "desc" "Geographic locations")
+          (dict "name" "Events" "desc" "Discrete incidents")
+          (dict "name" "Matters" "desc" "Ongoing situations")
+          (dict "name" "Objects" "desc" "Physical things and artefacts")
+        ) }}
+          <a href="/{{ .name | urlize }}/" class="group flex items-baseline justify-between rounded border border-fog/80 px-4 py-3 transition-colors hover:border-teal-500 dark:border-teal-900 dark:hover:border-teal-500">
+            <span class="font-ui text-sm font-medium text-ink group-hover:text-teal-700 dark:text-bone dark:group-hover:text-teal-300">{{ .name }}</span>
+            <span class="text-xs text-stone">{{ .desc }}</span>
           </a>
         {{ end }}
       </div>
-    </div>
-  </section>
 
-  <!-- Principles -->
-  <section class="bg-paper py-16 dark:bg-teal-950">
-    <div class="mx-auto max-w-6xl px-6">
-      <p class="section-label mb-8">Principles</p>
-      <div class="grid gap-x-12 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
-        {{ $principles := slice
-          (dict "title" "Source-attributed" "desc" "Every factual claim traces to a specific source document, page, and paragraph. Nothing is asserted without provenance.")
-          (dict "title" "Algorithmically scored" "desc" "Evidence strength is computed from attestation level, corroboration, and source independence. No editorial judgement of claim weight.")
-          (dict "title" "Jurisdiction-independent" "desc" "Not aligned with any national interest. Hosted across jurisdictions. Designed to survive institutional pressure.")
-          (dict "title" "Open data" "desc" "All content is CC0 public domain. The complete knowledge graph is downloadable as a SQLite file. All code is MIT-licenced.")
-          (dict "title" "Transparent AI" "desc" "AI extracts and arranges information but does not generate factual claims. Assembly and verification use independent models from different providers.")
-          (dict "title" "Multilingual" "desc" "30 languages covering 77% of the world's literate population. Every article is assembled independently per language from the same knowledge graph.")
-        }}
-        {{ range $principles }}
+      <!-- Principles -->
+      <p class="section-label mb-6">Principles</p>
+      <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
+        {{ range (slice
+          (dict "title" "Source-attributed" "desc" "Every claim traces to a specific source document, page, and paragraph.")
+          (dict "title" "Algorithmically scored" "desc" "Evidence strength computed from attestation level, corroboration, and source independence.")
+          (dict "title" "Jurisdiction-independent" "desc" "Not aligned with any national interest. Hosted across jurisdictions.")
+          (dict "title" "Open data" "desc" "CC0 public domain content. Downloadable SQLite knowledge graph. MIT-licenced code.")
+          (dict "title" "Transparent AI" "desc" "AI arranges information but does not generate claims. Independent models verify assembly.")
+          (dict "title" "Multilingual" "desc" "30 languages covering 77% of the world's literate population.")
+        ) }}
           <div>
-            <h3 class="mb-1 font-ui text-sm font-semibold text-teal-700 dark:text-teal-300">{{ .title }}</h3>
+            <h3 class="mb-1 font-ui text-sm font-medium text-teal-700 dark:text-teal-300">{{ .title }}</h3>
             <p class="text-sm text-slate dark:text-stone leading-relaxed">{{ .desc }}</p>
           </div>
         {{ end }}
       </div>
-    </div>
-  </section>
 
-  <!-- Status -->
-  <section class="bg-white py-12 dark:bg-charcoal">
-    <div class="mx-auto max-w-2xl px-6 text-center">
-      <p class="mb-3 font-ui text-xs uppercase tracking-widest text-stone">Under construction</p>
-      <p class="text-sm text-pebble dark:text-stone">
-        Anomalica is in early development. The ingestion and knowledge graph
-        pipelines are operational. Content will appear here as the assembly
-        layer comes online.
-      </p>
+      <!-- Status -->
+      <div class="border-t border-fog/60 pt-8 dark:border-teal-900">
+        <p class="text-sm text-stone text-center">
+          Anomalica is in early development. Content will appear as the assembly pipeline comes online.
+        </p>
+      </div>
     </div>
   </section>
 {{ end }}

@@ -1,20 +1,17 @@
 {{ define "main" }}
-  <article class="bg-white py-16 dark:bg-charcoal">
+  <article class="bg-white py-14 dark:bg-charcoal">
     <div class="mx-auto max-w-3xl px-6">
       <!-- Node type label -->
       {{ with .Section }}
-        <p class="section-label mb-2">{{ . | humanize }}</p>
+        <p class="section-label mb-1">{{ . | humanize }}</p>
       {{ end }}
 
-      <!-- Title -->
-      <h1 class="mb-2 text-3xl font-semibold lg:text-4xl">{{ .Title }}</h1>
+      <h1 class="mb-1 text-3xl font-semibold">{{ .Title }}</h1>
 
-      <!-- Description -->
       {{ with .Params.description }}
-        <p class="mb-4 text-lg text-slate dark:text-stone">{{ . }}</p>
+        <p class="mb-4 text-slate dark:text-stone">{{ . }}</p>
       {{ end }}
 
-      <!-- Metadata tags -->
       {{ with .Params.metadata }}
         <div class="mb-8 flex flex-wrap gap-2">
           {{ range $key, $value := . }}
@@ -23,24 +20,22 @@
         </div>
       {{ end }}
 
-      <!-- Article body -->
-      <div class="content text-graphite leading-relaxed dark:text-bone">
+      <div class="content">
         {{ .Content }}
       </div>
 
-      <!-- References -->
       {{ with .Params.references }}
-        <div class="mt-12 border-l-2 border-teal-500 pl-4">
-          <p class="section-label mb-4">References</p>
-          <ol class="list-decimal space-y-3 pl-4 text-sm text-pebble dark:text-stone">
+        <div class="mt-10 border-l-2 border-teal-500 pl-4">
+          <p class="section-label mb-3">References</p>
+          <ol class="list-decimal space-y-2 pl-4 text-sm">
             {{ range . }}
               <li>
-                <span class="text-graphite dark:text-bone">{{ .text }}</span>
+                {{ .text }}
                 {{ with .source }}
-                  <span class="text-pebble dark:text-stone"> - {{ . }}</span>
+                  <span class="text-pebble"> - {{ . }}</span>
                 {{ end }}
                 {{ with .location }}
-                  <span class="text-stone dark:text-teal-400"> ({{ . }})</span>
+                  <span class="text-stone">({{ . }})</span>
                 {{ end }}
               </li>
             {{ end }}

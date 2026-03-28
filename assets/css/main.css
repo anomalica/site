@@ -55,6 +55,13 @@ body {
   background: var(--color-paper);
   color: var(--color-graphite);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
 }
 
 .dark body {
@@ -84,6 +91,15 @@ h1, h2, h3, h4, h5, h6 {
 /* ================================================================
    Links (content)
    ================================================================ */
+.content {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.content p + p {
+  margin-top: 1rem;
+}
+
 .content a {
   color: var(--color-teal-700);
   text-decoration: underline;
