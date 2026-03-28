@@ -14,9 +14,7 @@ copyright = "Content: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.
 
 # Navigation button
 [navigation_button]
-enable = true
-label = "GitHub"
-link = "https://github.com/anomalica"
+enable = false
 
 # Search
 [search]

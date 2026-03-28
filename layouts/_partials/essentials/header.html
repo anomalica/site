@@ -1,0 +1,166 @@
+<header
+  class="header {{ if site.Params.navbar_fixed }}sticky top-0{{ end }} z-30">
+  <nav class="navbar container py-2">
+    <!-- logo -->
+    <div class="order-0">
+      <a class="navbar-brand block" href="{{ site.Home.RelPermalink }}">
+        {{ partial "logo" }}
+      </a>
+    </div>
+    <!-- navbar toggler -->
+    <input id="nav-toggle" type="checkbox" class="hidden" />
+    <label
+      for="nav-toggle"
+      class="order-3 cursor-pointer flex items-center lg:hidden text-text-dark dark:text-darkmode-text-dark lg:order-1">
+      <svg id="show-button" class="h-5 fill-current block" viewBox="0 0 20 20">
+        <title>Menu Open</title>
+        <path d="M0 3h20v2H0V3z m0 6h20v2H0V9z m0 6h20v2H0V0z"></path>
+      </svg>
+      <svg id="hide-button" class="h-5 fill-current hidden" viewBox="0 0 20 20">
+        <title>Menu Close</title>
+        <polygon
+          points="11 9 22 9 22 11 11 11 11 22 9 22 9 11 -2 11 -2 9 9 9 9 -2 11 -2"
+          transform="rotate(45 10 10)"></polygon>
+      </svg>
+    </label>
+
+    <!-- main navbar -->
+    <ul
+      id="nav-menu"
+      class="navbar-nav order-3 hidden lg:flex w-full pb-6 lg:order-1 lg:w-auto lg:space-x-2 lg:pb-0 xl:space-x-8">
+      {{ $currentPage := . }}
+      {{ range site.Menus.main }}
+        {{ $menuURL := .URL | absLangURL }}
+        {{ $pageURL:= $currentPage.Permalink | absLangURL }}
+        {{ $active := eq $menuURL $pageURL }}
+        {{ if .HasChildren }}
+          <li class="nav-item nav-dropdown group relative">
+            <input
+              type="checkbox"
+              id="submenu-{{ .Name | urlize }}"
+              class="peer hidden lg:hidden" />
+            <label
+              for="submenu-{{ .Name | urlize }}"
+              class="nav-link {{ range .Children }}
+                {{ $childURL := .URL | absLangURL }}
+                {{ $active := eq $childURL $pageURL }}
+                {{ if $active }}active{{ end }}
+              {{ end }} inline-flex items-center">
+              {{ .Name }}
+              <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path
+                  d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+              </svg>
+            </label>
+            <ul
+              class="nav-dropdown-list hidden peer-checked:block lg:invisible lg:absolute lg:block lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100">
+              {{ range .Children }}
+                {{ $childURL := .URL | absLangURL }}
+                {{ $active := eq $childURL $pageURL }}
+                <li class="nav-dropdown-item">
+                  <a
+                    class="nav-dropdown-link {{ if $active }}
+                      active
+                    {{- end -}}"
+                    {{ if findRE `^http` .URL }}
+                      target="_blank" rel="noopener"
+                    {{ end }}
+                    href="{{- if findRE `^#` .URL -}}
+                      {{- if not $.IsHome -}}
+                        {{- site.Home.RelPermalink -}}
+                      {{- end }}
+                      {{- .URL -}}
+                    {{- else -}}
+                      {{- .URL | relLangURL -}}
+                    {{- end -}}">
+                    {{ .Name }}
+                  </a>
+                </li>
+              {{ end }}
+            </ul>
+          </li>
+        {{ else }}
+          <li class="nav-item">
+            <a
+              class="nav-link {{ if $active }}active{{- end -}}"
+              {{ if findRE `^http` .URL }}
+                target="_blank" rel="noopener"
+              {{ end }}
+              href="{{- if findRE `^#` .URL -}}
+                {{- if not $.IsHome -}}
+                  {{- site.Home.RelPermalink -}}
+                {{- end }}{{- .URL -}}
+              {{- else -}}
+                {{- .URL | relLangURL -}}
+              {{- end -}}"
+              >{{ .Name }}</a
+            >
+          </li>
+        {{ end }}
+      {{ end }}
+    </ul>
+
+    <div class="order-1 ml-auto flex items-center md:order-2 lg:ml-0">
+      {{ with site.Params.search }}
+        {{ if .enable }}
+          <button
+            aria-label="search"
+            class="border-border text-text-dark hover:text-primary
+            dark:border-darkmode-border mr-4 inline-block border-r pr-4
+            text-xl dark:text-darkmode-text-dark cursor-pointer dark:hover:text-darkmode-primary"
+            data-target="search-modal">
+            <i class="fa-solid fa-search"></i>
+          </button>
+        {{ end }}
+      {{ end }}
+
+      <!-- Language selector -->
+      <div class="relative mr-3 hidden sm:block" id="lang-selector">
+        <button
+          aria-label="Language"
+          class="flex items-center gap-1 rounded px-2 py-1 text-sm font-primary text-text-dark hover:text-primary dark:text-darkmode-text-dark dark:hover:text-darkmode-primary cursor-pointer"
+          onclick="document.getElementById('lang-dropdown').classList.toggle('hidden')">
+          <i class="fa-solid fa-globe"></i>
+          <span class="hidden md:inline">EN</span>
+          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+          </svg>
+        </button>
+        <div id="lang-dropdown" class="hidden absolute right-0 mt-1 w-48 max-h-80 overflow-y-auto rounded border border-border bg-body py-1 shadow-sm dark:border-darkmode-border dark:bg-darkmode-body z-50">
+          {{ range site.Data.languages }}
+            <a href="#"
+              class="flex items-center justify-between px-3 py-1.5 text-sm font-primary
+                {{ if eq .code "en" }}
+                  font-semibold text-primary dark:text-darkmode-primary
+                {{ else }}
+                  text-text-dark dark:text-darkmode-text-dark hover:text-primary dark:hover:text-darkmode-primary
+                {{ end }}"
+              data-lang="{{ .code }}">
+              <span>{{ .name }}</span>
+              <span class="text-xs text-text-light dark:text-darkmode-text-light">{{ .native }}</span>
+            </a>
+          {{ end }}
+        </div>
+      </div>
+
+      <!-- Units selector -->
+      <div class="relative mr-3 hidden md:block" id="units-selector">
+        <button
+          aria-label="Units"
+          class="flex items-center gap-1 rounded px-2 py-1 text-xs font-primary font-semibold text-text-dark hover:text-primary dark:text-darkmode-text-dark dark:hover:text-darkmode-primary cursor-pointer"
+          onclick="document.getElementById('units-dropdown').classList.toggle('hidden')">
+          <span class="rounded bg-light px-1.5 py-0.5 dark:bg-darkmode-light">m</span>
+          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+          </svg>
+        </button>
+        <div id="units-dropdown" class="hidden absolute right-0 mt-1 w-36 rounded border border-border bg-body py-1 shadow-sm dark:border-darkmode-border dark:bg-darkmode-body z-50">
+          <a href="#" class="block px-3 py-1.5 text-sm font-primary font-semibold text-primary dark:text-darkmode-primary" data-unit="metric">Metric</a>
+          <a href="#" class="block px-3 py-1.5 text-sm font-primary text-text-dark dark:text-darkmode-text-dark hover:text-primary dark:hover:text-darkmode-primary" data-unit="imperial">Imperial</a>
+        </div>
+      </div>
+
+      {{ partial "components/theme-switcher" (dict "Class" "") }}
+    </div>
+  </nav>
+</header>
