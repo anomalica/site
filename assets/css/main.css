@@ -52,7 +52,7 @@ html {
 
 body {
   font-family: var(--font-content);
-  background: var(--color-paper);
+  background: #EBE8E1;
   color: var(--color-graphite);
   line-height: 1.6;
   display: flex;
