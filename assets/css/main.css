@@ -36,6 +36,14 @@
   --color-copper-light: #D4915E;
   --color-amber: #D49F3D;
 
+  /* Dark mode surfaces (warm neutrals, not teal) */
+  --color-dark-base: #141413;
+  --color-dark-surface: #1C1B19;
+  --color-dark-elevated: #242320;
+  --color-dark-border: #2E2D28;
+  --color-dark-text: #C8C4BC;
+  --color-dark-text-secondary: #8A8579;
+
   /* Font families */
   --font-ui: "Outfit", sans-serif;
   --font-content: "Noto Sans", sans-serif;
@@ -65,8 +73,8 @@ main {
 }
 
 .dark body {
-  background: var(--color-teal-950);
-  color: var(--color-bone);
+  background: #141413;
+  color: #C8C4BC;
 }
 
 /* ================================================================
@@ -158,8 +166,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .tag-teal {
-  background: var(--color-teal-900);
+  background: var(--color-dark-elevated);
   color: var(--color-teal-300);
+  box-shadow: inset 0 0 0 1px var(--color-teal-800);
 }
 
 .tag-copper {
@@ -173,8 +182,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .tag-neutral {
-  background: var(--color-teal-900);
-  color: var(--color-stone);
+  background: var(--color-dark-elevated);
+  color: var(--color-dark-text-secondary);
 }
 
 /* ================================================================
