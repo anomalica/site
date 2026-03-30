@@ -123,7 +123,7 @@ html {
 
 body {
   font-family: var(--font-content);
-  background: #EBE8E1;
+  background: var(--color-chrome-solid, #031F1F);
   color: var(--color-on-surface);
   line-height: 1.6;
   display: flex;
@@ -131,12 +131,16 @@ body {
   min-height: 100vh;
 }
 
-main {
-  flex: 1;
+:root {
+  --chrome-solid: #031F1F;
 }
 
-.dark body {
-  background: #141413;
+.dark {
+  --chrome-solid: #0D0D0C;
+}
+
+main {
+  flex: 1;
 }
 
 /* ================================================================

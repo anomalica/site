@@ -1,0 +1,43 @@
+<!-- Language modal - full screen overlay -->
+<div x-show="langModalOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto bg-surface" @keydown.escape.window="langModalOpen = false">
+  <div class="mx-auto max-w-5xl px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-10">
+      <div>
+        <h2 class="font-ui text-xl font-semibold">Language</h2>
+        <p class="text-sm text-on-surface-secondary">30 languages covering 77% of the world's literate population</p>
+      </div>
+      <button @click="langModalOpen = false" class="rounded-full p-2 text-on-surface-secondary hover:text-on-surface transition-colors cursor-pointer" aria-label="Close">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    {{ $scripts := dict
+      "latin" "Latin scripts"
+      "cjk" "CJK scripts"
+      "arabic" "Arabic scripts"
+      "cyrillic" "Cyrillic scripts"
+      "south-asian" "South and Southeast Asian scripts"
+    }}
+
+    {{ $order := slice "latin" "cjk" "arabic" "cyrillic" "south-asian" }}
+
+    {{ range $order }}
+      {{ $scriptKey := . }}
+      {{ $label := index $scripts $scriptKey }}
+      <div class="mb-10">
+        <p class="section-label mb-4">{{ $label }}</p>
+        <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {{ range site.Data.languages }}
+            {{ if eq .script $scriptKey }}
+              <a href="#" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-brand{{ if eq .code "en" }} border-brand bg-brand-subtle{{ end }}">
+                <span class="font-ui text-sm font-medium{{ if eq .code "en" }} text-brand{{ else }} text-on-surface group-hover:text-brand{{ end }}">{{ .name }}</span>
+                <span class="text-xs text-on-surface-muted">{{ .native }}</span>
+              </a>
+            {{ end }}
+          {{ end }}
+        </div>
+      </div>
+    {{ end }}
+  </div>
+</div>

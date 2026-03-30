@@ -1,4 +1,4 @@
-<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="{ mobileOpen: false, langOpen: false, unitsOpen: false }" @click.outside="langOpen = false; unitsOpen = false">
+<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="{ mobileOpen: false, unitsOpen: false }" @click.outside="unitsOpen = false">
   <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-2">
     <!-- Logo -->
     <a href="{{ site.Home.RelPermalink }}" class="flex-none">
@@ -30,22 +30,11 @@
 
     <!-- Right controls -->
     <div class="flex items-center gap-1">
-      <!-- Language selector -->
-      <div class="relative hidden sm:block">
-        <button @click="langOpen = !langOpen; unitsOpen = false" class="flex items-center gap-1 rounded px-2 py-1 text-sm font-ui text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
-          <span class="hidden md:inline">EN</span>
-          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-        </button>
-        <div x-show="langOpen" x-transition class="absolute right-0 mt-1 w-52 max-h-80 overflow-y-auto rounded bg-surface-raised border border-border py-1 shadow-lg z-50">
-          {{ range site.Data.languages }}
-            <a href="#" class="flex items-center justify-between px-4 py-1.5 text-sm {{ if eq .code "en" }}text-brand font-medium{{ else }}text-on-surface-secondary hover:text-brand{{ end }}" data-lang="{{ .code }}">
-              <span>{{ .name }}</span>
-              <span class="text-xs text-on-surface-muted">{{ .native }}</span>
-            </a>
-          {{ end }}
-        </div>
-      </div>
+      <!-- Language selector (opens modal) -->
+      <button @click="langModalOpen = true" class="flex items-center gap-1 rounded px-2 py-1 text-sm font-ui text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
+        <span class="hidden md:inline">EN</span>
+      </button>
 
       <!-- Units selector -->
       <div class="relative hidden md:block">

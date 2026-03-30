@@ -38,7 +38,7 @@
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 </head>
-<body x-data="{ darkMode: document.documentElement.classList.contains('dark') }" x-effect="
+<body x-data="{ darkMode: document.documentElement.classList.contains('dark'), langModalOpen: false }" x-effect="
   document.documentElement.classList.toggle('dark', darkMode);
   localStorage.setItem('theme', darkMode ? 'dark' : 'light');
 ">
@@ -49,5 +49,6 @@
   </main>
 
   {{ partial "footer.html" . }}
+  {{ partial "language-modal.html" . }}
 </body>
 </html>
