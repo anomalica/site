@@ -42,11 +42,10 @@
       </div>
     </div>
 
-    <!-- Languages bar -->
+    <!-- Languages -->
     <div class="mt-10 border-t border-on-chrome/10 pt-6">
-      <div class="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-on-chrome-secondary/60 font-ui">
-        <span class="text-on-chrome-secondary mr-2">Languages:</span>
-        {{ range $i, $lang := site.Data.languages }}{{ if $i }} &middot; {{ end }}<a href="#" class="hover:text-on-chrome-active transition-colors{{ if eq .code "en" }} text-on-chrome-secondary{{ end }}">{{ .name }}</a>{{ end }}
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary/50 font-ui">
+        {{ range $i, $lang := site.Data.languages }}{{ if $i }} &middot; {{ end }}<button @click="langModalOpen = true" class="hover:text-on-chrome-active transition-colors cursor-pointer{{ if eq .code "en" }} text-on-chrome-secondary{{ end }}">{{ .native }}</button>{{ end }}
       </div>
     </div>
   </div>
