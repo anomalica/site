@@ -1,7 +1,6 @@
 {{ define "main" }}
-  <article class="bg-white py-14 dark:bg-dark-surface">
+  <article class="bg-surface py-14">
     <div class="mx-auto max-w-3xl px-6">
-      <!-- Node type label -->
       {{ with .Section }}
         <p class="section-label mb-1">{{ . | humanize }}</p>
       {{ end }}
@@ -9,7 +8,7 @@
       <h1 class="mb-1 text-3xl font-semibold">{{ .Title }}</h1>
 
       {{ with .Params.description }}
-        <p class="mb-4 text-slate dark:text-dark-text-secondary">{{ . }}</p>
+        <p class="mb-4 text-on-surface-secondary">{{ . }}</p>
       {{ end }}
 
       {{ with .Params.metadata }}
@@ -25,17 +24,17 @@
       </div>
 
       {{ with .Params.references }}
-        <div class="mt-10 border-l-2 border-teal-500 pl-4">
+        <div class="mt-10 border-l-2 border-brand pl-4">
           <p class="section-label mb-3">References</p>
           <ol class="list-decimal space-y-2 pl-4 text-sm">
             {{ range . }}
               <li>
                 {{ .text }}
                 {{ with .source }}
-                  <span class="text-pebble"> - {{ . }}</span>
+                  <span class="text-on-surface-secondary"> - {{ . }}</span>
                 {{ end }}
                 {{ with .location }}
-                  <span class="text-stone">({{ . }})</span>
+                  <span class="text-on-surface-muted">({{ . }})</span>
                 {{ end }}
               </li>
             {{ end }}

@@ -1,22 +1,22 @@
 {{ define "main" }}
   <!-- Hero -->
-  <section class="bg-[#064D4D] dark:bg-[#0A1A1A] relative overflow-hidden py-24 text-center">
+  <section class="bg-hero-bg relative overflow-hidden py-24 text-center">
     <div class="mx-auto max-w-3xl px-6 relative z-10">
-      <p class="font-ui text-xs font-medium uppercase tracking-[0.25em] text-teal-400 mb-8">Encyclopaedia of Anomalous Phenomena</p>
+      <p class="font-ui text-xs font-medium uppercase tracking-[0.25em] text-brand mb-8">Encyclopaedia of Anomalous Phenomena</p>
       <div class="mx-auto max-w-[540px] mb-6">
         {{ with resources.Get "images/logo-darkmode.svg" }}
           <img src="{{ .RelPermalink }}" alt="{{ site.Title }}" class="w-full brightness-0 invert">
         {{ end }}
       </div>
-      <hr class="mx-auto my-6 w-14 border-none h-px bg-teal-500">
-      <p class="font-ui font-light text-lg tracking-wider text-teal-200">
+      <hr class="mx-auto my-6 w-14 border-none h-px bg-brand-muted">
+      <p class="font-ui font-light text-lg tracking-wider text-on-chrome">
         Source-attributed. Algorithmically scored. Open data.
       </p>
     </div>
   </section>
 
   <!-- Browse -->
-  <section class="bg-white py-16 dark:bg-dark-surface">
+  <section class="bg-surface py-16">
     <div class="mx-auto max-w-5xl px-6">
       <p class="section-label mb-6">Browse</p>
       <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -28,9 +28,9 @@
           (dict "name" "Matters" "desc" "Ongoing situations spanning time")
           (dict "name" "Objects" "desc" "Named physical things and artefacts")
         ) }}
-          <a href="/{{ .name | urlize }}/" class="group block rounded-lg border border-fog bg-paper p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all hover:border-teal-500 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:border-dark-border dark:bg-dark-elevated dark:hover:border-teal-700">
-            <h3 class="mb-1 font-ui text-sm font-semibold text-ink group-hover:text-teal-700 dark:text-white dark:group-hover:text-teal-300">{{ .name }}</h3>
-            <p class="text-sm text-pebble dark:text-dark-text-secondary leading-relaxed">{{ .desc }}</p>
+          <a href="/{{ .name | urlize }}/" class="group block rounded-lg border border-border bg-surface-raised p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all hover:border-brand hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+            <h3 class="mb-1 font-ui text-sm font-semibold text-on-surface group-hover:text-brand">{{ .name }}</h3>
+            <p class="text-sm text-on-surface-secondary leading-relaxed">{{ .desc }}</p>
           </a>
         {{ end }}
       </div>
@@ -38,7 +38,7 @@
   </section>
 
   <!-- Principles -->
-  <section class="bg-paper py-16 dark:bg-dark-base">
+  <section class="bg-surface-alt py-16">
     <div class="mx-auto max-w-5xl px-6">
       <p class="section-label mb-6">Principles</p>
       <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -51,8 +51,8 @@
           (dict "title" "Multilingual" "desc" "30 languages covering 77% of the world's literate population.")
         ) }}
           <div>
-            <h3 class="mb-1 font-ui text-sm font-medium text-teal-700 dark:text-teal-300">{{ .title }}</h3>
-            <p class="text-sm text-slate dark:text-dark-text-secondary leading-relaxed">{{ .desc }}</p>
+            <h3 class="mb-1 font-ui text-sm font-medium text-brand">{{ .title }}</h3>
+            <p class="text-sm text-on-surface-secondary leading-relaxed">{{ .desc }}</p>
           </div>
         {{ end }}
       </div>
@@ -60,9 +60,9 @@
   </section>
 
   <!-- Status -->
-  <section class="bg-white py-10 dark:bg-dark-surface">
+  <section class="bg-surface py-10">
     <div class="mx-auto max-w-3xl px-6 text-center">
-      <p class="text-sm text-stone dark:text-dark-text-secondary">
+      <p class="text-sm text-on-surface-muted">
         Anomalica is in early development. Content will appear as the assembly pipeline comes online.
       </p>
     </div>

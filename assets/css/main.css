@@ -3,11 +3,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ================================================================
-   Anomalica palette
-   Derived from brand/brand-board.html
+   Raw palette
+   These are the fixed colour values. Not used directly in templates.
    ================================================================ */
 @theme {
-  /* Primary teal */
+  /* Teal scale */
   --color-teal-950: #031F1F;
   --color-teal-900: #064D4D;
   --color-teal-800: #085E5E;
@@ -36,17 +36,80 @@
   --color-copper-light: #D4915E;
   --color-amber: #D49F3D;
 
-  /* Dark mode surfaces (warm neutrals, not teal) */
-  --color-dark-base: #141413;
-  --color-dark-surface: #1C1B19;
-  --color-dark-elevated: #242320;
-  --color-dark-border: #2E2D28;
-  --color-dark-text: #C8C4BC;
-  --color-dark-text-secondary: #8A8579;
+  /* Semantic tokens - resolve via CSS variables */
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-raised: var(--surface-raised);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-secondary: var(--on-surface-secondary);
+  --color-on-surface-muted: var(--on-surface-muted);
+  --color-chrome: var(--chrome);
+  --color-on-chrome: var(--on-chrome);
+  --color-on-chrome-secondary: var(--on-chrome-secondary);
+  --color-on-chrome-active: var(--on-chrome-active);
+  --color-border: var(--border-color);
+  --color-border-strong: var(--border-strong);
+  --color-hero-bg: var(--hero-bg);
 
   /* Font families */
   --font-ui: "Outfit", sans-serif;
   --font-content: "Noto Sans", sans-serif;
+}
+
+/* ================================================================
+   Light mode token values
+   ================================================================ */
+:root {
+  --brand: #0B6E6E;
+  --brand-hover: #085E5E;
+  --brand-muted: #72D3D3;
+  --brand-subtle: #D1F1F1;
+
+  --surface: #FFFFFF;
+  --surface-alt: #F8F6F1;
+  --surface-raised: #F8F6F1;
+  --on-surface: #3D3B35;
+  --on-surface-secondary: #5E5A50;
+  --on-surface-muted: #B5B0A6;
+  --border-color: #D6D2C9;
+  --border-strong: #B5B0A6;
+
+  --chrome: rgba(3, 31, 31, 0.95);
+  --on-chrome: #72D3D3;
+  --on-chrome-secondary: #4BB8B8;
+  --on-chrome-active: #FFFFFF;
+
+  --hero-bg: #064D4D;
+}
+
+/* ================================================================
+   Dark mode token values
+   ================================================================ */
+.dark {
+  --brand: #4BB8B8;
+  --brand-hover: #72D3D3;
+  --brand-muted: #085E5E;
+  --brand-subtle: #1E2422;
+
+  --surface: #1C1B19;
+  --surface-alt: #141413;
+  --surface-raised: #242320;
+  --on-surface: #C8C4BC;
+  --on-surface-secondary: #8A8579;
+  --on-surface-muted: #5E5A50;
+  --border-color: #2E2D28;
+  --border-strong: #3D3B35;
+
+  --chrome: rgba(20, 20, 19, 0.95);
+  --on-chrome: #4BB8B8;
+  --on-chrome-secondary: #72D3D3;
+  --on-chrome-active: #FFFFFF;
+
+  --hero-bg: #141413;
 }
 
 /* ================================================================
@@ -61,7 +124,7 @@ html {
 body {
   font-family: var(--font-content);
   background: #EBE8E1;
-  color: var(--color-graphite);
+  color: var(--color-on-surface);
   line-height: 1.6;
   display: flex;
   flex-direction: column;
@@ -74,7 +137,6 @@ main {
 
 .dark body {
   background: #141413;
-  color: #C8C4BC;
 }
 
 /* ================================================================
@@ -91,13 +153,12 @@ h1, h2, h3, h4, h5, h6 {
   color: #FFFFFF;
 }
 
-/* UI text (nav, buttons, labels, metadata) */
 .font-ui {
   font-family: var(--font-ui);
 }
 
 /* ================================================================
-   Links (content)
+   Content (article body)
    ================================================================ */
 .content {
   font-size: 1.0625rem;
@@ -109,30 +170,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .content a {
-  color: var(--color-teal-700);
+  color: var(--color-brand);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--color-teal-300);
+  text-decoration-color: var(--color-brand-muted);
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
 .content a:hover {
-  color: var(--color-teal-900);
-  text-decoration-color: var(--color-teal-700);
-}
-
-.dark .content a {
-  color: var(--color-teal-300);
-  text-decoration-color: var(--color-teal-700);
-}
-
-.dark .content a:hover {
-  color: #FFFFFF;
-  text-decoration-color: var(--color-teal-400);
+  color: var(--color-brand-hover);
+  text-decoration-color: var(--color-brand);
 }
 
 /* ================================================================
-   Section label (small uppercase tracked headings)
+   Section label
    ================================================================ */
 .section-label {
   font-family: var(--font-ui);
@@ -140,15 +191,11 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: var(--color-teal-700);
-}
-
-.dark .section-label {
-  color: var(--color-teal-300);
+  color: var(--color-brand);
 }
 
 /* ================================================================
-   Tags (pill-shaped labels)
+   Tags
    ================================================================ */
 .tag {
   font-family: var(--font-ui);
@@ -161,19 +208,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tag-teal {
-  background: var(--color-teal-100);
-  color: var(--color-teal-800);
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
 }
 
 .dark .tag-teal {
-  background: var(--color-dark-elevated);
-  color: var(--color-teal-300);
-  box-shadow: inset 0 0 0 1px var(--color-teal-800);
+  box-shadow: inset 0 0 0 1px var(--color-brand-muted);
 }
 
 .tag-copper {
   background: #F5E0CC;
   color: #7A3E1A;
+}
+
+.dark .tag-copper {
+  background: #2A2118;
+  color: var(--color-copper-light);
 }
 
 .tag-neutral {
@@ -182,8 +232,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .tag-neutral {
-  background: var(--color-dark-elevated);
-  color: var(--color-dark-text-secondary);
+  background: var(--color-surface-raised);
+  color: var(--color-on-surface-secondary);
 }
 
 /* ================================================================
@@ -208,20 +258,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: var(--color-teal-700);
+  background: var(--color-brand);
   color: #FFFFFF;
 }
 
+.dark .btn-primary {
+  color: #141413;
+}
+
 .btn-primary:hover {
-  background: var(--color-teal-800);
+  background: var(--color-brand-hover);
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--color-teal-700);
-  box-shadow: inset 0 0 0 1.5px var(--color-teal-700);
+  color: var(--color-brand);
+  box-shadow: inset 0 0 0 1.5px var(--color-brand);
 }
 
 .btn-secondary:hover {
-  background: var(--color-teal-50);
+  background: var(--color-brand-subtle);
 }
