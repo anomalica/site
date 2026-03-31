@@ -1,0 +1,24 @@
+{{ if not .IsHome }}
+<nav aria-label="Breadcrumb" class="bg-surface border-b border-border">
+  <div class="mx-auto max-w-6xl px-6 py-2">
+    <ol class="flex items-center gap-1 text-xs font-ui text-on-surface-muted">
+      <li><a href="/" class="hover:text-primary transition-colors">Home</a></li>
+      {{ if .Section }}
+        <li class="before:content-['/'] before:mx-1.5 before:text-on-surface-muted/50">
+          <a href="/{{ .Section | urlize }}/" class="hover:text-primary transition-colors">{{ .Section | humanize }}</a>
+        </li>
+      {{ end }}
+      {{ if and .Section (not .IsSection) }}
+        <li class="before:content-['/'] before:mx-1.5 before:text-on-surface-muted/50">
+          <span class="text-on-surface-secondary" aria-current="page">{{ .Title }}</span>
+        </li>
+      {{ end }}
+      {{ if and (not .Section) (not .IsHome) }}
+        <li class="before:content-['/'] before:mx-1.5 before:text-on-surface-muted/50">
+          <span class="text-on-surface-secondary" aria-current="page">{{ .Title }}</span>
+        </li>
+      {{ end }}
+    </ol>
+  </div>
+</nav>
+{{ end }}

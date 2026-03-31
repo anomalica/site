@@ -42,9 +42,11 @@
   document.documentElement.classList.toggle('dark', darkMode);
   localStorage.setItem('theme', darkMode ? 'dark' : 'light');
 ">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-primary focus:text-on-primary focus:px-4 focus:py-2 focus:text-sm focus:font-ui">Skip to content</a>
   {{ partial "header.html" . }}
+  {{ partial "breadcrumbs.html" . }}
 
-  <main class="bg-surface">
+  <main id="main-content" class="bg-surface">
     {{ block "main" . }}{{ end }}
   </main>
 

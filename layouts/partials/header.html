@@ -1,5 +1,5 @@
-<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="{ mobileOpen: false, unitsOpen: false }" @click.outside="unitsOpen = false">
-  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-2">
+<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="{ mobileOpen: false, unitsOpen: false, searchFocused: false }" @click.outside="unitsOpen = false">
+  <nav class="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2">
     <!-- Logo -->
     <a href="{{ site.Home.RelPermalink }}" class="flex-none">
       {{ with resources.Get "images/logo-darkmode.svg" }}
@@ -7,23 +7,21 @@
       {{ end }}
     </a>
 
-    <!-- Desktop nav -->
-    <ul class="hidden lg:flex items-center gap-6 font-ui text-sm">
-      <li class="relative group">
-        <button class="text-on-chrome hover:text-on-chrome-active transition-colors inline-flex items-center gap-1 cursor-pointer">
-          Browse
-          <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-        </button>
-        <ul class="invisible absolute left-0 top-full mt-1 w-44 rounded bg-surface-raised py-1 shadow-lg border border-border opacity-0 transition-all group-hover:visible group-hover:opacity-100">
-          {{ range (slice "People" "Organisations" "Places" "Events" "Matters" "Objects") }}
-            <li><a href="/{{ . | urlize }}/" class="block px-4 py-1.5 text-sm text-on-surface-secondary hover:text-primary">{{ . }}</a></li>
-          {{ end }}
-        </ul>
-      </li>
-    </ul>
+    <!-- Search bar -->
+    <div class="hidden lg:flex flex-1 max-w-md mx-auto">
+      <div class="relative w-full" :class="searchFocused ? 'ring-1 ring-on-chrome-active/30 rounded' : ''">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-on-chrome-secondary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search records..." class="w-full rounded bg-on-chrome/10 py-1.5 pl-9 pr-3 text-sm font-ui text-on-chrome-active placeholder:text-on-chrome-secondary/50 outline-none transition-colors focus:bg-on-chrome/15" @focus="searchFocused = true" @blur="searchFocused = false" disabled title="Search coming soon">
+      </div>
+    </div>
 
     <!-- Right controls -->
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1 flex-none">
+      <!-- Mobile search icon -->
+      <button class="lg:hidden rounded p-2 text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer" aria-label="Search" disabled title="Search coming soon">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+      </button>
+
       <!-- Language selector (opens modal) -->
       <button @click="langModalOpen = true" class="flex items-center gap-1 rounded px-2 py-1 text-sm font-ui text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
@@ -32,7 +30,7 @@
 
       <!-- Units selector -->
       <div class="relative hidden md:block">
-        <button @click="unitsOpen = !unitsOpen; langOpen = false" class="flex items-center gap-1 rounded px-2 py-1 text-xs font-ui font-semibold text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer">
+        <button @click="unitsOpen = !unitsOpen" class="flex items-center gap-1 rounded px-2 py-1 text-xs font-ui font-semibold text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer">
           <span class="rounded bg-on-chrome/15 px-1.5 py-0.5">m</span>
           <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
         </button>
