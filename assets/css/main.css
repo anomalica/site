@@ -109,7 +109,7 @@
   --on-chrome-secondary: #72D3D3;
   --on-chrome-active: #FFFFFF;
 
-  --hero-bg: #141413;
+  --hero-bg: #1A1F1E;
 }
 
 /* ================================================================
@@ -146,15 +146,17 @@ main {
 /* ================================================================
    Typography
    ================================================================ */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-content);
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--color-ink);
-}
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-content);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--color-ink);
+  }
 
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-  color: #FFFFFF;
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: #FFFFFF;
+  }
 }
 
 .font-ui {
