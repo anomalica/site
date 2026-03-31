@@ -16,7 +16,7 @@
         </button>
         <ul class="invisible absolute left-0 top-full mt-1 w-44 rounded bg-surface-raised py-1 shadow-lg border border-border opacity-0 transition-all group-hover:visible group-hover:opacity-100">
           {{ range (slice "People" "Organisations" "Places" "Events" "Matters" "Objects") }}
-            <li><a href="/{{ . | urlize }}/" class="block px-4 py-1.5 text-sm text-on-surface-secondary hover:text-brand">{{ . }}</a></li>
+            <li><a href="/{{ . | urlize }}/" class="block px-4 py-1.5 text-sm text-on-surface-secondary hover:text-primary">{{ . }}</a></li>
           {{ end }}
         </ul>
       </li>
@@ -37,8 +37,8 @@
           <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
         </button>
         <div x-show="unitsOpen" x-transition class="absolute right-0 mt-1 w-36 rounded bg-surface-raised border border-border py-1 shadow-lg z-50">
-          <a href="#" class="block px-4 py-1.5 text-sm text-brand font-medium" data-unit="metric">Metric</a>
-          <a href="#" class="block px-4 py-1.5 text-sm text-on-surface-secondary hover:text-brand" data-unit="imperial">Imperial</a>
+          <a href="#" class="block px-4 py-1.5 text-sm text-primary font-medium" data-unit="metric">Metric</a>
+          <a href="#" class="block px-4 py-1.5 text-sm text-on-surface-secondary hover:text-primary" data-unit="imperial">Imperial</a>
         </div>
       </div>
 

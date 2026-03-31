@@ -13,8 +13,8 @@
       {{ if $pages }}
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {{ range $pages }}
-            <a href="{{ .RelPermalink }}" class="group block rounded-lg border border-border bg-surface-raised p-6 transition-all hover:border-brand hover:shadow-sm">
-              <h2 class="mb-1 font-ui text-base font-semibold text-on-surface group-hover:text-brand">
+            <a href="{{ .RelPermalink }}" class="group block rounded-lg border border-border bg-surface-raised p-6 transition-all hover:border-primary hover:shadow-sm">
+              <h2 class="mb-1 font-ui text-base font-semibold text-on-surface group-hover:text-primary">
                 {{ .Title }}
               </h2>
               {{ with .Params.description }}

@@ -34,13 +34,31 @@
   /* Accents */
   --color-copper: #B35A28;
   --color-copper-light: #D4915E;
-  --color-amber: #D49F3D;
 
   /* Semantic tokens - resolve via CSS variables */
-  --color-brand: var(--brand);
-  --color-brand-hover: var(--brand-hover);
-  --color-brand-muted: var(--brand-muted);
-  --color-brand-subtle: var(--brand-subtle);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-muted: var(--primary-muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-container: var(--accent-container);
+  --color-on-accent-container: var(--on-accent-container);
+  --color-accent-hover: var(--accent-hover);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-warning: var(--warning);
+  --color-on-warning: var(--on-warning);
+  --color-warning-container: var(--warning-container);
+  --color-on-warning-container: var(--on-warning-container);
+  --color-success: var(--success);
+  --color-on-success: var(--on-success);
+  --color-success-container: var(--success-container);
+  --color-on-success-container: var(--on-success-container);
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
   --color-surface-raised: var(--surface-raised);
@@ -64,10 +82,33 @@
    Light mode token values
    ================================================================ */
 :root {
-  --brand: #0B6E6E;
-  --brand-hover: #085E5E;
-  --brand-muted: #72D3D3;
-  --brand-subtle: #D1F1F1;
+  --primary: #0B6E6E;
+  --on-primary: #FFFFFF;
+  --primary-container: #D1F1F1;
+  --on-primary-container: #064D4D;
+  --primary-hover: #085E5E;
+  --primary-muted: #72D3D3;
+
+  --accent: #B35A28;
+  --on-accent: #FFFFFF;
+  --accent-container: #F5E0CC;
+  --on-accent-container: #7A3E1A;
+  --accent-hover: #9A4D22;
+
+  --error: #B83230;
+  --on-error: #FFFFFF;
+  --error-container: #FDEAEA;
+  --on-error-container: #7A1F1E;
+
+  --warning: #D49F3D;
+  --on-warning: #FFFFFF;
+  --warning-container: #FDF3E0;
+  --on-warning-container: #7A5A1A;
+
+  --success: #2D7D46;
+  --on-success: #FFFFFF;
+  --success-container: #E6F4EA;
+  --on-success-container: #1A5C2E;
 
   --surface: #FFFFFF;
   --surface-alt: #F8F6F1;
@@ -90,10 +131,33 @@
    Dark mode token values
    ================================================================ */
 .dark {
-  --brand: #4BB8B8;
-  --brand-hover: #72D3D3;
-  --brand-muted: #085E5E;
-  --brand-subtle: #1E2422;
+  --primary: #4BB8B8;
+  --on-primary: #141413;
+  --primary-container: #1E2422;
+  --on-primary-container: #4BB8B8;
+  --primary-hover: #72D3D3;
+  --primary-muted: #085E5E;
+
+  --accent: #E8A878;
+  --on-accent: #1E1D19;
+  --accent-container: #2A1E15;
+  --on-accent-container: #E8A878;
+  --accent-hover: #F0BD96;
+
+  --error: #E57373;
+  --on-error: #1E1D19;
+  --error-container: #2C1A1A;
+  --on-error-container: #E57373;
+
+  --warning: #F0C86A;
+  --on-warning: #1E1D19;
+  --warning-container: #2A2214;
+  --on-warning-container: #F0C86A;
+
+  --success: #6ABF82;
+  --on-success: #1E1D19;
+  --success-container: #1A2A1E;
+  --on-success-container: #6ABF82;
 
   --surface: #1C1B19;
   --surface-alt: #141413;
@@ -151,11 +215,7 @@ main {
     font-family: var(--font-content);
     font-weight: 600;
     line-height: 1.2;
-    color: var(--color-ink);
-  }
-
-  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-    color: #FFFFFF;
+    color: var(--color-on-surface);
   }
 }
 
@@ -176,16 +236,16 @@ main {
 }
 
 .content a {
-  color: var(--color-brand);
+  color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--color-brand-muted);
+  text-decoration-color: var(--color-primary-muted);
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
 .content a:hover {
-  color: var(--color-brand-hover);
-  text-decoration-color: var(--color-brand);
+  color: var(--color-primary-hover);
+  text-decoration-color: var(--color-primary);
 }
 
 /* ================================================================
@@ -197,7 +257,7 @@ main {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: var(--color-brand);
+  color: var(--color-primary);
 }
 
 /* ================================================================
@@ -214,22 +274,21 @@ main {
 }
 
 .tag-teal {
-  background: var(--color-brand-subtle);
-  color: var(--color-brand);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
 }
 
 .dark .tag-teal {
-  box-shadow: inset 0 0 0 1px var(--color-brand-muted);
+  box-shadow: inset 0 0 0 1px var(--color-primary-muted);
 }
 
 .tag-copper {
-  background: #F5E0CC;
-  color: #7A3E1A;
+  background: var(--color-accent-container);
+  color: var(--color-on-accent-container);
 }
 
 .dark .tag-copper {
-  background: #2A2118;
-  color: var(--color-copper-light);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
 }
 
 .tag-neutral {
@@ -264,24 +323,20 @@ main {
 }
 
 .btn-primary {
-  background: var(--color-brand);
-  color: #FFFFFF;
-}
-
-.dark .btn-primary {
-  color: #141413;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .btn-primary:hover {
-  background: var(--color-brand-hover);
+  background: var(--color-primary-hover);
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--color-brand);
-  box-shadow: inset 0 0 0 1.5px var(--color-brand);
+  color: var(--color-primary);
+  box-shadow: inset 0 0 0 1.5px var(--color-primary);
 }
 
 .btn-secondary:hover {
-  background: var(--color-brand-subtle);
+  background: var(--color-primary-container);
 }
