@@ -3,11 +3,157 @@ title = "Anomalica"
 timeZone = "UTC"
 hasCJKLanguage = true
 defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = true
 
 [languages.en]
 languageName = "English"
 languageCode = "en-GB"
 weight = 1
+
+[languages.en-US]
+languageName = "English (US)"
+languageCode = "en-US"
+weight = 2
+
+[languages.zh]
+languageName = "中文"
+languageCode = "zh"
+weight = 3
+
+[languages.zh-Hant]
+languageName = "繁體中文"
+languageCode = "zh-Hant"
+weight = 4
+
+[languages.es]
+languageName = "Español"
+languageCode = "es"
+weight = 5
+
+[languages.hi]
+languageName = "हिन्दी"
+languageCode = "hi"
+weight = 6
+
+[languages.ar]
+languageName = "العربية"
+languageCode = "ar"
+weight = 7
+
+[languages.pt]
+languageName = "Português"
+languageCode = "pt"
+weight = 8
+
+[languages.ru]
+languageName = "Русский"
+languageCode = "ru"
+weight = 9
+
+[languages.id]
+languageName = "Bahasa Indonesia"
+languageCode = "id"
+weight = 10
+
+[languages.fr]
+languageName = "Français"
+languageCode = "fr"
+weight = 11
+
+[languages.ja]
+languageName = "日本語"
+languageCode = "ja"
+weight = 12
+
+[languages.bn]
+languageName = "বাংলা"
+languageCode = "bn"
+weight = 13
+
+[languages.ur]
+languageName = "اردو"
+languageCode = "ur"
+weight = 14
+
+[languages.sw]
+languageName = "Kiswahili"
+languageCode = "sw"
+weight = 15
+
+[languages.vi]
+languageName = "Tiếng Việt"
+languageCode = "vi"
+weight = 16
+
+[languages.ko]
+languageName = "한국어"
+languageCode = "ko"
+weight = 17
+
+[languages.tr]
+languageName = "Türkçe"
+languageCode = "tr"
+weight = 18
+
+[languages.fa]
+languageName = "فارسی"
+languageCode = "fa"
+weight = 19
+
+[languages.th]
+languageName = "ไทย"
+languageCode = "th"
+weight = 20
+
+[languages.de]
+languageName = "Deutsch"
+languageCode = "de"
+weight = 21
+
+[languages.my]
+languageName = "မြန်မာ"
+languageCode = "my"
+weight = 22
+
+[languages.it]
+languageName = "Italiano"
+languageCode = "it"
+weight = 23
+
+[languages.uz]
+languageName = "Oʻzbekcha"
+languageCode = "uz"
+weight = 24
+
+[languages.te]
+languageName = "తెలుగు"
+languageCode = "te"
+weight = 25
+
+[languages.mr]
+languageName = "मराठी"
+languageCode = "mr"
+weight = 26
+
+[languages.ta]
+languageName = "தமிழ்"
+languageCode = "ta"
+weight = 27
+
+[languages.pl]
+languageName = "Polski"
+languageCode = "pl"
+weight = 28
+
+[languages.tl]
+languageName = "Tagalog"
+languageCode = "tl"
+weight = 29
+
+[languages.uk]
+languageName = "Українська"
+languageCode = "uk"
+weight = 30
 
 [pagination]
 pagerSize = 20
@@ -25,8 +171,8 @@ source = "content/english"
 target = "content"
 
 [[module.mounts]]
-source = "../anomalica-content/pages"
-target = "content/pages"
+source = "../anomalica-content/legal"
+target = "content/legal"
 
 [[module.mounts]]
 source = "assets"

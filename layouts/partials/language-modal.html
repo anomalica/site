@@ -22,6 +22,8 @@
 
     {{ $order := slice "latin" "cjk" "arabic" "cyrillic" "south-asian" }}
 
+    {{ $currentLang := site.Language.Lang }}
+
     {{ range $order }}
       {{ $scriptKey := . }}
       {{ $label := index $scripts $scriptKey }}
@@ -30,8 +32,10 @@
         <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {{ range site.Data.languages }}
             {{ if eq .script $scriptKey }}
-              <a href="#" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-primary{{ if eq .code "en" }} border-primary bg-primary-container{{ end }}">
-                <span class="font-ui text-sm font-medium{{ if eq .code "en" }} text-primary{{ else }} text-on-surface group-hover:text-primary{{ end }}">{{ .name }}</span>
+              {{ $isActive := eq .code $currentLang }}
+              {{ $langHome := print "/" .code "/" }}
+              <a href="{{ $langHome }}" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-primary{{ if $isActive }} border-primary bg-primary-container{{ end }}">
+                <span class="font-ui text-sm font-medium{{ if $isActive }} text-primary{{ else }} text-on-surface group-hover:text-primary{{ end }}">{{ .name }}</span>
                 <span class="text-xs text-on-surface-muted">{{ .native }}</span>
               </a>
             {{ end }}

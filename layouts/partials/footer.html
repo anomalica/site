@@ -26,9 +26,9 @@
       <div>
         <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">Legal</h3>
         <ul class="space-y-2 text-sm">
-          <li><a href="/privacy/" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">Privacy policy</a></li>
-          <li><a href="/terms/" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">Terms of use</a></li>
-          <li><a href="/licence/" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">Licencing</a></li>
+          <li><a href="{{ "legal/privacy/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">Privacy policy</a></li>
+          <li><a href="{{ "legal/terms/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">Terms of use</a></li>
+          <li><a href="{{ "legal/licence/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">Licencing</a></li>
         </ul>
       </div>
 
@@ -45,7 +45,7 @@
     <!-- Languages -->
     <div class="mt-10 border-t border-on-chrome/10 pt-6">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary/50 font-ui">
-        {{ range $i, $lang := site.Data.languages }}{{ if $i }} &middot; {{ end }}<button @click="langModalOpen = true" class="hover:text-on-chrome-active transition-colors cursor-pointer{{ if eq .code "en" }} text-on-chrome-secondary{{ end }}">{{ .native }}</button>{{ end }}
+        {{ $currentLang := site.Language.Lang }}{{ range $i, $lang := site.Data.languages }}{{ if $i }} &middot; {{ end }}<a href="/{{ .code }}/" class="hover:text-on-chrome-active transition-colors{{ if eq .code $currentLang }} text-on-chrome-secondary{{ end }}">{{ .native }}</a>{{ end }}
       </div>
     </div>
   </div>
