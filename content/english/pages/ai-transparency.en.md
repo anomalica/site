@@ -1,7 +1,6 @@
 ---
 title: "AI Transparency"
 description: "How Anomalica uses artificial intelligence, what it does, and what it does not do."
-url: /ai-transparency/
 ---
 
 ## Principle

@@ -1,7 +1,6 @@
 ---
 title: "Methodology"
 description: "How content is produced, from source material to published article."
-url: /methodology/
 ---
 
 ## Pipeline

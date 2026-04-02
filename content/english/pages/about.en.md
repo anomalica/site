@@ -1,7 +1,6 @@
 ---
 title: "About Anomalica"
 description: "An international, jurisdiction-independent reference platform for documenting anomalous phenomena."
-url: /about/
 ---
 
 Anomalica is a structured reference platform for anomalous phenomena. Every factual claim on the site traces to a specific source document, with evidence strength computed algorithmically rather than editorially.
