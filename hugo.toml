@@ -7,7 +7,6 @@ defaultContentLanguage = "en"
 [languages.en]
 languageName = "English"
 languageCode = "en-GB"
-contentDir = "content/english"
 weight = 1
 
 [pagination]
@@ -22,8 +21,17 @@ target = "css"
 
 [module]
 [[module.mounts]]
+source = "content/english"
+target = "content"
+
+[[module.mounts]]
+source = "../anomalica-content/pages"
+target = "content/pages"
+
+[[module.mounts]]
 source = "assets"
 target = "assets"
+
 [[module.mounts]]
 disableWatch = true
 source = "hugo_stats.json"
