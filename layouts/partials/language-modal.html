@@ -36,8 +36,9 @@
         <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {{ range site.Data.languages }}
             {{ if eq .script $scriptKey }}
-              {{ $isActive := eq .code $currentLang }}
-              {{ $target := index $translations .code | default (print "/" .code "/") }}
+              {{ $langKey := .code | lower }}
+              {{ $isActive := eq $langKey $currentLang }}
+              {{ $target := index $translations $langKey | default (print "/" $langKey "/") }}
               <a href="{{ $target }}" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-primary{{ if $isActive }} border-primary bg-primary-container{{ end }}">
                 <span class="font-ui text-sm font-medium{{ if $isActive }} text-primary{{ else }} text-on-surface group-hover:text-primary{{ end }}">{{ .name }}</span>
                 <span class="text-xs text-on-surface-muted">{{ .native }}</span>
