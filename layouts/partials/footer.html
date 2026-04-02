@@ -45,7 +45,7 @@
     <!-- Languages -->
     <div class="mt-10 border-t border-on-chrome/10 pt-6">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary/50 font-ui">
-        {{ $currentLang := site.Language.Lang }}{{ range $i, $lang := site.Data.languages }}{{ if $i }} &middot; {{ end }}<a href="/{{ .code }}/" class="hover:text-on-chrome-active transition-colors{{ if eq .code $currentLang }} text-on-chrome-secondary{{ end }}">{{ .native }}</a>{{ end }}
+        {{ $currentLang := site.Language.Lang }}{{ $translations := dict }}{{ range $.Translations }}{{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}{{ end }}{{ range $i, $lang := site.Data.languages }}{{ if $i }} &middot; {{ end }}{{ $target := index $translations .code | default (print "/" .code "/") }}<a href="{{ $target }}" class="hover:text-on-chrome-active transition-colors{{ if eq .code $currentLang }} text-on-chrome-secondary{{ end }}">{{ .native }}</a>{{ end }}
       </div>
     </div>
   </div>

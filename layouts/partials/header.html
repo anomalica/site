@@ -11,7 +11,7 @@
     <div class="hidden lg:block flex-1 max-w-md mx-auto relative" @click.outside="searchOpen = false" @keydown.escape.window="searchOpen = false">
       <div class="relative w-full cursor-pointer" @click="searchOpen = true; $nextTick(() => $refs.searchInput.focus())">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-on-chrome-secondary pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
-        <input x-ref="searchInput" type="search" placeholder="Search phenomena..." x-model="searchQuery" class="w-full rounded bg-on-chrome/10 py-1.5 pl-9 pr-8 text-sm font-ui text-on-chrome-active placeholder:text-on-chrome-secondary/50 outline-none transition-colors focus:bg-on-chrome/15 cursor-pointer focus:cursor-text" @focus="searchOpen = true">
+        <input x-ref="searchInput" type="search" placeholder="{{ T "search_placeholder" }}" x-model="searchQuery" class="w-full rounded bg-on-chrome/10 py-1.5 pl-9 pr-8 text-sm font-ui text-on-chrome-active placeholder:text-on-chrome-secondary/50 outline-none transition-colors focus:bg-on-chrome/15 cursor-pointer focus:cursor-text" @focus="searchOpen = true">
         <svg class="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-on-chrome-secondary/50 pointer-events-none transition-transform" :class="searchOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
       </div>
 
@@ -21,20 +21,21 @@
         <!-- Browse categories (shown when not typing) -->
         <div x-show="searchQuery.length === 0">
           <div class="px-4 pt-3 pb-2">
-            <p class="text-xs font-ui font-medium uppercase tracking-wider text-on-surface-muted">Browse by type</p>
+            <p class="text-xs font-ui font-medium uppercase tracking-wider text-on-surface-muted">{{ T "browse_by_type" }}</p>
           </div>
           <div class="pb-2">
-            {{ range (slice
-              (dict "name" "People" "desc" "Named individuals")
-              (dict "name" "Organisations" "desc" "Groups and agencies")
-              (dict "name" "Places" "desc" "Geographic locations")
-              (dict "name" "Events" "desc" "Discrete incidents")
-              (dict "name" "Matters" "desc" "Ongoing situations")
-              (dict "name" "Objects" "desc" "Physical things and artefacts")
-            ) }}
-              <a href="/{{ .name | urlize }}/" class="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-on-chrome/5">
-                <span class="font-ui font-medium text-on-surface">{{ .name }}</span>
-                <span class="text-xs text-on-surface-muted">{{ .desc }}</span>
+            {{ $categories := slice
+              (dict "key" "people" "urlpath" "people")
+              (dict "key" "organisations" "urlpath" "organisations")
+              (dict "key" "places" "urlpath" "places")
+              (dict "key" "events" "urlpath" "events")
+              (dict "key" "matters" "urlpath" "matters")
+              (dict "key" "objects" "urlpath" "objects")
+            }}
+            {{ range $categories }}
+              <a href="{{ print "/" .urlpath "/" | relLangURL }}" class="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-on-chrome/5">
+                <span class="font-ui font-medium text-on-surface">{{ T .key }}</span>
+                <span class="text-xs text-on-surface-muted">{{ T (print .key "_desc") }}</span>
               </a>
             {{ end }}
           </div>
@@ -42,7 +43,7 @@
 
         <!-- Search results placeholder (shown when typing) -->
         <div x-show="searchQuery.length > 0" class="p-4">
-          <p class="text-sm text-on-surface-muted font-ui">Search is not yet available. Browse categories above or use the section pages.</p>
+          <p class="text-sm text-on-surface-muted font-ui">{{ T "search_not_available" }}</p>
         </div>
       </div>
     </div>
@@ -91,8 +92,8 @@
   <!-- Mobile menu -->
   <div x-show="mobileOpen" x-transition class="lg:hidden border-t border-border px-6 py-4">
     <ul class="space-y-3 font-ui text-sm">
-      {{ range (slice "People" "Organisations" "Places" "Events" "Matters" "Objects") }}
-        <li><a href="/{{ . | urlize }}/" class="text-on-chrome hover:text-on-chrome-active">{{ . }}</a></li>
+      {{ range (slice "people" "organisations" "places" "events" "matters" "objects") }}
+        <li><a href="{{ print "/" . "/" | relLangURL }}" class="text-on-chrome hover:text-on-chrome-active">{{ T . }}</a></li>
       {{ end }}
     </ul>
   </div>

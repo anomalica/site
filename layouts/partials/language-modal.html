@@ -23,6 +23,10 @@
     {{ $order := slice "latin" "cjk" "arabic" "cyrillic" "south-asian" }}
 
     {{ $currentLang := site.Language.Lang }}
+    {{ $translations := dict }}
+    {{ range $.Translations }}
+      {{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}
+    {{ end }}
 
     {{ range $order }}
       {{ $scriptKey := . }}
@@ -33,8 +37,8 @@
           {{ range site.Data.languages }}
             {{ if eq .script $scriptKey }}
               {{ $isActive := eq .code $currentLang }}
-              {{ $langHome := print "/" .code "/" }}
-              <a href="{{ $langHome }}" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-primary{{ if $isActive }} border-primary bg-primary-container{{ end }}">
+              {{ $target := index $translations .code | default (print "/" .code "/") }}
+              <a href="{{ $target }}" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-primary{{ if $isActive }} border-primary bg-primary-container{{ end }}">
                 <span class="font-ui text-sm font-medium{{ if $isActive }} text-primary{{ else }} text-on-surface group-hover:text-primary{{ end }}">{{ .name }}</span>
                 <span class="text-xs text-on-surface-muted">{{ .native }}</span>
               </a>

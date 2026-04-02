@@ -2,13 +2,13 @@
 <nav aria-label="Breadcrumb" class="bg-surface">
   <div class="mx-auto max-w-6xl px-6 pt-4">
     <ol class="flex items-center gap-1 text-xs font-ui text-on-surface-muted">
-      <li><a href="/" class="hover:text-primary transition-colors">Home</a></li>
+      <li><a href="{{ "/" | relLangURL }}" class="hover:text-primary transition-colors">{{ T "home" }}</a></li>
       {{ if .Section }}
         <li class="before:content-['/'] before:mx-1.5 before:text-on-surface-muted/50">
           {{ if .IsSection }}
             <span class="text-on-surface-secondary" aria-current="page">{{ .Section | humanize }}</span>
           {{ else }}
-            <a href="/{{ .Section | urlize }}/" class="hover:text-primary transition-colors">{{ .Section | humanize }}</a>
+            <a href="{{ print "/" (.Section | urlize) "/" | relLangURL }}" class="hover:text-primary transition-colors">{{ .Section | humanize }}</a>
           {{ end }}
         </li>
       {{ end }}
