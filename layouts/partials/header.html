@@ -58,7 +58,7 @@
       <!-- Language selector (opens modal) -->
       <button @click="langModalOpen = true" class="flex items-center gap-1 rounded px-2 py-1 text-sm font-ui text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
-        <span class="hidden md:inline">EN</span>
+        <span class="hidden md:inline uppercase">{{ site.Language.Lang }}</span>
       </button>
 
       <!-- Units selector -->
