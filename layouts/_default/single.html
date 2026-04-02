@@ -5,10 +5,10 @@
         <p class="section-label mb-1">{{ . | humanize }}</p>
       {{ end }}
 
-      <h1 class="mb-1 text-3xl font-semibold">{{ .Title }}</h1>
+      <h1 class="mb-2 text-3xl font-semibold">{{ .Title }}</h1>
 
       {{ with .Params.description }}
-        <p class="mb-4 text-on-surface-secondary">{{ . }}</p>
+        <p class="mb-8 font-ui text-lg text-on-surface-muted">{{ . }}</p>
       {{ end }}
 
       {{ with .Params.metadata }}
