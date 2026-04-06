@@ -171,6 +171,10 @@ source = "content/english"
 target = "content"
 
 [[module.mounts]]
+source = "../anomalica-content/pages"
+target = "content"
+
+[[module.mounts]]
 source = "../anomalica-content/legal"
 target = "content/legal"
 
