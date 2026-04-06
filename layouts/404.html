@@ -1,0 +1,10 @@
+{{ define "main" }}
+  <section class="bg-surface py-24">
+    <div class="mx-auto max-w-3xl px-6 text-center">
+      <p class="font-ui text-6xl font-semibold text-primary mb-4">404</p>
+      <h1 class="font-ui text-xl font-semibold text-on-surface mb-3">{{ T "error_404_title" }}</h1>
+      <p class="text-on-surface-secondary mb-8">{{ T "error_404_description" }}</p>
+      <a href="{{ site.Home.RelPermalink }}" class="inline-block rounded bg-primary px-5 py-2.5 font-ui text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover">{{ T "error_404_home_link" }}</a>
+    </div>
+  </section>
+{{ end }}
