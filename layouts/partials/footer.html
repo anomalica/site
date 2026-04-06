@@ -1,24 +1,33 @@
 <footer class="bg-chrome text-on-chrome">
   <div class="mx-auto max-w-6xl px-6 pt-12 pb-8">
     <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- About the project -->
+      <!-- The project -->
       <div>
-        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_about" }}</h3>
+        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_the_project" }}</h3>
         <ul class="space-y-2 text-sm">
-          <li><a href="{{ "about/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_about_anomalica" }}</a></li>
-          <li><a href="{{ "methodology/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_methodology" }}</a></li>
-          <li><a href="{{ "ai-transparency/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_ai_transparency" }}</a></li>
-          <li><a href="{{ "decisions/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_architecture_decisions" }}</a></li>
+          <li><a href="{{ "about/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_about" }}</a></li>
+          <li><a href="{{ "decisions/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_decisions" }}</a></li>
+          <li><a href="{{ "contact/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_contact" }}</a></li>
         </ul>
       </div>
 
-      <!-- Data and access -->
+      <!-- Transparency -->
       <div>
-        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_data" }}</h3>
+        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_transparency" }}</h3>
         <ul class="space-y-2 text-sm">
-          <li><a href="{{ "download/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_download" }}</a></li>
-          <li><a href="https://github.com/anomalica" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_source_code" }}</a></li>
-          <li><a href="{{ "sources/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_source_policy" }}</a></li>
+          <li><a href="{{ "methodology/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_methodology" }}</a></li>
+          <li><a href="{{ "artificial-intelligence/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_artificial_intelligence" }}</a></li>
+          <li><a href="{{ "language-coverage/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_language_coverage" }}</a></li>
+        </ul>
+      </div>
+
+      <!-- Participate -->
+      <div>
+        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_participate" }}</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://github.com/anomalica" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_develop" }}</a></li>
+          <li><a href="{{ "review/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_review_content" }}</a></li>
+          <li><a href="{{ "report/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_report_problem" }}</a></li>
         </ul>
       </div>
 
@@ -31,21 +40,12 @@
           <li><a href="{{ "legal/licence/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_licence" }}</a></li>
         </ul>
       </div>
-
-      <!-- Community -->
-      <div>
-        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_community" }}</h3>
-        <ul class="space-y-2 text-sm">
-          <li><a href="{{ "contact/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_contact" }}</a></li>
-          <li><a href="{{ "contribute/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_submit" }}</a></li>
-        </ul>
-      </div>
     </div>
 
     <!-- Languages -->
     <div class="mt-10 border-t border-on-chrome/10 pt-6">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary/50 font-ui">
-        {{ $currentLang := site.Language.Lang }}{{ $translations := dict }}{{ range $.Translations }}{{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}{{ end }}{{ range $i, $lang := site.Data.languages }}{{ $langKey := .code | lower }}{{ if $i }} &middot; {{ end }}{{ $target := index $translations $langKey | default (print "/" $langKey "/") }}<a href="{{ $target }}" class="hover:text-on-chrome-active transition-colors{{ if eq $langKey $currentLang }} text-on-chrome-secondary{{ end }}">{{ .native }}</a>{{ end }}
+        {{ $currentLang := site.Language.Lang }}{{ $translations := dict }}{{ range $.Translations }}{{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}{{ end }}{{ range $i, $lang := site.Data.languages }}{{ $langKey := .code | lower }}{{ if $i }} &middot; {{ end }}{{ $target := index $translations $langKey | default (replace $.RelPermalink (print "/" $currentLang "/") (print "/" $langKey "/")) }}<a href="{{ $target }}" class="hover:text-on-chrome-active transition-colors{{ if eq $langKey $currentLang }} text-on-chrome-secondary{{ end }}">{{ .native }}</a>{{ end }}
       </div>
     </div>
   </div>
