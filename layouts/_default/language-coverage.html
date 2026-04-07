@@ -52,8 +52,17 @@
       var ADDED = { uk: true };
       var TOTAL_LITERATE = 6517;
       var TABLE_CUTOFF = 35;
+      var CHART_CUTOFF = 35;
+
+      // Fix missing names in source data
+      var NAME_FIXES = { tg: 'Tajik', ak: 'Akan', bho: 'Bhojpuri' };
 
       var languages = {{ site.Data.language_coverage.languages | jsonify | safeJS }};
+
+      // Fix missing names
+      languages.forEach(function(l) {
+        if (NAME_FIXES[l.code]) l.name = NAME_FIXES[l.code];
+      });
 
       // Determine supported status
       var supportedCount = 0;
@@ -132,7 +141,8 @@
         tbody.appendChild(tr);
       });
 
-      // Chart - use all languages for full picture
+      // Chart - same set as the table
+      var chartLanguages = languages.slice(0, CHART_CUTOFF);
       var isDark = document.documentElement.classList.contains('dark');
       var gridColour = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
       var labelColour = isDark ? '#8A8579' : '#5E5A50';
@@ -144,16 +154,16 @@
       new Chart(document.getElementById('coverageChart'), {
         type: 'bar',
         data: {
-          labels: languages.map(function(l) { return l.name; }),
+          labels: chartLanguages.map(function(l) { return l.name; }),
           datasets: [
             {
               type: 'line',
               label: 'Cumulative coverage %',
-              data: languages.map(function(l) { return l.coverage_pct; }),
+              data: chartLanguages.map(function(l) { return l.coverage_pct; }),
               borderColor: copperColour,
               backgroundColor: 'transparent',
               borderWidth: 2.5,
-              pointBackgroundColor: languages.map(function(l) {
+              pointBackgroundColor: chartLanguages.map(function(l) {
                 return (l.status === 'supported' || l.status === 'added') ? copperColour : (isDark ? '#5E4030' : '#D4915E');
               }),
               pointRadius: 3,
@@ -165,8 +175,8 @@
             {
               type: 'bar',
               label: 'Incremental coverage (millions)',
-              data: languages.map(function(l) { return l.incremental_m; }),
-              backgroundColor: languages.map(function(l) {
+              data: chartLanguages.map(function(l) { return l.incremental_m; }),
+              backgroundColor: chartLanguages.map(function(l) {
                 if (l.status === 'excluded') return excludedBar;
                 if (l.status === 'supported' || l.status === 'added') return tealColour;
                 return mutedBar;
@@ -195,7 +205,7 @@
               bodyFont: { family: 'Noto Sans', size: 12 },
               callbacks: {
                 afterBody: function(items) {
-                  var l = languages[items[0].dataIndex];
+                  var l = chartLanguages[items[0].dataIndex];
                   var extra = 'Total speakers: ' + l.total_speakers_m + 'M';
                   if (l.status === 'excluded') extra += '\nExcluded from supported set';
                   else if (l.status === 'added') extra += '\nAdded by editorial decision';
