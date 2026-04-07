@@ -50,7 +50,7 @@
       var ADDED = { uk: true };
       var TOTAL_LITERATE = 6517;
 
-      var languages = {{ site.Data.language_coverage.languages | jsonify }};
+      var languages = {{ site.Data.language_coverage.languages | jsonify | safeJS }};
 
       // Determine supported status
       var supportedCount = 0;
