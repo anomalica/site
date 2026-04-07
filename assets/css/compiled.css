@@ -13,6 +13,7 @@
     --color-teal-700: #0b6e6e;
     --spacing: 0.25rem;
     --container-md: 28rem;
+    --container-2xl: 42rem;
     --container-3xl: 48rem;
     --container-5xl: 64rem;
     --container-6xl: 72rem;
@@ -401,6 +402,12 @@
   .mt-10 {
     margin-top: calc(var(--spacing) * 10);
   }
+  .mt-14 {
+    margin-top: calc(var(--spacing) * 14);
+  }
+  .mr-2 {
+    margin-right: calc(var(--spacing) * 2);
+  }
   .mb-1 {
     margin-bottom: calc(var(--spacing) * 1);
   }
@@ -421,6 +428,9 @@
   }
   .mb-10 {
     margin-bottom: calc(var(--spacing) * 10);
+  }
+  .mb-14 {
+    margin-bottom: calc(var(--spacing) * 14);
   }
   .line-clamp-3 {
     overflow: hidden;
@@ -445,6 +455,9 @@
   }
   .inline-block {
     display: inline-block;
+  }
+  .h-1\.5 {
+    height: calc(var(--spacing) * 1.5);
   }
   .h-3 {
     height: calc(var(--spacing) * 3);
@@ -479,6 +492,9 @@
   .w-6 {
     width: calc(var(--spacing) * 6);
   }
+  .w-12 {
+    width: calc(var(--spacing) * 12);
+  }
   .w-14 {
     width: calc(var(--spacing) * 14);
   }
@@ -487,6 +503,9 @@
   }
   .w-full {
     width: 100%;
+  }
+  .max-w-2xl {
+    max-width: var(--container-2xl);
   }
   .max-w-3xl {
     max-width: var(--container-3xl);
@@ -598,6 +617,9 @@
   .overflow-hidden {
     overflow: hidden;
   }
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
   .overflow-y-auto {
     overflow-y: auto;
   }
@@ -668,6 +690,12 @@
   .bg-primary-container {
     background-color: var(--color-primary-container);
   }
+  .bg-primary-container\/30 {
+    background-color: var(--color-primary-container);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-primary-container) 30%, transparent);
+    }
+  }
   .bg-primary-muted {
     background-color: var(--color-primary-muted);
   }
@@ -703,6 +731,9 @@
   }
   .px-2 {
     padding-inline: calc(var(--spacing) * 2);
+  }
+  .px-3 {
+    padding-inline: calc(var(--spacing) * 3);
   }
   .px-4 {
     padding-inline: calc(var(--spacing) * 4);
@@ -781,6 +812,15 @@
   }
   .text-center {
     text-align: center;
+  }
+  .text-left {
+    text-align: left;
+  }
+  .text-right {
+    text-align: right;
+  }
+  .align-middle {
+    vertical-align: middle;
   }
   .font-ui {
     font-family: var(--font-ui);
@@ -889,6 +929,13 @@
   }
   .uppercase {
     text-transform: uppercase;
+  }
+  .tabular-nums {
+    --tw-numeric-spacing: tabular-nums;
+    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
+  }
+  .line-through {
+    text-decoration-line: line-through;
   }
   .underline {
     text-decoration-line: underline;
@@ -1083,6 +1130,13 @@
       }
     }
   }
+  .hover\:text-primary-hover {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-primary-hover);
+      }
+    }
+  }
   .hover\:shadow-\[0_4px_12px_rgba\(0\,0\,0\,0\.08\)\] {
     &:hover {
       @media (hover: hover) {
@@ -1197,6 +1251,11 @@
   .sm\:grid-cols-2 {
     @media (width >= 40rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .sm\:p-6 {
+    @media (width >= 40rem) {
+      padding: calc(var(--spacing) * 6);
     }
   }
   .md\:block {
@@ -1439,6 +1498,33 @@ main {
   margin-top: 2.5rem;
   margin-bottom: 2.5rem;
 }
+.content table {
+  width: 100%;
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+.content thead tr {
+  border-bottom: 2px solid var(--color-border);
+}
+.content th {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-on-surface-secondary);
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+}
+.content td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+.content tbody tr:hover td {
+  background: var(--color-surface-alt);
+}
 .content strong {
   font-weight: 600;
 }
@@ -1554,6 +1640,26 @@ main {
   inherits: false;
 }
 @property --tw-tracking {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ordinal {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-slashed-zero {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-numeric-figure {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-numeric-spacing {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-numeric-fraction {
   syntax: "*";
   inherits: false;
 }
@@ -1739,6 +1845,11 @@ main {
       --tw-leading: initial;
       --tw-font-weight: initial;
       --tw-tracking: initial;
+      --tw-ordinal: initial;
+      --tw-slashed-zero: initial;
+      --tw-numeric-figure: initial;
+      --tw-numeric-spacing: initial;
+      --tw-numeric-fraction: initial;
       --tw-shadow: 0 0 #0000;
       --tw-shadow-color: initial;
       --tw-shadow-alpha: 100%;
