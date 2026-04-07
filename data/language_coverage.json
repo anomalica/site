@@ -1,0 +1,547 @@
+{
+  "source": "Unicode CLDR supplementalData.xml (2026)",
+  "methodology": "Greedy set-cover with independence assumption for bilingual overlap",
+  "total_literate_population_m": 6517,
+  "languages": [
+    {
+      "rank": 1,
+      "code": "en",
+      "name": "English",
+      "total_speakers_m": 1397,
+      "incremental_m": 1397,
+      "cumulative_m": 1397,
+      "coverage_pct": 21.4
+    },
+    {
+      "rank": 2,
+      "code": "zh",
+      "name": "Mandarin",
+      "total_speakers_m": 1260,
+      "incremental_m": 1247,
+      "cumulative_m": 2644,
+      "coverage_pct": 40.6
+    },
+    {
+      "rank": 3,
+      "code": "es",
+      "name": "Spanish",
+      "total_speakers_m": 478,
+      "incremental_m": 379,
+      "cumulative_m": 3024,
+      "coverage_pct": 46.4
+    },
+    {
+      "rank": 4,
+      "code": "hi",
+      "name": "Hindi",
+      "total_speakers_m": 365,
+      "incremental_m": 295,
+      "cumulative_m": 3319,
+      "coverage_pct": 50.9
+    },
+    {
+      "rank": 5,
+      "code": "ar",
+      "name": "Arabic",
+      "total_speakers_m": 288,
+      "incremental_m": 221,
+      "cumulative_m": 3540,
+      "coverage_pct": 54.3
+    },
+    {
+      "rank": 6,
+      "code": "pt",
+      "name": "Portuguese",
+      "total_speakers_m": 217,
+      "incremental_m": 198,
+      "cumulative_m": 3738,
+      "coverage_pct": 57.4
+    },
+    {
+      "rank": 7,
+      "code": "ru",
+      "name": "Russian",
+      "total_speakers_m": 207,
+      "incremental_m": 191,
+      "cumulative_m": 3928,
+      "coverage_pct": 60.3
+    },
+    {
+      "rank": 8,
+      "code": "id",
+      "name": "Indonesian",
+      "total_speakers_m": 168,
+      "incremental_m": 166,
+      "cumulative_m": 4094,
+      "coverage_pct": 62.8
+    },
+    {
+      "rank": 9,
+      "code": "fr",
+      "name": "French",
+      "total_speakers_m": 261,
+      "incremental_m": 150,
+      "cumulative_m": 4244,
+      "coverage_pct": 65.1
+    },
+    {
+      "rank": 10,
+      "code": "ja",
+      "name": "Japanese",
+      "total_speakers_m": 116,
+      "incremental_m": 116,
+      "cumulative_m": 4360,
+      "coverage_pct": 66.9
+    },
+    {
+      "rank": 11,
+      "code": "bn",
+      "name": "Bengali",
+      "total_speakers_m": 167,
+      "incremental_m": 113,
+      "cumulative_m": 4472,
+      "coverage_pct": 68.6
+    },
+    {
+      "rank": 12,
+      "code": "ur",
+      "name": "Urdu",
+      "total_speakers_m": 179,
+      "incremental_m": 85,
+      "cumulative_m": 4558,
+      "coverage_pct": 69.9
+    },
+    {
+      "rank": 13,
+      "code": "sw",
+      "name": "Swahili",
+      "total_speakers_m": 140,
+      "incremental_m": 85,
+      "cumulative_m": 4642,
+      "coverage_pct": 71.2
+    },
+    {
+      "rank": 14,
+      "code": "vi",
+      "name": "Vietnamese",
+      "total_speakers_m": 86,
+      "incremental_m": 84,
+      "cumulative_m": 4727,
+      "coverage_pct": 72.5
+    },
+    {
+      "rank": 15,
+      "code": "ko",
+      "name": "Korean",
+      "total_speakers_m": 78,
+      "incremental_m": 74,
+      "cumulative_m": 4801,
+      "coverage_pct": 73.7
+    },
+    {
+      "rank": 16,
+      "code": "tr",
+      "name": "Turkish",
+      "total_speakers_m": 78,
+      "incremental_m": 62,
+      "cumulative_m": 4863,
+      "coverage_pct": 74.6
+    },
+    {
+      "rank": 17,
+      "code": "fa",
+      "name": "Persian",
+      "total_speakers_m": 64,
+      "incremental_m": 61,
+      "cumulative_m": 4924,
+      "coverage_pct": 75.6
+    },
+    {
+      "rank": 18,
+      "code": "th",
+      "name": "Thai",
+      "total_speakers_m": 52,
+      "incremental_m": 37,
+      "cumulative_m": 4962,
+      "coverage_pct": 76.1
+    },
+    {
+      "rank": 19,
+      "code": "de",
+      "name": "German",
+      "total_speakers_m": 141,
+      "incremental_m": 36,
+      "cumulative_m": 4997,
+      "coverage_pct": 76.7
+    },
+    {
+      "rank": 20,
+      "code": "my",
+      "name": "Burmese",
+      "total_speakers_m": 34,
+      "incremental_m": 34,
+      "cumulative_m": 5032,
+      "coverage_pct": 77.2
+    },
+    {
+      "rank": 21,
+      "code": "jv",
+      "name": "Javanese",
+      "total_speakers_m": 89,
+      "incremental_m": 32,
+      "cumulative_m": 5064,
+      "coverage_pct": 77.7
+    },
+    {
+      "rank": 22,
+      "code": "it",
+      "name": "Italian",
+      "total_speakers_m": 70,
+      "incremental_m": 30,
+      "cumulative_m": 5094,
+      "coverage_pct": 78.2
+    },
+    {
+      "rank": 23,
+      "code": "uz",
+      "name": "Uzbek",
+      "total_speakers_m": 32,
+      "incremental_m": 27,
+      "cumulative_m": 5121,
+      "coverage_pct": 78.6
+    },
+    {
+      "rank": 24,
+      "code": "te",
+      "name": "Telugu",
+      "total_speakers_m": 64,
+      "incremental_m": 27,
+      "cumulative_m": 5147,
+      "coverage_pct": 79.0
+    },
+    {
+      "rank": 25,
+      "code": "mr",
+      "name": "Marathi",
+      "total_speakers_m": 62,
+      "incremental_m": 24,
+      "cumulative_m": 5171,
+      "coverage_pct": 79.4
+    },
+    {
+      "rank": 26,
+      "code": "ta",
+      "name": "Tamil",
+      "total_speakers_m": 59,
+      "incremental_m": 22,
+      "cumulative_m": 5194,
+      "coverage_pct": 79.7
+    },
+    {
+      "rank": 27,
+      "code": "ms",
+      "name": "Malay",
+      "total_speakers_m": 34,
+      "incremental_m": 17,
+      "cumulative_m": 5211,
+      "coverage_pct": 80.0
+    },
+    {
+      "rank": 28,
+      "code": "pl",
+      "name": "Polish",
+      "total_speakers_m": 41,
+      "incremental_m": 17,
+      "cumulative_m": 5228,
+      "coverage_pct": 80.2
+    },
+    {
+      "rank": 29,
+      "code": "tl",
+      "name": "Tagalog",
+      "total_speakers_m": 70,
+      "incremental_m": 17,
+      "cumulative_m": 5245,
+      "coverage_pct": 80.5
+    },
+    {
+      "rank": 30,
+      "code": "pcm",
+      "name": "Nigerian Pidgin",
+      "total_speakers_m": 30,
+      "incremental_m": 14,
+      "cumulative_m": 5260,
+      "coverage_pct": 80.7
+    },
+    {
+      "rank": 31,
+      "code": "az",
+      "name": "Azerbaijani",
+      "total_speakers_m": 29,
+      "incremental_m": 14,
+      "cumulative_m": 5274,
+      "coverage_pct": 80.9
+    },
+    {
+      "rank": 32,
+      "code": "gu",
+      "name": "Gujarati",
+      "total_speakers_m": 42,
+      "incremental_m": 14,
+      "cumulative_m": 5287,
+      "coverage_pct": 81.1
+    },
+    {
+      "rank": 33,
+      "code": "uk",
+      "name": "Ukrainian",
+      "total_speakers_m": 25,
+      "incremental_m": 13,
+      "cumulative_m": 5300,
+      "coverage_pct": 81.3
+    },
+    {
+      "rank": 34,
+      "code": "km",
+      "name": "Khmer",
+      "total_speakers_m": 11,
+      "incremental_m": 11,
+      "cumulative_m": 5311,
+      "coverage_pct": 81.5
+    },
+    {
+      "rank": 35,
+      "code": "ro",
+      "name": "Romanian",
+      "total_speakers_m": 20,
+      "incremental_m": 11,
+      "cumulative_m": 5322,
+      "coverage_pct": 81.7
+    },
+    {
+      "rank": 36,
+      "code": "kn",
+      "name": "Kannada",
+      "total_speakers_m": 33,
+      "incremental_m": 11,
+      "cumulative_m": 5333,
+      "coverage_pct": 81.8
+    },
+    {
+      "rank": 37,
+      "code": "si",
+      "name": "Sinhala",
+      "total_speakers_m": 14,
+      "incremental_m": 10,
+      "cumulative_m": 5343,
+      "coverage_pct": 82.0
+    },
+    {
+      "rank": 38,
+      "code": "mg",
+      "name": "Malagasy",
+      "total_speakers_m": 17,
+      "incremental_m": 10,
+      "cumulative_m": 5353,
+      "coverage_pct": 82.1
+    },
+    {
+      "rank": 39,
+      "code": "pa",
+      "name": "Punjabi",
+      "total_speakers_m": 125,
+      "incremental_m": 10,
+      "cumulative_m": 5363,
+      "coverage_pct": 82.3
+    },
+    {
+      "rank": 40,
+      "code": "ha",
+      "name": "Hausa",
+      "total_speakers_m": 23,
+      "incremental_m": 10,
+      "cumulative_m": 5373,
+      "coverage_pct": 82.5
+    },
+    {
+      "rank": 41,
+      "code": "zu",
+      "name": "Zulu",
+      "total_speakers_m": 14,
+      "incremental_m": 9,
+      "cumulative_m": 5383,
+      "coverage_pct": 82.6
+    },
+    {
+      "rank": 42,
+      "code": "ne",
+      "name": "Nepali",
+      "total_speakers_m": 13,
+      "incremental_m": 9,
+      "cumulative_m": 5392,
+      "coverage_pct": 82.7
+    },
+    {
+      "rank": 43,
+      "code": "tg",
+      "name": "tg",
+      "total_speakers_m": 11,
+      "incremental_m": 9,
+      "cumulative_m": 5401,
+      "coverage_pct": 82.9
+    },
+    {
+      "rank": 44,
+      "code": "am",
+      "name": "Amharic",
+      "total_speakers_m": 15,
+      "incremental_m": 9,
+      "cumulative_m": 5410,
+      "coverage_pct": 83.0
+    },
+    {
+      "rank": 45,
+      "code": "ml",
+      "name": "Malayalam",
+      "total_speakers_m": 29,
+      "incremental_m": 9,
+      "cumulative_m": 5418,
+      "coverage_pct": 83.1
+    },
+    {
+      "rank": 46,
+      "code": "or",
+      "name": "Odia",
+      "total_speakers_m": 28,
+      "incremental_m": 8,
+      "cumulative_m": 5427,
+      "coverage_pct": 83.3
+    },
+    {
+      "rank": 47,
+      "code": "wuu",
+      "name": "Wu Chinese",
+      "total_speakers_m": 81,
+      "incremental_m": 8,
+      "cumulative_m": 5435,
+      "coverage_pct": 83.4
+    },
+    {
+      "rank": 48,
+      "code": "cs",
+      "name": "Czech",
+      "total_speakers_m": 13,
+      "incremental_m": 8,
+      "cumulative_m": 5443,
+      "coverage_pct": 83.5
+    },
+    {
+      "rank": 49,
+      "code": "ak",
+      "name": "ak",
+      "total_speakers_m": 10,
+      "incremental_m": 8,
+      "cumulative_m": 5450,
+      "coverage_pct": 83.6
+    },
+    {
+      "rank": 50,
+      "code": "sr",
+      "name": "Serbian",
+      "total_speakers_m": 8,
+      "incremental_m": 7,
+      "cumulative_m": 5457,
+      "coverage_pct": 83.7
+    },
+    {
+      "rank": 51,
+      "code": "su",
+      "name": "Sundanese",
+      "total_speakers_m": 31,
+      "incremental_m": 7,
+      "cumulative_m": 5464,
+      "coverage_pct": 83.9
+    },
+    {
+      "rank": 52,
+      "code": "yue",
+      "name": "Cantonese",
+      "total_speakers_m": 77,
+      "incremental_m": 7,
+      "cumulative_m": 5471,
+      "coverage_pct": 84.0
+    },
+    {
+      "rank": 53,
+      "code": "sn",
+      "name": "Shona",
+      "total_speakers_m": 12,
+      "incremental_m": 7,
+      "cumulative_m": 5478,
+      "coverage_pct": 84.1
+    },
+    {
+      "rank": 54,
+      "code": "hu",
+      "name": "Hungarian",
+      "total_speakers_m": 12,
+      "incremental_m": 7,
+      "cumulative_m": 5485,
+      "coverage_pct": 84.2
+    },
+    {
+      "rank": 55,
+      "code": "bho",
+      "name": "bho",
+      "total_speakers_m": 22,
+      "incremental_m": 6,
+      "cumulative_m": 5491,
+      "coverage_pct": 84.3
+    },
+    {
+      "rank": 56,
+      "code": "yo",
+      "name": "Yoruba",
+      "total_speakers_m": 19,
+      "incremental_m": 6,
+      "cumulative_m": 5497,
+      "coverage_pct": 84.4
+    },
+    {
+      "rank": 57,
+      "code": "rw",
+      "name": "Kinyarwanda",
+      "total_speakers_m": 9,
+      "incremental_m": 6,
+      "cumulative_m": 5504,
+      "coverage_pct": 84.5
+    },
+    {
+      "rank": 58,
+      "code": "ny",
+      "name": "Chichewa",
+      "total_speakers_m": 13,
+      "incremental_m": 6,
+      "cumulative_m": 5510,
+      "coverage_pct": 84.5
+    },
+    {
+      "rank": 59,
+      "code": "om",
+      "name": "Oromo",
+      "total_speakers_m": 15,
+      "incremental_m": 6,
+      "cumulative_m": 5515,
+      "coverage_pct": 84.6
+    },
+    {
+      "rank": 60,
+      "code": "no",
+      "name": "Norwegian",
+      "total_speakers_m": 6,
+      "incremental_m": 6,
+      "cumulative_m": 5521,
+      "coverage_pct": 84.7
+    }
+  ]
+}

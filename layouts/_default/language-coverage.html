@@ -1,0 +1,223 @@
+{{ define "main" }}
+  <article class="bg-surface pt-14 pb-24">
+    <div class="mx-auto max-w-3xl px-6">
+      <h1 class="mb-2 text-3xl font-semibold">{{ .Title }}</h1>
+
+      {{ with .Params.description }}
+        <p class="mb-8 font-ui text-lg text-on-surface-muted">{{ . }}</p>
+      {{ end }}
+
+      <div class="content">
+        {{ .Content }}
+      </div>
+    </div>
+
+    <!-- Chart section - wider than content column -->
+    <div class="mx-auto max-w-5xl px-6 mt-12">
+      <p class="section-label mb-4">Cumulative coverage of literate world population</p>
+      <div class="rounded-lg border border-border bg-surface-raised p-4 sm:p-6">
+        <canvas id="coverageChart" style="max-height: 420px;"></canvas>
+      </div>
+    </div>
+
+    <!-- Table section -->
+    <div class="mx-auto max-w-5xl px-6 mt-14">
+      <p class="section-label mb-2">Algorithmic ranking</p>
+      <p class="text-sm text-on-surface-secondary mb-6 max-w-2xl">Each language is ranked by how many additional literate people it covers who are not already covered by any higher-ranked language, accounting for multilingual overlap within each territory.</p>
+
+      <div class="overflow-x-auto rounded-lg border border-border">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-alt text-left">
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary w-12 text-center">#</th>
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Language</th>
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Total speakers</th>
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Incremental</th>
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cumulative</th>
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary" style="min-width: 140px">Coverage</th>
+            </tr>
+          </thead>
+          <tbody id="langTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </article>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>
+    (function() {
+      var EXCLUDED = { jv: true, ms: true, pcm: true };
+      var ADDED = { uk: true };
+      var TOTAL_LITERATE = 6517;
+
+      var languages = {{ site.Data.language_coverage.languages | jsonify }};
+
+      // Determine supported status
+      var supportedCount = 0;
+      languages.forEach(function(l) {
+        if (EXCLUDED[l.code]) {
+          l.status = 'excluded';
+        } else if (supportedCount < 27) {
+          l.status = 'supported';
+          supportedCount++;
+        } else if (ADDED[l.code]) {
+          l.status = 'added';
+        } else {
+          l.status = 'unsupported';
+        }
+      });
+
+      // Recalculate supported cumulative
+      var cum = 0;
+      var supportedNum = 0;
+      languages.forEach(function(l) {
+        if (l.status === 'supported' || l.status === 'added') {
+          cum += l.incremental_m;
+          supportedNum++;
+          l.supportedNum = supportedNum;
+          l.supportedCumulative = cum;
+          l.supportedPct = Math.round(cum / TOTAL_LITERATE * 10000) / 100;
+        }
+      });
+
+      // Build table
+      var tbody = document.getElementById('langTableBody');
+      languages.forEach(function(l) {
+        var tr = document.createElement('tr');
+        tr.className = 'border-t border-border';
+
+        if (l.status === 'excluded') {
+          tr.style.opacity = '0.35';
+          tr.style.textDecoration = 'line-through';
+        } else if (l.status === 'unsupported') {
+          tr.style.opacity = '0.4';
+        } else if (l.status === 'added') {
+          tr.className += ' bg-primary-container/30';
+        }
+
+        var numCell = l.supportedNum
+          ? '<span class="font-semibold text-primary">' + l.supportedNum + '</span>'
+          : '<span class="text-on-surface-muted">' + l.rank + '</span>';
+
+        var nameExtra = '';
+        if (l.status === 'excluded') nameExtra = ' <span class="text-xs text-on-surface-muted no-underline" style="text-decoration:none;display:inline">excluded</span>';
+        if (l.status === 'added') nameExtra = ' <span class="text-xs text-primary">added editorially</span>';
+
+        var cumStr, barHtml;
+        if (l.status === 'supported' || l.status === 'added') {
+          cumStr = l.supportedCumulative + 'M';
+          var w = Math.max(2, l.supportedPct / 85 * 100);
+          barHtml = '<span class="inline-block h-1.5 rounded-full bg-primary align-middle mr-2" style="width:' + w + '%"></span>' + l.supportedPct + '%';
+        } else if (l.status === 'excluded') {
+          cumStr = '-';
+          barHtml = '-';
+        } else {
+          cumStr = '<span class="text-on-surface-muted">' + l.cumulative_m + 'M</span>';
+          barHtml = '<span class="text-on-surface-muted">' + l.coverage_pct + '%</span>';
+        }
+
+        tr.innerHTML =
+          '<td class="px-3 py-2 text-center tabular-nums">' + numCell + '</td>' +
+          '<td class="px-3 py-2 font-medium">' + l.name + nameExtra + '</td>' +
+          '<td class="px-3 py-2 text-right tabular-nums text-on-surface-secondary">' + l.total_speakers_m + 'M</td>' +
+          '<td class="px-3 py-2 text-right tabular-nums text-on-surface-secondary">' + l.incremental_m + 'M</td>' +
+          '<td class="px-3 py-2 text-right tabular-nums">' + cumStr + '</td>' +
+          '<td class="px-3 py-2">' + barHtml + '</td>';
+
+        tbody.appendChild(tr);
+      });
+
+      // Chart
+      var isDark = document.documentElement.classList.contains('dark');
+      var gridColour = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      var labelColour = isDark ? '#8A8579' : '#5E5A50';
+      var copperColour = isDark ? '#E8A878' : '#B35A28';
+      var tealColour = isDark ? '#4BB8B8' : '#0B6E6E';
+      var mutedBar = isDark ? '#2E2D28' : '#D6D2C9';
+      var excludedBar = isDark ? '#3D2A1E' : '#E8C0B0';
+
+      new Chart(document.getElementById('coverageChart'), {
+        type: 'bar',
+        data: {
+          labels: languages.map(function(l) { return l.name; }),
+          datasets: [
+            {
+              type: 'line',
+              label: 'Cumulative coverage %',
+              data: languages.map(function(l) { return l.coverage_pct; }),
+              borderColor: copperColour,
+              backgroundColor: 'transparent',
+              borderWidth: 2.5,
+              pointBackgroundColor: languages.map(function(l) {
+                return (l.status === 'supported' || l.status === 'added') ? copperColour : (isDark ? '#5E4030' : '#D4915E');
+              }),
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              tension: 0.3,
+              yAxisID: 'y1',
+              order: 0
+            },
+            {
+              type: 'bar',
+              label: 'Incremental coverage (millions)',
+              data: languages.map(function(l) { return l.incremental_m; }),
+              backgroundColor: languages.map(function(l) {
+                if (l.status === 'excluded') return excludedBar;
+                if (l.status === 'supported' || l.status === 'added') return tealColour;
+                return mutedBar;
+              }),
+              borderRadius: 3,
+              yAxisID: 'y',
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: {
+                font: { family: 'Outfit', size: 12 },
+                color: labelColour,
+                usePointStyle: true,
+                pointStyleWidth: 20
+              }
+            },
+            tooltip: {
+              titleFont: { family: 'Outfit', size: 13 },
+              bodyFont: { family: 'Noto Sans', size: 12 },
+              callbacks: {
+                afterBody: function(items) {
+                  var l = languages[items[0].dataIndex];
+                  return 'Total speakers: ' + l.total_speakers_m + 'M\nCumulative: ' + l.cumulative_m + 'M (' + l.coverage_pct + '%)';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { font: { family: 'Outfit', size: 11 }, color: labelColour, maxRotation: 55, minRotation: 55 },
+              grid: { display: false }
+            },
+            y: {
+              position: 'left',
+              title: { display: true, text: 'Incremental coverage (millions)', font: { family: 'Outfit', size: 12 }, color: labelColour },
+              ticks: { font: { family: 'Noto Sans', size: 11 }, color: labelColour },
+              grid: { color: gridColour }
+            },
+            y1: {
+              position: 'right',
+              min: 0,
+              max: 90,
+              title: { display: true, text: 'Cumulative coverage %', font: { family: 'Outfit', size: 12 }, color: copperColour },
+              ticks: { font: { family: 'Noto Sans', size: 11 }, color: copperColour, callback: function(v) { return v + '%'; } },
+              grid: { drawOnChartArea: false }
+            }
+          }
+        }
+      });
+    })();
+  </script>
+{{ end }}
