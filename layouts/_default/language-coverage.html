@@ -12,16 +12,17 @@
       </div>
     </div>
 
-    <!-- Chart section - wider than content column -->
-    <div class="mx-auto max-w-5xl px-6 mt-12">
+    <!-- Chart - full width breakout with generous height -->
+    <div class="mx-auto max-w-5xl px-6 mt-16 mb-16">
       <p class="section-label mb-4">Cumulative coverage of literate world population</p>
-      <div class="rounded-lg border border-border bg-surface-raised p-4 sm:p-6">
-        <canvas id="coverageChart" style="max-height: 420px;"></canvas>
+      <div class="rounded-lg border border-border bg-surface-raised p-4 sm:p-6" style="height: 520px;">
+        <canvas id="coverageChart"></canvas>
       </div>
+      <p class="mt-3 text-xs text-on-surface-muted max-w-2xl">Teal bars show incremental literate population covered by each language. The copper line tracks cumulative coverage. Faded bars and struck-through entries are languages excluded from the supported set.</p>
     </div>
 
-    <!-- Table section -->
-    <div class="mx-auto max-w-5xl px-6 mt-14">
+    <!-- Table - only supported languages + a few beyond the cut -->
+    <div class="mx-auto max-w-5xl px-6">
       <p class="section-label mb-2">Algorithmic ranking</p>
       <p class="text-sm text-on-surface-secondary mb-6 max-w-2xl">Each language is ranked by how many additional literate people it covers who are not already covered by any higher-ranked language, accounting for multilingual overlap within each territory.</p>
 
@@ -34,12 +35,13 @@
               <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Total speakers</th>
               <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Incremental</th>
               <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cumulative</th>
-              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary" style="min-width: 140px">Coverage</th>
+              <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary" style="min-width: 160px">Coverage</th>
             </tr>
           </thead>
           <tbody id="langTableBody"></tbody>
         </table>
       </div>
+      <p class="mt-3 text-xs text-on-surface-muted">The full ranking of 60 languages and the selection script are available in the <a href="https://github.com/anomalica/anomalica" class="text-primary hover:text-primary-hover transition-colors">project repository</a>.</p>
     </div>
   </article>
 
@@ -49,6 +51,7 @@
       var EXCLUDED = { jv: true, ms: true, pcm: true };
       var ADDED = { uk: true };
       var TOTAL_LITERATE = 6517;
+      var TABLE_CUTOFF = 35;
 
       var languages = {{ site.Data.language_coverage.languages | jsonify | safeJS }};
 
@@ -80,9 +83,11 @@
         }
       });
 
-      // Build table
+      // Build table - only show up to TABLE_CUTOFF
       var tbody = document.getElementById('langTableBody');
-      languages.forEach(function(l) {
+      var tableLanguages = languages.slice(0, TABLE_CUTOFF);
+
+      tableLanguages.forEach(function(l) {
         var tr = document.createElement('tr');
         tr.className = 'border-t border-border';
 
@@ -90,44 +95,44 @@
           tr.style.opacity = '0.35';
           tr.style.textDecoration = 'line-through';
         } else if (l.status === 'unsupported') {
-          tr.style.opacity = '0.4';
+          tr.style.opacity = '0.45';
         } else if (l.status === 'added') {
           tr.className += ' bg-primary-container/30';
         }
 
         var numCell = l.supportedNum
           ? '<span class="font-semibold text-primary">' + l.supportedNum + '</span>'
-          : '<span class="text-on-surface-muted">' + l.rank + '</span>';
+          : '<span class="text-on-surface-muted text-xs">' + l.rank + '</span>';
 
         var nameExtra = '';
-        if (l.status === 'excluded') nameExtra = ' <span class="text-xs text-on-surface-muted no-underline" style="text-decoration:none;display:inline">excluded</span>';
+        if (l.status === 'excluded') nameExtra = ' <span class="text-xs text-on-surface-muted" style="text-decoration:none;display:inline-block">excluded</span>';
         if (l.status === 'added') nameExtra = ' <span class="text-xs text-primary">added editorially</span>';
 
         var cumStr, barHtml;
         if (l.status === 'supported' || l.status === 'added') {
           cumStr = l.supportedCumulative + 'M';
-          var w = Math.max(2, l.supportedPct / 85 * 100);
-          barHtml = '<span class="inline-block h-1.5 rounded-full bg-primary align-middle mr-2" style="width:' + w + '%"></span>' + l.supportedPct + '%';
+          var w = Math.max(3, l.supportedPct / 85 * 100);
+          barHtml = '<span class="inline-block h-1.5 rounded-full bg-primary align-middle mr-2" style="width:' + w + '%"></span><span class="tabular-nums">' + l.supportedPct + '%</span>';
         } else if (l.status === 'excluded') {
           cumStr = '-';
           barHtml = '-';
         } else {
           cumStr = '<span class="text-on-surface-muted">' + l.cumulative_m + 'M</span>';
-          barHtml = '<span class="text-on-surface-muted">' + l.coverage_pct + '%</span>';
+          barHtml = '<span class="text-on-surface-muted tabular-nums">' + l.coverage_pct + '%</span>';
         }
 
         tr.innerHTML =
-          '<td class="px-3 py-2 text-center tabular-nums">' + numCell + '</td>' +
-          '<td class="px-3 py-2 font-medium">' + l.name + nameExtra + '</td>' +
-          '<td class="px-3 py-2 text-right tabular-nums text-on-surface-secondary">' + l.total_speakers_m + 'M</td>' +
-          '<td class="px-3 py-2 text-right tabular-nums text-on-surface-secondary">' + l.incremental_m + 'M</td>' +
-          '<td class="px-3 py-2 text-right tabular-nums">' + cumStr + '</td>' +
-          '<td class="px-3 py-2">' + barHtml + '</td>';
+          '<td class="px-3 py-2.5 text-center tabular-nums">' + numCell + '</td>' +
+          '<td class="px-3 py-2.5 font-medium">' + l.name + nameExtra + '</td>' +
+          '<td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">' + l.total_speakers_m + 'M</td>' +
+          '<td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">' + l.incremental_m + 'M</td>' +
+          '<td class="px-3 py-2.5 text-right tabular-nums">' + cumStr + '</td>' +
+          '<td class="px-3 py-2.5">' + barHtml + '</td>';
 
         tbody.appendChild(tr);
       });
 
-      // Chart
+      // Chart - use all languages for full picture
       var isDark = document.documentElement.classList.contains('dark');
       var gridColour = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
       var labelColour = isDark ? '#8A8579' : '#5E5A50';
@@ -191,19 +196,22 @@
               callbacks: {
                 afterBody: function(items) {
                   var l = languages[items[0].dataIndex];
-                  return 'Total speakers: ' + l.total_speakers_m + 'M\nCumulative: ' + l.cumulative_m + 'M (' + l.coverage_pct + '%)';
+                  var extra = 'Total speakers: ' + l.total_speakers_m + 'M';
+                  if (l.status === 'excluded') extra += '\nExcluded from supported set';
+                  else if (l.status === 'added') extra += '\nAdded by editorial decision';
+                  return extra;
                 }
               }
             }
           },
           scales: {
             x: {
-              ticks: { font: { family: 'Outfit', size: 11 }, color: labelColour, maxRotation: 55, minRotation: 55 },
+              ticks: { font: { family: 'Outfit', size: 10 }, color: labelColour, maxRotation: 60, minRotation: 60 },
               grid: { display: false }
             },
             y: {
               position: 'left',
-              title: { display: true, text: 'Incremental coverage (millions)', font: { family: 'Outfit', size: 12 }, color: labelColour },
+              title: { display: true, text: 'Incremental coverage (millions)', font: { family: 'Outfit', size: 11 }, color: labelColour },
               ticks: { font: { family: 'Noto Sans', size: 11 }, color: labelColour },
               grid: { color: gridColour }
             },
@@ -211,7 +219,7 @@
               position: 'right',
               min: 0,
               max: 90,
-              title: { display: true, text: 'Cumulative coverage %', font: { family: 'Outfit', size: 12 }, color: copperColour },
+              title: { display: true, text: 'Cumulative coverage %', font: { family: 'Outfit', size: 11 }, color: copperColour },
               ticks: { font: { family: 'Noto Sans', size: 11 }, color: copperColour, callback: function(v) { return v + '%'; } },
               grid: { drawOnChartArea: false }
             }
