@@ -27,10 +27,13 @@
             {{ $categories := slice
               (dict "key" "people" "urlpath" "people")
               (dict "key" "organisations" "urlpath" "organisations")
-              (dict "key" "places" "urlpath" "places")
+              (dict "key" "projects" "urlpath" "projects")
               (dict "key" "events" "urlpath" "events")
-              (dict "key" "matters" "urlpath" "matters")
+              (dict "key" "places" "urlpath" "places")
+              (dict "key" "documents" "urlpath" "documents")
               (dict "key" "objects" "urlpath" "objects")
+              (dict "key" "topics" "urlpath" "topics")
+              (dict "key" "patterns" "urlpath" "patterns")
             }}
             {{ range $categories }}
               <a href="{{ print "/" .urlpath "/" | relLangURL }}" class="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-on-chrome/5">
@@ -92,7 +95,7 @@
   <!-- Mobile menu -->
   <div x-show="mobileOpen" x-transition class="lg:hidden border-t border-border px-6 py-4">
     <ul class="space-y-3 font-ui text-sm">
-      {{ range (slice "people" "organisations" "places" "events" "matters" "objects") }}
+      {{ range (slice "people" "organisations" "projects" "events" "places" "documents" "objects" "topics" "patterns") }}
         <li><a href="{{ print "/" . "/" | relLangURL }}" class="text-on-chrome hover:text-on-chrome-active">{{ T . }}</a></li>
       {{ end }}
     </ul>

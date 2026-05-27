@@ -23,10 +23,13 @@
         {{ $categories := slice
           (dict "key" "people" "urlpath" "people")
           (dict "key" "organisations" "urlpath" "organisations")
-          (dict "key" "places" "urlpath" "places")
+          (dict "key" "projects" "urlpath" "projects")
           (dict "key" "events" "urlpath" "events")
-          (dict "key" "matters" "urlpath" "matters")
+          (dict "key" "places" "urlpath" "places")
+          (dict "key" "documents" "urlpath" "documents")
           (dict "key" "objects" "urlpath" "objects")
+          (dict "key" "topics" "urlpath" "topics")
+          (dict "key" "patterns" "urlpath" "patterns")
         }}
         {{ range $categories }}
           <a href="{{ print "/" .urlpath "/" | relLangURL }}" class="group block rounded-lg border border-border bg-surface-raised p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all hover:border-primary hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
