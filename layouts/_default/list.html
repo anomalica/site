@@ -1,35 +1,114 @@
 {{ define "main" }}
-  <section class="bg-surface py-16">
-    <div class="mx-auto max-w-6xl px-6">
+  {{ $pages := .Pages.ByTitle }}
+
+  {{/* Tag frequency across this section, most common first. Drives the
+       "filter by tags" row. Computed server-side so it works without JS. */}}
+  {{ $counts := dict }}
+  {{ range $pages }}
+    {{ range .Params.tags }}
+      {{ $counts = merge $counts (dict . (add (index $counts . | default 0) 1)) }}
+    {{ end }}
+  {{ end }}
+  {{ $tagList := slice }}
+  {{ range $tag, $n := $counts }}
+    {{ $tagList = $tagList | append (dict "tag" $tag "count" $n) }}
+  {{ end }}
+  {{ $topTags := first 16 (sort $tagList "count" "desc") }}
+
+  {{/* Searchable index handed to Alpine for client-side filtering. One
+       object per page, in the same order as the rows rendered below. */}}
+  {{ $entries := slice }}
+  {{ range $pages }}
+    {{ $tags := slice }}
+    {{ range .Params.tags }}{{ $tags = $tags | append (lower .) }}{{ end }}
+    {{ $tagStr := "" }}
+    {{ with .Params.tags }}{{ $tagStr = delimit . " " }}{{ end }}
+    {{ $search := lower (printf "%s %s %s" .Title (.Params.description | default "") $tagStr) }}
+    {{ $entries = $entries | append (dict "search" $search "tags" $tags) }}
+  {{ end }}
+
+  <section class="bg-surface py-16" x-data='entityList({{ $entries | jsonify }})'>
+    <div class="mx-auto max-w-3xl px-6">
       <p class="section-label mb-2">{{ .Section | humanize }}</p>
       <h1 class="mb-2 text-3xl font-semibold lg:text-4xl">
         {{ .Title | default (.Section | humanize | pluralize) }}
       </h1>
       {{ with .Params.description }}
-        <p class="mb-10 text-lg text-on-surface-secondary">{{ . }}</p>
+        <p class="mb-8 text-lg text-on-surface-secondary">{{ . }}</p>
       {{ end }}
 
-      {{ $pages := .Pages }}
       {{ if $pages }}
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {{ range $pages }}
-            <a href="{{ .RelPermalink }}" class="group block rounded-lg border border-border bg-surface-raised p-6 transition-all hover:border-primary hover:shadow-sm">
-              <h2 class="mb-1 font-ui text-base font-semibold text-on-surface group-hover:text-primary">
+        {{/* ---- Search + tag filter ---- */}}
+        <div class="mb-6">
+          <div class="relative">
+            <svg class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              type="search"
+              x-model="query"
+              placeholder="Search {{ .Title | default (.Section | humanize) | lower }} by name or keyword..."
+              class="w-full rounded-lg border border-border bg-surface-raised py-3 pl-11 pr-4 font-ui text-sm text-on-surface placeholder:text-on-surface-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              aria-label="Search">
+          </div>
+
+          {{ with $topTags }}
+            <div class="mt-5">
+              <div class="mb-2.5 flex items-center justify-between">
+                <span class="font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">Filter by tag</span>
+                <button
+                  type="button"
+                  @click="clear()"
+                  x-show="active.length"
+                  x-cloak
+                  class="font-ui text-xs text-primary hover:underline">
+                  Clear
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                {{ range . }}
+                  <button
+                    type="button"
+                    @click="toggle('{{ .tag | lower }}')"
+                    class="tag cursor-pointer transition-colors"
+                    :class="active.includes('{{ .tag | lower }}') ? 'tag-teal' : 'tag-neutral'">
+                    {{ .tag }}
+                  </button>
+                {{ end }}
+              </div>
+            </div>
+          {{ end }}
+        </div>
+
+        {{/* ---- Result count ---- */}}
+        <p class="mb-3 font-ui text-xs text-on-surface-muted" aria-live="polite">
+          Showing <span x-text="count"></span> of {{ len $pages }}
+        </p>
+
+        {{/* ---- Entries: name, summary, tags ---- */}}
+        <div class="space-y-9">
+          {{ range $i, $p := $pages }}
+            <a href="{{ .RelPermalink }}"
+               x-show="show(entries[{{ $i }}])"
+               class="group block transition-colors">
+              <h2 class="font-ui text-base font-semibold text-on-surface transition-colors group-hover:text-primary">
                 {{ .Title }}
               </h2>
               {{ with .Params.description }}
-                <p class="text-sm text-on-surface-secondary line-clamp-3">{{ . }}</p>
+                <p class="mt-2 text-sm leading-relaxed text-on-surface-secondary line-clamp-2">{{ . }}</p>
               {{ end }}
-              {{ with .Params.metadata }}
-                <div class="mt-3 flex flex-wrap gap-2">
-                  {{ range $key, $value := . }}
-                    <span class="tag tag-neutral">{{ $value }}</span>
-                  {{ end }}
+              {{ with .Params.tags }}
+                <div class="mt-3.5 flex flex-wrap gap-1.5">
+                  {{ range . }}<span class="tag tag-neutral">{{ . }}</span>{{ end }}
                 </div>
               {{ end }}
             </a>
           {{ end }}
         </div>
+
+        <p x-show="count === 0" x-cloak class="py-12 text-center text-on-surface-muted">
+          No entries match your filter.
+        </p>
       {{ else }}
         <p class="text-on-surface-muted">
           No entries yet. Content will appear here as the assembly pipeline produces it.
@@ -37,4 +116,35 @@
       {{ end }}
     </div>
   </section>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('entityList', (entries) => ({
+        query: '',
+        active: [],
+        entries: entries,
+        init() {
+          const t = new URLSearchParams(location.search).get('tag');
+          if (t) this.active = [t.toLowerCase()];
+        },
+        toggle(tag) {
+          this.active = this.active.includes(tag)
+            ? this.active.filter((x) => x !== tag)
+            : [...this.active, tag];
+        },
+        clear() {
+          this.active = [];
+        },
+        show(e) {
+          const q = this.query.trim().toLowerCase();
+          const textOk = !q || e.search.includes(q);
+          const tagOk = this.active.every((a) => e.tags.includes(a));
+          return textOk && tagOk;
+        },
+        get count() {
+          return this.entries.filter((e) => this.show(e)).length;
+        },
+      }));
+    });
+  </script>
 {{ end }}
