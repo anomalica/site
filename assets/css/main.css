@@ -2,6 +2,11 @@
 @source "hugo_stats.json";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Alpine: hide elements with x-cloak until the component initialises. */
+[x-cloak] {
+  display: none !important;
+}
+
 /* ================================================================
    Raw palette
    These are the fixed colour values. Not used directly in templates.
@@ -467,4 +472,141 @@ main {
 
 .btn-secondary:hover {
   background: var(--color-primary-container);
+}
+
+/* In-flow citations: every <sup>N</sup> in an article body becomes a small
+   interactive chip. Hover (desktop) or tap (touch) shows the cited source's
+   claim text, source title, and location right where the reader is, so they
+   don't have to scroll to the references list to verify a single number. */
+sup.cite {
+  cursor: help;
+  color: var(--color-primary);
+  background: var(--color-primary-container);
+  border-radius: 3px;
+  padding: 0 3px;
+  margin-left: 1px;
+  font-weight: 500;
+  font-feature-settings: "tnum";
+  position: relative;
+  outline: none;
+}
+
+sup.cite:hover,
+sup.cite:focus-visible,
+sup.cite.cite-open {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+sup.cite .cite-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  width: min(420px, 80vw);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  box-shadow:
+    0 12px 30px -8px rgba(0, 0, 0, 0.35),
+    0 0 0 1px var(--color-border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 0.84rem;
+  font-weight: normal;
+  text-align: left;
+  font-feature-settings: normal;
+  line-height: 1.45;
+  z-index: 50;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+sup.cite:hover .cite-tip,
+sup.cite:focus-visible .cite-tip,
+sup.cite.cite-open .cite-tip {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+sup.cite .cite-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--color-surface) transparent transparent transparent;
+}
+
+sup.cite .cite-tip-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+sup.cite .cite-tip-block + .cite-tip-block {
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+sup.cite .cite-tip-text {
+  color: var(--color-on-surface);
+}
+
+sup.cite .cite-tip-source {
+  color: var(--color-on-surface-secondary);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+sup.cite .cite-tip-loc {
+  color: var(--color-on-surface-muted);
+  font-size: 0.72rem;
+  font-feature-settings: "tnum";
+}
+
+/* On very narrow screens, fall back to a wider tooltip pinned to the viewport. */
+@media (max-width: 480px) {
+  sup.cite .cite-tip {
+    width: calc(100vw - 32px);
+    left: 16px;
+    transform: none;
+  }
+  sup.cite .cite-tip::after {
+    display: none;
+  }
+}
+
+/* When a citation chip is clicked, the matching reference row briefly
+   flashes so the reader's eye lands on it amongst the wall of references.
+   The flash is the *motion* cue; the persistent `.ref-current` highlight
+   below is what keeps it identifiable after the animation ends. */
+.cite-flash {
+  animation: cite-flash-keyframes 1.6s ease-out;
+  border-radius: 4px;
+}
+
+@keyframes cite-flash-keyframes {
+  0% { background-color: var(--color-primary); }
+  60% { background-color: var(--color-primary-container); }
+  100% { background-color: var(--color-primary-container); }
+}
+
+/* Persistent marker for the reference the reader most recently navigated
+   to. Stays visible until another citation is clicked so the reader can
+   look away and come back without losing their place. */
+.content + * li.ref-current,
+#references li.ref-current {
+  background-color: var(--color-primary-container);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-left: -8px;
+  box-shadow: -3px 0 0 0 var(--color-primary);
 }
