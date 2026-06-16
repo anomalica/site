@@ -1,18 +1,17 @@
 flowchart TB
-  classDef priv fill:#F0D9C9,stroke:#B35A28,stroke-width:1.5px,color:#3a2208;
+  classDef src fill:#F0D9C9,stroke:#B35A28,stroke-width:1.5px,color:#3a2208;
   classDef pub fill:#D1F1F1,stroke:#0B6E6E,stroke-width:1.5px,color:#053333;
   classDef rev fill:#E9E5DC,stroke:#5E5A50,stroke-width:1.5px,color:#2c2a24;
   classDef store fill:#ffffff,stroke:#5E5A50,stroke-width:1.3px,color:#2c2a24;
-  classDef new fill:#F6DFA8,stroke:#8a6a16,stroke-width:2px,color:#3a2a06;
 
-  raw["Raw sources"]:::priv
-  ingester{{"Ingester"}}:::priv
-  ingests[("Ingests")]:::priv
-  archive[("sources/ archive")]:::priv
+  raw["Raw sources"]:::src
+  ingester{{"Ingester"}}:::pub
+  ingests[("Ingests")]:::src
+  archive[("sources/ archive")]:::src
   workbench{{"Workbench"}}:::rev
   digester{{"Digester"}}:::pub
   digests[("Digests")]:::pub
-  assimilator{{"Assimilator"}}:::new
+  assimilator{{"Assimilator"}}:::pub
   kg[("SQLite knowledge graph")]:::pub
   assembler{{"Assembler"}}:::pub
   content[("Content")]:::pub

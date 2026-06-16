@@ -5,37 +5,43 @@
 nodes:
   raw:
     kind: "Input"
-    zone: "private"
+    zone: "source"
     desc: "The original source material in any format - PDF documents, audio, video, web pages, ebooks. Driven by the existing
       network of references, not external editorial picks."
     output: "Nothing - this is the input."
-    contains: "Third-party copyrighted material (testimony, articles, broadcasts, documents)."
-    copyright: "Varies per source: publicly accessible, licensed, or restricted."
+    contains: "Third-party material in whatever form it was published - documents, broadcasts, articles, testimony."
+    copyright: "Follows the source: public-domain and openly-licensed material is free to share; copyrighted material is handled
+      under copyright and not republished."
   ingester:
     kind: "Component (Python)"
-    zone: "private"
+    zone: "public"
     desc: "Converts raw sources into structured text records. Per-format handlers: PDF, web, audio/video (transcription via
       whisperx + speaker diarisation), ebook. Runs on the local GPU - no AI billing."
     output: "One markdown + YAML record per source (to Ingests), plus the original file and the complete raw transcript (to
       sources/)."
-    contains: "The verbatim source text - so its output is private."
-    copyright: "n/a (it's code)."
+    contains: "Just code - an open-source tool. The records it produces inherit the source's copyright, but the ingester itself
+      is public."
+    copyright: "PUBLIC - open-source code."
   ingests:
     kind: "Data store (private repo)"
-    zone: "private"
+    zone: "source"
     desc: "The records store. One markdown + YAML file per source, content-addressed by hash. This is the binding contract
       every downstream stage reads against."
     output: "Records, consumed by the digester and the workbench."
-    contains: "Full source text - transcripts, extracted document text - so it holds copyrighted material."
-    copyright: "PRIVATE. Never published; gated behind proof-of-possession in the workbench."
+    contains: "The full source text of each record, so its copyright follows the source - a mix of public-domain and copyrighted
+      material."
+    copyright: "Follows the source. The repo is kept private because it can hold copyrighted text we are not allowed to republish,
+      with proof-of-possession gating in the workbench - a copyright constraint, not secrecy; public-domain material here
+      is free to share."
   archive:
     kind: "Data store (sources/)"
-    zone: "private"
+    zone: "source"
     desc: "Durable archive of the original raw files plus the complete raw AI transcripts (full whisperx + pyannote output,
       confidences and all). Lets a record be re-rendered to a new format without re-running the GPU."
     output: "Re-render source for the ingester; provenance of last resort."
-    contains: "Original copyrighted files + raw transcripts."
-    copyright: "PRIVATE. (Backup of this is an open operational task.)"
+    contains: "The original files + raw transcripts. Copyright follows the source."
+    copyright: "Follows the source - kept where copyright requires it, the same constraint as the ingests. (Backup of this
+      is an open operational task.)"
   workbench:
     kind: "Component (Svelte + FastAPI)"
     zone: "review"
@@ -44,8 +50,9 @@ nodes:
       on screen but not in the audio), corrects the digests, and marks which records are observed enough to digest."
     output: "Corrections committed back to both the records (ingests) and the digests as git commits; a 'digestible' signal
       and a visual-notes sidecar for the digester."
-    contains: "Reviewer edits + observations; reads private source material."
-    copyright: "Operates inside the private zone; never exposes copyrighted text publicly."
+    contains: "Reviewer edits + observations; reads the source material to check records against it."
+    copyright: "PUBLIC tool. It reads source material that may be copyrighted but never exposes it publicly - what it publishes
+      back are the corrections, not the source."
   digester:
     kind: "Component (Python)"
     zone: "public"
@@ -60,18 +67,19 @@ nodes:
     desc: "Per-record digest files: the nodes and claims extracted from one source. This is the source of truth for the knowledge
       graph - the graph is rebuildable from these."
     output: "The input to the assimilator, and one input to the assembler."
-    contains: "Nodes + claims + provenance, per record. No copyrighted content."
-    copyright: "PUBLIC."
+    contains: "Facts and claims with provenance, per record - not source text."
+    copyright: "PUBLIC - facts and claims aren't copyrightable, so everything from the digests onward is public."
   assimilator:
-    kind: "Component (proposed - new repo)"
-    zone: "new"
-    desc: "NEW STAGE. Sits beside the knowledge graph and maintains it: reads the current graph plus the new digest files,
-      resolves the same real-world entity named across many records into a single node, accumulates every claim about it,
-      computes corroboration (independent sources agreeing) and evidence scores, and writes the updated graph back. Incremental
-      - seeded once, grown each run. This is where the project's differentiator lives."
+    kind: "Component (Python)"
+    zone: "public"
+    desc: "Sits beside the knowledge graph and maintains it: reads the current graph plus the new digest files, resolves the
+      same real-world entity named across many records into a single node, accumulates every claim about it, computes corroboration
+      (independent sources agreeing) and evidence scores, and writes the updated graph back. Incremental - seeded once, grown
+      each run. This is where the project's differentiator lives."
     output: "Reads and writes the SQLite knowledge graph - maintains it incrementally."
-    contains: "The integration logic; currently this lives buried inside the digester's import step and is only half-built
-      (corroboration has never run)."
+    contains: "The integration logic - import, entity matching, scoring, corroboration, embeddings and search - now its own
+      repository, split out of the digester. Shares the digest format and the Claude transport with the digester via the anomalica-common
+      library."
     copyright: "Its output (the graph) is public."
   kg:
     kind: "Data artefact (SQLite)"
@@ -137,7 +145,8 @@ links:
     - label: "Repository"
       url: "https://github.com/anomalica/digests"
   assimilator:
-    - note: "Proposed - repository not yet created."
+    - label: "Repository"
+      url: "https://github.com/anomalica/assimilator"
   kg:
     - note: "Downloadable dataset - published from the digests once the site is live."
   assembler:

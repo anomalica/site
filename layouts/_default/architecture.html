@@ -9,10 +9,9 @@
 
       <div class="arch">
         <div class="arch-legend">
-          <span><i class="arch-swatch" style="background:#F0D9C9;border:1px solid #B35A28"></i> Private (copyrighted)</span>
+          <span><i class="arch-swatch" style="background:#F0D9C9;border:1px solid #B35A28"></i> Copyright follows the source</span>
           <span><i class="arch-swatch" style="background:#D1F1F1;border:1px solid #0B6E6E"></i> Public</span>
           <span><i class="arch-swatch" style="background:#D6D2C9;border:1px solid #5E5A50"></i> Human review</span>
-          <span><i class="arch-swatch" style="background:#D49F3D;border:1px solid #8a6a16"></i> New / proposed</span>
           <span class="arch-legend-flow">&mdash;&rarr; data flow &nbsp;&middot;&nbsp; &middot;&middot;&middot;&rarr; review / control</span>
           <span class="arch-legend-hint">Click any box for details</span>
         </div>
@@ -29,8 +28,8 @@
             </div>
             <div class="arch-panel-body" id="p-body">
               <div class="row"><div class="value">Anomalica turns raw source material into a public, fully-sourced knowledge base.</div></div>
-              <div class="row"><div class="value">Read it top to bottom: raw sources are <b>ingested</b> into records, <b>digested</b> into per-record facts, <b>assimilated</b> into one knowledge graph, then <b>assembled</b> into articles and rendered to the <b>site</b>. The privacy boundary sits between the ingests (copyrighted source text, private) and the digests onward (structured facts, public).</div></div>
-              <div class="row"><div class="value placeholder">Click any box to see what it does, what it produces, and whether it is public.</div></div>
+              <div class="row"><div class="value">Read it top to bottom: raw sources are <b>ingested</b> into records, <b>digested</b> into per-record facts, <b>assimilated</b> into one knowledge graph, then <b>assembled</b> into articles and rendered to the <b>site</b>. The copyright boundary sits between the ingests (which hold the source text, so their copyright follows the source) and the digests onward (facts and claims, which can't be copyrighted and are public).</div></div>
+              <div class="row"><div class="value placeholder">Click any box to see what it does, what it produces, and its copyright status.</div></div>
             </div>
           </aside>
         </div>
@@ -93,10 +92,9 @@
     .arch-panel-body .note { color: #5e5a50; font-size: 12.5px; }
     .arch-panel-body .links .value { display: flex; flex-direction: column; gap: 6px; }
     .arch-panel-body .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: var(--font-ui); }
-    .arch-panel-body .badge.private { background: #f6e3d7; color: #8a3f18; }
+    .arch-panel-body .badge.source { background: #f6e3d7; color: #8a3f18; }
     .arch-panel-body .badge.public { background: #d1f1f1; color: #064d4d; }
     .arch-panel-body .badge.review { background: #d6d2c9; color: #5e5a50; }
-    .arch-panel-body .badge.new { background: #d49f3d; color: #3a2a06; }
   </style>
 
   <script type="module">
@@ -106,8 +104,8 @@
     const NODES = {{ site.Data.architecture.nodes | jsonify | safeJS }};
     const LINKS = {{ site.Data.architecture.links | jsonify | safeJS }};
 
-    const ZONE_LABEL = { private: ["Private", "private"], public: ["Public", "public"], review: ["Human review", "review"], new: ["New / proposed", "new"], store: ["Shared", "public"] };
-    const ZONE_COLOR = { private: "#B35A28", public: "#0B6E6E", review: "#5E5A50", new: "#8a6a16", store: "#0B6E6E" };
+    const ZONE_LABEL = { source: ["Source material", "source"], public: ["Public", "public"], review: ["Human review", "review"], store: ["Shared", "public"] };
+    const ZONE_COLOR = { source: "#B35A28", public: "#0B6E6E", review: "#5E5A50", store: "#0B6E6E" };
 
     window.nodeClick = function (id) {
       const n = NODES[id];
