@@ -6,6 +6,11 @@
   <title>{{ if not .IsHome }}{{ .Title }} - {{ end }}{{ site.Title }}</title>
   <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}Encyclopaedia of Anomalous Phenomena{{ end }}">
 
+  {{/* Records are an extraction-QA surface: keep them out of search indexes. */}}
+  {{ if or .Params.noindex (eq .Section "records") }}
+    <meta name="robots" content="noindex, nofollow">
+  {{ end }}
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

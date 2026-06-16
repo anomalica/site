@@ -1,0 +1,122 @@
+{{ define "main" }}
+  {{ $entityOrder := slice "person" "organisation" "project" "place" "event" "object" "document" "topic" }}
+  {{ $entityLabels := dict
+    "person" "People" "organisation" "Organisations" "project" "Projects"
+    "place" "Places" "event" "Events" "object" "Objects"
+    "document" "Documents" "topic" "Topics" }}
+
+  <article class="bg-surface pt-14 pb-24">
+    <div class="mx-auto max-w-3xl px-6">
+      {{ with .Section }}
+        <p class="section-label mb-1">{{ . | humanize | singularize }}</p>
+      {{ end }}
+
+      <h1 class="mb-2 text-3xl font-semibold">{{ .Title }}</h1>
+
+      {{ with .Params.description }}
+        <p class="mb-4 font-ui text-lg text-on-surface-muted">{{ . }}</p>
+      {{ end }}
+
+      {{ with .Params.metadata }}
+        <p class="mb-8 font-ui text-sm text-on-surface-muted">
+          {{ $parts := slice }}
+          {{ with .medium }}{{ $parts = $parts | append (title .) }}{{ end }}
+          {{ with .publisher }}{{ $parts = $parts | append . }}{{ end }}
+          {{ with .date }}{{ $parts = $parts | append . }}{{ end }}
+          {{ with .duration }}{{ $parts = $parts | append . }}{{ end }}
+          {{ delimit $parts "  ·  " }}
+        </p>
+      {{ end }}
+
+      {{/* The assembler-generated narrative article, with in-flow citations. */}}
+      <div class="content" id="article-content">
+        {{ .Content }}
+      </div>
+
+      {{ partial "article-references.html" . }}
+
+      {{/* ---- Facts breakdown: collapsed extraction-QA view ---- */}}
+      {{ if or .Params.facts .Params.entities }}
+        {{ $entityCount := 0 }}
+        {{ range $t, $list := .Params.entities }}{{ $entityCount = add $entityCount (len $list) }}{{ end }}
+        <details class="mt-12 border-t border-border pt-8">
+          <summary class="section-label cursor-pointer select-none">
+            Facts breakdown
+            <span class="text-on-surface-muted">({{ len .Params.facts }} facts, {{ $entityCount }} entities)</span>
+          </summary>
+
+          <p class="mt-3 mb-6 text-sm text-on-surface-muted">
+            Every entity and claim the digester extracted from this record, each citing the original wording. A review surface for checking extraction quality.
+          </p>
+
+          {{/* Entities, grouped by type */}}
+          {{ with .Params.entities }}
+            <div class="mb-10">
+              {{ range $type := $entityOrder }}
+                {{ with index $.Params.entities $type }}
+                  <div class="mb-5">
+                    <p class="mb-2 font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">
+                      {{ index $entityLabels $type }} <span class="opacity-60">{{ len . }}</span>
+                    </p>
+                    <div class="flex flex-wrap gap-1.5">
+                      {{ range . }}
+                        {{ if .url }}
+                          <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>
+                        {{ else }}
+                          <span class="tag tag-neutral">{{ .name }}</span>
+                        {{ end }}
+                      {{ end }}
+                    </div>
+                  </div>
+                {{ end }}
+              {{ end }}
+            </div>
+          {{ end }}
+
+          {{/* Claims, one self-contained card each */}}
+          {{ with .Params.facts }}
+            <p class="mb-3 font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">Claims</p>
+            <div class="space-y-3">
+              {{ range . }}
+                <div class="rounded-lg border border-border bg-surface-raised p-4">
+                  <p class="text-sm text-on-surface">{{ .text }}</p>
+
+                  <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-ui text-xs">
+                    <span class="font-semibold uppercase tracking-wide text-primary">{{ .type }}</span>
+                    <span class="text-on-surface-muted">{{ with .attestation }}{{ replace . "_" " " }}{{ else }}unattributed{{ end }}</span>
+                    {{ with .speaker }}<span class="text-on-surface-secondary">{{ . }}</span>{{ end }}
+                  </div>
+
+                  {{ with .refs }}
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                      {{ range . }}
+                        {{ if .url }}
+                          <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>
+                        {{ else }}
+                          <span class="tag tag-neutral">{{ .name }}</span>
+                        {{ end }}
+                      {{ end }}
+                    </div>
+                  {{ end }}
+
+                  {{ with .quote }}
+                    <blockquote class="mt-2 border-l-2 border-border pl-3 text-xs italic text-on-surface-muted">&ldquo;{{ . }}&rdquo;</blockquote>
+                  {{ end }}
+
+                  {{ if or .location .workbench_url }}
+                    <div class="mt-2 flex items-center gap-x-3 text-xs">
+                      {{ with .location }}<span class="text-on-surface-muted">{{ . }}</span>{{ end }}
+                      {{ with .workbench_url }}
+                        <a href="{{ . }}" class="ml-auto text-primary hover:underline" title="Open this claim in the workbench">Review in workbench &rarr;</a>
+                      {{ end }}
+                    </div>
+                  {{ end }}
+                </div>
+              {{ end }}
+            </div>
+          {{ end }}
+        </details>
+      {{ end }}
+    </div>
+  </article>
+{{ end }}
