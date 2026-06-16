@@ -28,7 +28,7 @@ flowchart TB
   assimilator <-->|"reads + updates"| kg
   kg -->|"whole entity + its claims"| assembler
   digests -->|"one record"| assembler
-  assembler -->|"entity articles + source pages"| content
+  assembler -->|"entity articles + inspection pages"| content
   content -->|"renders"| site
   brand -.->|"tokens, logo"| site
   ingests <-.->|"review + corrections"| workbench
