@@ -1,0 +1,156 @@
+# Canonical source for the /architecture/ ("How it works") page details panel.
+# Each node's copy is data, not code: edit here, no template changes needed.
+# The diagram topology itself lives in assets/architecture/pipeline.mmd.
+
+nodes:
+  raw:
+    kind: "Input"
+    zone: "private"
+    desc: "The original source material in any format - PDF documents, audio, video, web pages, ebooks. Driven by the existing
+      network of references, not external editorial picks."
+    output: "Nothing - this is the input."
+    contains: "Third-party copyrighted material (testimony, articles, broadcasts, documents)."
+    copyright: "Varies per source: publicly accessible, licensed, or restricted."
+  ingester:
+    kind: "Component (Python)"
+    zone: "private"
+    desc: "Converts raw sources into structured text records. Per-format handlers: PDF, web, audio/video (transcription via
+      whisperx + speaker diarisation), ebook. Runs on the local GPU - no AI billing."
+    output: "One markdown + YAML record per source (to Ingests), plus the original file and the complete raw transcript (to
+      sources/)."
+    contains: "The verbatim source text - so its output is private."
+    copyright: "n/a (it's code)."
+  ingests:
+    kind: "Data store (private repo)"
+    zone: "private"
+    desc: "The records store. One markdown + YAML file per source, content-addressed by hash. This is the binding contract
+      every downstream stage reads against."
+    output: "Records, consumed by the digester and the workbench."
+    contains: "Full source text - transcripts, extracted document text - so it holds copyrighted material."
+    copyright: "PRIVATE. Never published; gated behind proof-of-possession in the workbench."
+  archive:
+    kind: "Data store (sources/)"
+    zone: "private"
+    desc: "Durable archive of the original raw files plus the complete raw AI transcripts (full whisperx + pyannote output,
+      confidences and all). Lets a record be re-rendered to a new format without re-running the GPU."
+    output: "Re-render source for the ingester; provenance of last resort."
+    contains: "Original copyrighted files + raw transcripts."
+    copyright: "PRIVATE. (Backup of this is an open operational task.)"
+  workbench:
+    kind: "Component (Svelte + FastAPI)"
+    zone: "review"
+    desc: "The human review app. A reviewer loads a record, checks it against the original source, corrects the text, labels
+      who is speaking, adds visual notes (what's on screen but not in the audio), and marks which records are good enough
+      to digest."
+    output: "Corrections committed back to the ingests as git commits; a 'digestible' signal and a visual-notes sidecar for
+      the digester."
+    contains: "Reviewer edits + observations; reads private source material."
+    copyright: "Operates inside the private zone; never exposes copyrighted text publicly."
+  digester:
+    kind: "Component (Python)"
+    zone: "public"
+    desc: "AI reads each record and extracts the atomic factual claims and the entities (nodes) they involve, with provenance
+      - who said it, where, attestation level. Defaults to the Claude subscription; metered API behind a toggle."
+    output: "One per-record digest file (YAML) of nodes + claims."
+    contains: "Structured facts with provenance - no copyrighted text, just claims traceable to a source."
+    copyright: "Its output (digests) is public."
+  digests:
+    kind: "Data store (public repo)"
+    zone: "public"
+    desc: "Per-record digest files: the nodes and claims extracted from one source. This is the source of truth for the knowledge
+      graph - the graph is rebuildable from these."
+    output: "The input to the assimilator."
+    contains: "Nodes + claims + provenance, per record. No copyrighted content."
+    copyright: "PUBLIC."
+  assimilator:
+    kind: "Component (proposed - new repo)"
+    zone: "new"
+    desc: "NEW STAGE. Takes all the per-record digests and builds + maintains the one unified knowledge graph: resolves the
+      same real-world entity named across many records into a single node, accumulates every claim about it, and computes
+      corroboration (independent sources agreeing) and evidence scores. Incremental - seeded once, grown each run. This is
+      where the project's differentiator lives."
+    output: "Builds + maintains the SQLite knowledge graph."
+    contains: "The integration logic; currently this lives buried inside the digester's import step and is only half-built
+      (corroboration has never run)."
+    copyright: "Its output (the graph) is public."
+  kg:
+    kind: "Data artefact (SQLite)"
+    zone: "public"
+    desc: "The unified, queryable knowledge graph: one node per real-world entity, all claims about it from across every source,
+      corroboration links and evidence scores. The downloadable, torrentable public dataset and the source for every rendered
+      output. Derived - rebuildable from the digests."
+    output: "Read by the assembler to build articles."
+    contains: "Entities, claims, provenance, scores. No copyrighted content."
+    copyright: "PUBLIC - the data is meant to outlive the platform."
+  assembler:
+    kind: "Component (Python)"
+    zone: "public"
+    desc: "Turns knowledge-graph nodes into reader-facing articles and per-record summaries. Assembles only from the graph's
+      sourced claims - it never adds facts from training data and never generates imagery. Defaults to the Claude subscription."
+    output: "Articles + media (to Content)."
+    contains: "Assembled prose, every sentence traceable to a claim and its source."
+    copyright: "Its output is public."
+  content:
+    kind: "Data store (public repo)"
+    zone: "public"
+    desc: "The rendered articles plus their media. Each entity article and per-record inspection page, with live deep-links
+      back to the exact source."
+    output: "Consumed by the site."
+    contains: "Assembled articles + media. No copyrighted source text."
+    copyright: "PUBLIC."
+  site:
+    kind: "Component (Hugo + Tailwind)"
+    zone: "public"
+    desc: "The Hugo static site that renders the content repo to public HTML, in up to 30 displayed languages. Templates and
+      styling only - it holds no content itself."
+    output: "The public website."
+    contains: "Static HTML, the design system."
+    copyright: "PUBLIC."
+  brand:
+    kind: "Shared assets (repo)"
+    zone: "store"
+    desc: "The shared visual identity - triangle logo, deep-teal palette, Outfit + Noto Sans typography, design tokens - consumed
+      by the site and the workbench. (These very colours are the brand palette.)"
+    output: "Logo, palette, tokens."
+    contains: "Design assets."
+    copyright: "PUBLIC."
+
+links:
+  ingester:
+    - label: "Repository"
+      url: "https://github.com/anomalica/ingester"
+  ingests:
+    - note: "Private repository - holds copyrighted source material, never published."
+  archive:
+    - note: "Private archive - not a repository."
+  workbench:
+    - label: "Repository"
+      url: "https://github.com/anomalica/workbench"
+    - label: "Open the workbench"
+      url: "http://localhost:5173"
+      note: "local dev - not yet deployed"
+  digester:
+    - label: "Repository"
+      url: "https://github.com/anomalica/digester"
+  digests:
+    - label: "Repository"
+      url: "https://github.com/anomalica/digests"
+  assimilator:
+    - note: "Proposed - repository not yet created."
+  kg:
+    - note: "Downloadable dataset - published from the digests once the site is live."
+  assembler:
+    - label: "Repository"
+      url: "https://github.com/anomalica/assembler"
+  content:
+    - label: "Repository"
+      url: "https://github.com/anomalica/content"
+  site:
+    - label: "Repository"
+      url: "https://github.com/anomalica/site"
+    - label: "Visit the live site"
+      url: "https://anomalica.is"
+      note: "not yet deployed"
+  brand:
+    - label: "Repository"
+      url: "https://github.com/anomalica/brand"

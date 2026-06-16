@@ -1,0 +1,149 @@
+{{ define "main" }}
+  <section class="bg-surface py-12 lg:py-16">
+    <div class="mx-auto max-w-6xl px-6">
+      <p class="section-label mb-2">Architecture</p>
+      <h1 class="mb-3 text-3xl font-semibold lg:text-4xl">{{ .Title }}</h1>
+      {{ with .Params.description }}
+        <p class="mb-8 max-w-2xl text-lg text-on-surface-secondary">{{ . }}</p>
+      {{ end }}
+
+      <div class="arch">
+        <div class="arch-legend">
+          <span><i class="arch-swatch" style="background:#F0D9C9;border:1px solid #B35A28"></i> Private (copyrighted)</span>
+          <span><i class="arch-swatch" style="background:#D1F1F1;border:1px solid #0B6E6E"></i> Public</span>
+          <span><i class="arch-swatch" style="background:#D6D2C9;border:1px solid #5E5A50"></i> Human review</span>
+          <span><i class="arch-swatch" style="background:#D49F3D;border:1px solid #8a6a16"></i> New / proposed</span>
+          <span class="arch-legend-flow">&mdash;&rarr; data flow &nbsp;&middot;&nbsp; &middot;&middot;&middot;&rarr; review / control</span>
+          <span class="arch-legend-hint">Click any box for details</span>
+        </div>
+
+        <div class="arch-layout">
+          <div id="diagram-wrap" class="arch-canvas">
+            <div id="diagram"><pre class="mermaid">{{ (resources.Get "architecture/pipeline.mmd").Content | safeHTML }}</pre></div>
+          </div>
+
+          <aside class="arch-panel">
+            <div class="arch-panel-head">
+              <div class="arch-kind" id="p-kind">Overview</div>
+              <h2 id="p-name">The pipeline</h2>
+            </div>
+            <div class="arch-panel-body" id="p-body">
+              <div class="row"><div class="value">Anomalica turns raw source material into a public, fully-sourced knowledge base.</div></div>
+              <div class="row"><div class="value">Read it top to bottom: raw sources are <b>ingested</b> into records, <b>digested</b> into per-record facts, <b>assimilated</b> into one knowledge graph, then <b>assembled</b> into articles and rendered to the <b>site</b>. The privacy boundary sits between the ingests (copyrighted source text, private) and the digests onward (structured facts, public).</div></div>
+              <div class="row"><div class="value placeholder">Click any box to see what it does, what it produces, and whether it is public.</div></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .arch {
+      border: 1px solid var(--color-fog);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+      color: #1e1d19;
+    }
+    .arch-legend {
+      display: flex; flex-wrap: wrap; gap: 10px 18px;
+      padding: 12px 18px;
+      background: #e9e5dc; border-bottom: 1px solid #d6d2c9;
+      font-family: var(--font-ui); font-size: 12.5px; color: #2c2a24;
+    }
+    .arch-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .arch-legend-hint { margin-left: auto; color: #5e5a50; }
+    .arch-swatch { width: 13px; height: 13px; border-radius: 3px; display: inline-block; }
+
+    .arch-layout { display: grid; grid-template-columns: 1fr; }
+    @media (min-width: 1024px) { .arch-layout { grid-template-columns: minmax(0, 1fr) 360px; } }
+
+    .arch-canvas {
+      overflow: auto; padding: 24px;
+      background:
+        radial-gradient(circle at 18px 18px, #e9e5dc 1.4px, transparent 1.4px) 0 0 / 26px 26px,
+        #f8f6f1;
+    }
+    #diagram { display: flex; justify-content: center; align-items: flex-start; min-height: 100%; }
+    #diagram svg { max-width: none !important; height: auto !important; }
+    #diagram .node rect, #diagram .node polygon, #diagram .node path { cursor: pointer; transition: filter .12s ease; }
+    #diagram .node:hover rect, #diagram .node:hover polygon, #diagram .node:hover path { filter: brightness(1.05) drop-shadow(0 2px 6px rgba(3,31,31,.22)); }
+    #diagram .nodeLabel { font-weight: 600; }
+    #diagram .edgeLabel { font-size: 12px; }
+
+    .arch-panel { border-top: 1px solid #d6d2c9; background: #fff; }
+    @media (min-width: 1024px) {
+      .arch-panel {
+        border-top: 0; border-left: 1px solid #d6d2c9;
+        position: sticky; top: 64px; align-self: start;
+        max-height: calc(100vh - 64px); overflow-y: auto;
+      }
+    }
+    .arch-panel-head { padding: 20px 22px 14px; border-bottom: 1px solid #e9e5dc; }
+    .arch-kind { font-family: var(--font-ui); font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; color: #0b6e6e; }
+    .arch-panel-head h2 { font-family: var(--font-ui); font-size: 22px; margin: 6px 0 0; color: #1e1d19; }
+    .arch-panel-body { padding: 16px 22px 28px; font-size: 14.5px; line-height: 1.55; }
+    .arch-panel-body .row { margin-bottom: 16px; }
+    .arch-panel-body .label { font-family: var(--font-ui); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #5e5a50; font-weight: 600; margin-bottom: 4px; }
+    .arch-panel-body .value { color: #1e1d19; }
+    .arch-panel-body .placeholder { color: #5e5a50; font-style: italic; }
+    .arch-panel-body a { color: #0b6e6e; text-decoration: none; border-bottom: 1.5px solid #72d3d3; font-weight: 600; }
+    .arch-panel-body a:hover { color: #b35a28; border-color: #d4915e; }
+    .arch-panel-body .note { color: #5e5a50; font-size: 12.5px; }
+    .arch-panel-body .links .value { display: flex; flex-direction: column; gap: 6px; }
+    .arch-panel-body .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: var(--font-ui); }
+    .arch-panel-body .badge.private { background: #f6e3d7; color: #8a3f18; }
+    .arch-panel-body .badge.public { background: #d1f1f1; color: #064d4d; }
+    .arch-panel-body .badge.review { background: #d6d2c9; color: #5e5a50; }
+    .arch-panel-body .badge.new { background: #d49f3d; color: #3a2a06; }
+  </style>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    // Node copy and links are editable data: site/data/architecture.yaml.
+    const NODES = {{ site.Data.architecture.nodes | jsonify | safeJS }};
+    const LINKS = {{ site.Data.architecture.links | jsonify | safeJS }};
+
+    const ZONE_LABEL = { private: ["Private", "private"], public: ["Public", "public"], review: ["Human review", "review"], new: ["New / proposed", "new"], store: ["Shared", "public"] };
+    const ZONE_COLOR = { private: "#B35A28", public: "#0B6E6E", review: "#5E5A50", new: "#8a6a16", store: "#0B6E6E" };
+
+    window.nodeClick = function (id) {
+      const n = NODES[id];
+      if (!n) return;
+      const [zlabel, zclass] = ZONE_LABEL[n.zone] || ["", "public"];
+      document.getElementById("p-kind").textContent = n.kind;
+      document.getElementById("p-kind").style.color = ZONE_COLOR[n.zone] || "#0B6E6E";
+      document.getElementById("p-name").textContent = id === "kg" ? "SQLite knowledge graph" : id.charAt(0).toUpperCase() + id.slice(1);
+      const links = LINKS[id] || [];
+      const linksHtml = links.length
+        ? `<div class="row links"><div class="label">Links</div><div class="value">` +
+            links.map(l => l.url
+              ? `<span><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>${l.note ? ` <span class="note">(${l.note})</span>` : ""}</span>`
+              : `<span class="note">${l.note}</span>`).join("") +
+          `</div></div>`
+        : "";
+      document.getElementById("p-body").innerHTML =
+        `<div class="row"><div class="value">${n.desc}</div></div>` +
+        `<div class="row"><div class="label">Output</div><div class="value">${n.output}</div></div>` +
+        `<div class="row"><div class="label">What it contains</div><div class="value">${n.contains}</div></div>` +
+        `<div class="row"><div class="label">Copyright / access</div><div class="value"><span class="badge ${zclass}">${zlabel}</span> &nbsp;${n.copyright}</div></div>` +
+        linksHtml;
+    };
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "base",
+      flowchart: { curve: "basis", nodeSpacing: 44, rankSpacing: 58, padding: 14, useMaxWidth: false },
+      themeVariables: {
+        fontFamily: "Outfit, sans-serif",
+        fontSize: "17px",
+        lineColor: "#5E5A50",
+        edgeLabelBackground: "#F8F6F1",
+      },
+    });
+    await mermaid.run({ querySelector: ".mermaid" });
+  </script>
+{{ end }}

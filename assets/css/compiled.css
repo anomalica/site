@@ -49,6 +49,7 @@
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
     --color-bone: #e9e5dc;
+    --color-fog: #d6d2c9;
     --color-slate: #5e5a50;
     --color-ink: #1e1d19;
     --color-primary: var(--primary);
@@ -1399,6 +1400,11 @@
   .lg\:grid-cols-4 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .lg\:py-16 {
+    @media (width >= 64rem) {
+      padding-block: calc(var(--spacing) * 16);
     }
   }
   .lg\:text-4xl {
