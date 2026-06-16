@@ -20,19 +20,21 @@ flowchart TB
   brand[("Brand")]:::store
 
   raw -->|"original files"| ingester
-  ingester -->|"markdown + YAML records"| ingests
+  ingester -->|"records"| ingests
   ingester -->|"originals + raw transcripts"| archive
   ingests -->|"records"| digester
-  digester -->|"digest YAML"| digests
-  digests -->|"digest files"| assimilator
-  assimilator ==>|"builds + maintains"| kg
-  kg -->|"nodes + claims"| assembler
-  assembler -->|"articles + media"| content
+  digester -->|"digest files"| digests
+  digests -->|"per-record digests"| assimilator
+  assimilator <-->|"reads + updates"| kg
+  kg -->|"whole entity + its claims"| assembler
+  digests -->|"one record"| assembler
+  assembler -->|"entity articles + source pages"| content
   content -->|"renders"| site
   brand -.->|"tokens, logo"| site
-  ingests -.->|"read vs source"| workbench
-  workbench -.->|"corrections, review"| ingests
-  workbench -.->|"digestible signal, visual notes"| digester
+  ingests <-.->|"review + corrections"| workbench
+  digests <-.->|"review + corrections"| workbench
+  archive -.->|"check against source"| workbench
+  workbench -.->|"digestible signal + visual notes"| digester
 
   click raw nodeClick
   click ingester nodeClick
