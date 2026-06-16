@@ -1,0 +1,155 @@
+{{/* Renders an article's references list plus the in-flow citation tooltips.
+     Expects the page as context; reads .Params.references. The article body
+     must be wrapped in an element with id="article-content" and use
+     <sup>N</sup> citations 1-indexed into references. Shared by the entity
+     single template and the record digest template. */}}
+{{ with .Params.references }}
+  <details id="references" class="mt-10">
+    <summary class="section-label mb-3 cursor-pointer select-none">
+      References <span class="text-on-surface-muted">({{ len . }})</span>
+    </summary>
+    <ol class="list-decimal space-y-3 pl-4 text-sm mt-3">
+      {{ range $i, $r := . }}
+        {{ $n := add $i 1 }}
+        <li id="ref-{{ $n }}">
+          <div>{{ .text }}</div>
+          {{ with .quote }}
+            <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-muted">
+              &ldquo;{{ . }}&rdquo;
+            </blockquote>
+          {{ end }}
+          <div class="mt-1 text-xs flex flex-wrap items-center gap-x-2">
+            {{ with .source }}
+              <span class="text-on-surface-secondary">{{ . }}</span>
+            {{ end }}
+            {{ with .location }}
+              <span class="text-on-surface-muted">{{ . }}</span>
+            {{ end }}
+            {{ with .workbench_url }}
+              <a href="{{ . }}" class="text-primary hover:underline ml-auto" title="View this claim in the workbench">
+                View in workbench &rarr;
+              </a>
+            {{ end }}
+          </div>
+        </li>
+      {{ end }}
+    </ol>
+  </details>
+
+  {{/* Embed references as JSON so the inline script can attach
+       tooltips to each <sup>N</sup> citation in the article body.
+       This is the "see provenance in flow" mechanism: hover or tap a
+       citation and the source claim, attribution and location appear
+       inline, no scroll required. */}}
+  <script id="article-references" type="application/json">{{ . | jsonify | safeJS }}</script>
+
+  <script>
+    (function () {
+      const data = document.getElementById('article-references');
+      if (!data) return;
+      const refs = JSON.parse(data.textContent);
+      const content = document.getElementById('article-content');
+      if (!content) return;
+
+      const detailsEl = document.getElementById('references');
+
+      function revealRef(n, updateHash) {
+        const target = document.getElementById('ref-' + n);
+        if (!target) return;
+        if (detailsEl && !detailsEl.open) detailsEl.open = true;
+        if (updateHash && history.replaceState) {
+          history.replaceState(null, '', '#ref-' + n);
+        }
+        // Persistent highlight: clear any previously-marked reference
+        // and mark this one. Stays until another citation is clicked
+        // (or until the user clears the hash).
+        document.querySelectorAll('li.ref-current').forEach((el) => {
+          if (el !== target) el.classList.remove('ref-current');
+        });
+        target.classList.add('ref-current');
+        // Wait a frame so the newly-expanded details has laid out
+        // before we scroll into view.
+        requestAnimationFrame(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.classList.remove('cite-flash');
+          // Force reflow so re-adding the class restarts the animation
+          // when the same reference is clicked twice.
+          void target.offsetWidth;
+          target.classList.add('cite-flash');
+          setTimeout(() => target.classList.remove('cite-flash'), 1600);
+        });
+      }
+
+      function revealFromHash() {
+        const m = (location.hash || '').match(/^#ref-(\d+)$/);
+        if (m) revealRef(parseInt(m[1], 10), false);
+      }
+      window.addEventListener('hashchange', revealFromHash);
+      // Defer initial reveal so the browser's own hash scroll
+      // (which lands on a collapsed element and misses) is overridden.
+      setTimeout(revealFromHash, 0);
+
+      // Walk every <sup> in the rendered content. A sup may contain
+      // a single number ("12") or a comma-separated list ("11, 12").
+      content.querySelectorAll('sup').forEach((sup) => {
+        const raw = sup.textContent.trim();
+        const nums = raw.split(/[,\s]+/).map((s) => parseInt(s, 10)).filter((n) => !isNaN(n));
+        if (!nums.length) return;
+
+        // Build tooltip HTML.
+        const tip = document.createElement('span');
+        tip.className = 'cite-tip';
+        nums.forEach((n) => {
+          const r = refs[n - 1];
+          if (!r) return;
+          const block = document.createElement('span');
+          block.className = 'cite-tip-block';
+          const text = document.createElement('span');
+          text.className = 'cite-tip-text';
+          text.textContent = r.text || '';
+          block.appendChild(text);
+          if (r.source) {
+            const s = document.createElement('span');
+            s.className = 'cite-tip-source';
+            s.textContent = r.source;
+            block.appendChild(s);
+          }
+          if (r.location) {
+            const loc = document.createElement('span');
+            loc.className = 'cite-tip-loc';
+            loc.textContent = r.location;
+            block.appendChild(loc);
+          }
+          tip.appendChild(block);
+        });
+
+        // Wrap the sup so we have a positioning context for the tip.
+        sup.classList.add('cite');
+        sup.setAttribute('tabindex', '0');
+        sup.setAttribute('role', 'button');
+        sup.setAttribute('aria-label', 'Show source for citation ' + raw);
+        sup.appendChild(tip);
+
+        // Click on the citation jumps to the relevant reference in the
+        // list at the bottom of the page, and flashes the row briefly so
+        // the reader can see which reference matched. Hover/focus
+        // continues to show the inline tooltip without leaving the
+        // current scroll position - the click is the explicit "show me
+        // the full reference, in context" gesture.
+        sup.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          revealRef(nums[0], true);
+        });
+
+        // Keyboard activation: Enter / Space behaves like click.
+        sup.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            sup.click();
+          }
+        });
+      });
+    })();
+  </script>
+{{ end }}
