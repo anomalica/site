@@ -1,0 +1,16 @@
+{{- /*
+  Markdown link render hook.
+
+  Assembler/digester content links to entities with bare, language-agnostic
+  paths like /people/luis-elizondo. With defaultContentLanguageInSubdir on,
+  every page lives under a language prefix (/en/, /es/, ...), so a bare path
+  404s. Rewriting bare internal links through relLangURL makes them resolve
+  within the current page's language - so the English page links to /en/...,
+  the Spanish page to /es/..., from the same source link. External links,
+  anchors and protocol-relative URLs are left untouched.
+*/ -}}
+{{- $dest := .Destination -}}
+{{- if and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
+  {{- $dest = $dest | relLangURL -}}
+{{- end -}}
+<a href="{{ $dest }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
