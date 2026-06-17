@@ -78,7 +78,7 @@
             <p class="mb-3 font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">Claims</p>
             <div class="space-y-3">
               {{ range . }}
-                <div class="rounded-lg border border-border bg-surface-raised p-4">
+                <div {{ with .claim_id }}id="claim-{{ . }}" {{ end }}class="scroll-mt-24 rounded-lg border border-border bg-surface-raised p-4">
                   <p class="text-sm text-on-surface">{{ .text }}</p>
 
                   <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-ui text-xs">
@@ -103,11 +103,13 @@
                     <blockquote class="mt-2 border-l-2 border-border pl-3 text-xs italic text-on-surface-muted">&ldquo;{{ . }}&rdquo;</blockquote>
                   {{ end }}
 
-                  {{ if or .location .workbench_url }}
+                  {{/* Workbench link is reviewer-only: gated out of public builds. */}}
+                  {{ $showWb := and (or hugo.IsServer site.Params.reviewerPreview) .workbench_url }}
+                  {{ if or .location $showWb }}
                     <div class="mt-2 flex items-center gap-x-3 text-xs">
                       {{ with .location }}<span class="text-on-surface-muted">{{ . }}</span>{{ end }}
-                      {{ with .workbench_url }}
-                        <a href="{{ . }}" class="ml-auto text-primary hover:underline" title="Open this claim in the workbench">Review in workbench &rarr;</a>
+                      {{ if $showWb }}
+                        <a href="{{ .workbench_url }}" class="ml-auto text-on-surface-muted hover:underline" title="Review this claim in the workbench (reviewer only)">Review in workbench &rarr;</a>
                       {{ end }}
                     </div>
                   {{ end }}

@@ -5,6 +5,12 @@ hasCJKLanguage = true
 defaultContentLanguage = "en"
 defaultContentLanguageInSubdir = true
 
+# Reviewer-vs-public build gate. Default false = public-safe (no workbench
+# links). True under `hugo server` (local reviewer preview) via hugo.IsServer,
+# or set here / per-environment for a deployed reviewer preview.
+[params]
+reviewerPreview = false
+
 [languages.en]
 languageName = "English"
 languageCode = "en-GB"

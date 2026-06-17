@@ -25,10 +25,24 @@
             {{ with .location }}
               <span class="text-on-surface-muted">{{ . }}</span>
             {{ end }}
-            {{ with .workbench_url }}
-              <a href="{{ . }}" class="text-primary hover:underline ml-auto" title="View this claim in the workbench">
-                View in workbench &rarr;
+            {{/* Public claim -> source: links to the per-record inspection page.
+                 inspection_url is a bare /records/<slug>#claim-<uuid> path from the
+                 assembler, emitted only when that record page exists; language-prefix
+                 the path here (the fragment is preserved). */}}
+            {{ with .inspection_url }}
+              {{ $p := split . "#" }}
+              {{ $href := relLangURL (index $p 0) }}{{ if gt (len $p) 1 }}{{ $href = printf "%s#%s" $href (index $p 1) }}{{ end }}
+              <a href="{{ $href }}" class="text-primary hover:underline ml-auto" title="Inspect the source record">
+                View the source record &rarr;
               </a>
+            {{ end }}
+            {{/* Workbench is reviewer-only: gated out of public builds. */}}
+            {{ if or hugo.IsServer site.Params.reviewerPreview }}
+              {{ with .workbench_url }}
+                <a href="{{ . }}" class="text-on-surface-muted hover:underline" title="Review this claim in the workbench (reviewer only)">
+                  Review in workbench &rarr;
+                </a>
+              {{ end }}
             {{ end }}
           </div>
         </li>
@@ -41,7 +55,12 @@
        This is the "see provenance in flow" mechanism: hover or tap a
        citation and the source claim, attribution and location appear
        inline, no scroll required. */}}
-  <script id="article-references" type="application/json">{{ . | jsonify | safeJS }}</script>
+  {{/* Slim the embedded tooltip data to only what the tooltip shows. Keeps the
+       reviewer-only workbench_url and the private record_hash out of the public
+       HTML source entirely - the tooltip never needs them. */}}
+  {{ $tip := slice }}
+  {{ range . }}{{ $tip = $tip | append (dict "text" .text "source" .source "location" .location) }}{{ end }}
+  <script id="article-references" type="application/json">{{ $tip | jsonify | safeJS }}</script>
 
   <script>
     (function () {
