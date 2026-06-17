@@ -135,9 +135,7 @@ links:
   workbench:
     - label: "Repository"
       url: "https://github.com/anomalica/workbench"
-    - label: "Open the workbench"
-      url: "http://localhost:5173"
-      note: "local dev - not yet deployed"
+    - note: "Private review tool - runs locally, not publicly deployed."
   digester:
     - label: "Repository"
       url: "https://github.com/anomalica/digester"
