@@ -109,7 +109,7 @@
                     <div class="mt-2 flex items-center gap-x-3 text-xs">
                       {{ with .location }}<span class="text-on-surface-muted">{{ . }}</span>{{ end }}
                       {{ if $showWb }}
-                        <a href="{{ .workbench_url }}" class="ml-auto text-on-surface-muted hover:underline" title="Review this claim in the workbench (reviewer only)">Review in workbench &rarr;</a>
+                        <a href="{{ .workbench_url }}" target="_blank" rel="noopener" class="ml-auto text-on-surface-muted hover:underline" title="Review this claim in the workbench (reviewer only)">Review in workbench &rarr;</a>
                       {{ end }}
                     </div>
                   {{ end }}
