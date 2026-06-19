@@ -60,11 +60,7 @@
                     </p>
                     <div class="flex flex-wrap gap-1.5">
                       {{ range . }}
-                        {{ if .url }}
-                          <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>
-                        {{ else }}
-                          <span class="tag tag-neutral">{{ .name }}</span>
-                        {{ end }}
+                        {{ partial "entity-tag.html" . }}
                       {{ end }}
                     </div>
                   </div>
@@ -90,11 +86,7 @@
                   {{ with .refs }}
                     <div class="mt-2 flex flex-wrap gap-1.5">
                       {{ range . }}
-                        {{ if .url }}
-                          <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>
-                        {{ else }}
-                          <span class="tag tag-neutral">{{ .name }}</span>
-                        {{ end }}
+                        {{ partial "entity-tag.html" . }}
                       {{ end }}
                     </div>
                   {{ end }}

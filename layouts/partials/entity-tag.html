@@ -1,0 +1,12 @@
+{{- /* Entity chip. Links to the entity's page only when that page exists in
+       the build; otherwise renders a plain, non-clickable chip with the name
+       still visible. The link lights up on its own once the target page is
+       assembled - no re-render of this page needed. Expects a context with
+       .name and .url (url may be null or a bare /section/slug path). */ -}}
+{{- $page := false -}}
+{{- with .url }}{{ $page = site.GetPage . }}{{ end -}}
+{{- if $page -}}
+<a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>
+{{- else -}}
+<span class="tag tag-neutral">{{ .name }}</span>
+{{- end -}}
