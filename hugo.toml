@@ -10,6 +10,8 @@ defaultContentLanguageInSubdir = true
 # or set here / per-environment for a deployed reviewer preview.
 [params]
 reviewerPreview = false
+# Reviewer tooling (workbench app) entry point - local dev for now.
+workbenchUrl = "http://localhost:5173"
 
 [languages.en]
 languageName = "English"

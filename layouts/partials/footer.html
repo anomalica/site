@@ -28,6 +28,10 @@
         <ul class="space-y-2 text-sm">
           <li><a href="https://github.com/anomalica" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_develop" }}</a></li>
           <li><a href="{{ "review/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_review_content" }}</a></li>
+          {{/* Reviewer-only entry point to the workbench app (local dev tool); gated out of public builds, same as the per-claim workbench links. */}}
+          {{ if or hugo.IsServer site.Params.reviewerPreview }}
+            <li><a href="{{ site.Params.workbenchUrl }}" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors" title="Reviewer tooling - local dev for now">{{ T "footer_workbench" }}</a></li>
+          {{ end }}
           <li><a href="{{ "report/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_report_problem" }}</a></li>
         </ul>
       </div>
