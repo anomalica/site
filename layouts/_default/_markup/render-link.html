@@ -1,16 +1,33 @@
 {{- /*
   Markdown link render hook.
 
-  Assembler/digester content links to entities with bare, language-agnostic
-  paths like /people/luis-elizondo. With defaultContentLanguageInSubdir on,
-  every page lives under a language prefix (/en/, /es/, ...), so a bare path
-  404s. Rewriting bare internal links through relLangURL makes them resolve
-  within the current page's language - so the English page links to /en/...,
-  the Spanish page to /es/..., from the same source link. External links,
-  anchors and protocol-relative URLs are left untouched.
+  Three behaviours:
+  1. Internal entity-section links (/people/<slug>, /topics/<slug>, ...) are
+     existence-gated at render time: if the target page is in the build it
+     renders a language-relative <a>; if not, the link text is kept as plain
+     text with no href - so a prose entity mention can never dead-link, and it
+     lights up on its own once that page is assembled (never stale).
+  2. Other internal links (/about/, /architecture/, section indexes, ...) are
+     language-prefixed via relLangURL, no existence gate.
+  3. External links, workbench deep-links (http...), anchors and mailto pass
+     through untouched.
 */ -}}
 {{- $dest := .Destination -}}
-{{- if and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
-  {{- $dest = $dest | relLangURL -}}
-{{- end -}}
+{{- $sections := slice "people" "organisations" "projects" "events" "places" "documents" "objects" "topics" "patterns" "records" -}}
+{{- $internal := and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
+{{- if $internal -}}
+  {{- $seg := index (split (strings.TrimPrefix "/" $dest) "/") 0 -}}
+  {{- if in $sections $seg -}}
+    {{- $lookup := index (split $dest "#") 0 -}}
+    {{- $lookup = index (split $lookup "?") 0 -}}
+    {{- if site.GetPage $lookup -}}
+<a href="{{ $dest | relLangURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
+    {{- else -}}
+{{ .Text | safeHTML }}
+    {{- end -}}
+  {{- else -}}
+<a href="{{ $dest | relLangURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
+  {{- end -}}
+{{- else -}}
 <a href="{{ $dest }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
+{{- end -}}
