@@ -57,7 +57,7 @@ nodes:
     kind: "Component (Python)"
     zone: "public"
     desc: "AI reads each record and extracts the atomic factual claims and the entities (nodes) they involve, with provenance
-      - who said it, where, attestation level. Defaults to the Claude subscription; metered API behind a toggle."
+      - who said it, where, attestation level. Defaults to the Claude subscription."
     output: "One per-record digest file (YAML) of nodes + claims."
     contains: "Structured facts with provenance - no copyrighted text, just claims traceable to a source."
     copyright: "Its output (digests) is public."

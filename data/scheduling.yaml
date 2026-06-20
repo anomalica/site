@@ -12,7 +12,7 @@ overview:
       next."
     - "There are two separate queues, because the two kinds of effort don't trade: heavy work on the local graphics card,
       and language-model work. Cheap local jobs run eagerly alongside both. Hard rules sit in front of all of it: nothing
-      is built from unreviewed sources, and anything that spends real money waits for approval."
+      is built from unreviewed sources, and the work keeps within the available capacity."
     - "Click any card to see what it is, what it runs on, when it runs, and how its place in the queue is decided."
 nodes:
   priority:
@@ -26,8 +26,7 @@ nodes:
       - "There are two separate queues - graphics-card work and language-model work - because those two kinds of effort don't
         trade against each other."
       - "Hard rules sit in front of all of it: never build from unreviewed sources; never run a job while something it depends
-        on is still queued; drop changes too small to matter; and anything that spends real money waits for a cost estimate
-        and a yes."
+        on is still queued; drop changes too small to matter; and keep within the available capacity."
     example: "A link points to a page that does not exist yet - the clearest sign of demand - so writing that page jumps up
       the queue."
   staleness:
@@ -147,22 +146,18 @@ nodes:
     name: "Verify"
     kind: "Claude lane - language-model queue"
     summary: "A second model checks every statement traces back to the brief."
-    desc: "Have a second model, from a different provider, check that every statement in an article traces back to its brief.
-      Informational - it never blocks publishing."
+    desc: "Have a second model, from a different provider, check that every statement in an article traces back to its brief
+      - an independent cross-check that the writing stayed faithful to its sources. Informational, never a gate on publishing."
     inputs: "A finished article and its brief."
-    when: "After assembly, as an independent cross-check, when there is approved budget for it."
-    weight: "Informational only - it never gates a page. Run when its cost has been approved."
-    gate:
-      tone: "cost"
-      text: "Always behind the cost-approval gate - it runs on a metered model that can bill real money, so it waits for an
-        estimate and a yes."
+    when: "After assembly, as an independent cross-check."
+    weight: "Informational only - it never gates a page."
     example: "An assembled page is cross-checked by a different model to confirm nothing strayed from its brief; the result
       informs reviewers but never holds up the page."
 lanes:
   - name: "Graphics-card lane"
     dot: "teal"
     queue: "Graphics-card queue"
-    caption: "Heavy local graphics-card work - its own queue, not metered."
+    caption: "Heavy local graphics-card work - its own queue."
     ids: [reingest, rerender]
   - name: "Light local jobs"
     dot: "slate"
@@ -172,6 +167,6 @@ lanes:
   - name: "Claude lane"
     dot: "copper"
     queue: "Language-model queue"
-    caption: "Language-model work on the subscription - metered runs are gated."
+    caption: "Language-model work."
     ids: [digest, corroborate, synthesise, assemble, translate, verify]
 featured: [priority, staleness]
