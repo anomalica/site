@@ -1,0 +1,32 @@
+flowchart TB
+  classDef queue fill:#D1F1F1,stroke:#0B6E6E,stroke-width:1.5px,color:#053333;
+  classDef decide fill:#F0D9C9,stroke:#B35A28,stroke-width:1.5px,color:#3a2208;
+  classDef act fill:#E9E5DC,stroke:#5E5A50,stroke-width:1.5px,color:#2c2a24;
+
+  subgraph QUEUE["The to-do list - work waiting at every stage"]
+    direction LR
+    ingest["New sources<br/>to bring in"]:::queue
+    digest["Records to pull<br/>the facts from"]:::queue
+    assimilate["New facts to merge<br/>into the graph"]:::queue
+    assemble["Pages to write<br/>or rebuild"]:::queue
+  end
+
+  rank{{"Rank by impact"}}:::decide
+  do["Do the top job"]:::act
+  change(["Something changed?"]):::decide
+
+  ingest --> rank
+  digest --> rank
+  assimilate --> rank
+  assemble --> rank
+  rank --> do
+  do --> change
+  change -->|"new source, a correction,<br/>a fact merged in"| QUEUE
+
+  click ingest schedClick
+  click digest schedClick
+  click assimilate schedClick
+  click assemble schedClick
+  click rank schedClick
+  click do schedClick
+  click change schedClick
