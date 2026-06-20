@@ -13,6 +13,8 @@ flowchart TB
   digests[("Digests")]:::pub
   assimilator{{"Assimilator"}}:::pub
   kg[("SQLite knowledge graph")]:::pub
+  synthesiser{{"Synthesiser"}}:::pub
+  briefs[("Briefs")]:::pub
   assembler{{"Assembler"}}:::pub
   content[("Content")]:::pub
   site{{"Site"}}:::pub
@@ -25,7 +27,9 @@ flowchart TB
   digester -->|"digest files"| digests
   digests -->|"per-record digests"| assimilator
   assimilator <-->|"reads + updates"| kg
-  kg -->|"whole entity + its claims"| assembler
+  kg -->|"entity + its claims"| synthesiser
+  synthesiser -->|"a brief per page"| briefs
+  briefs -->|"what the page is written from"| assembler
   digests -->|"one record"| assembler
   assembler -->|"entity articles + inspection pages"| content
   content -->|"renders"| site
@@ -44,6 +48,8 @@ flowchart TB
   click digests nodeClick
   click assimilator nodeClick
   click kg nodeClick
+  click synthesiser nodeClick
+  click briefs nodeClick
   click assembler nodeClick
   click content nodeClick
   click site nodeClick

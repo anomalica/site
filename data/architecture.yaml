@@ -87,16 +87,34 @@ nodes:
     desc: "The unified, queryable knowledge graph: one node per real-world entity, all claims about it from across every source,
       corroboration links and evidence scores. The downloadable, torrentable public dataset and the source for every rendered
       output. Derived - rebuildable from the digests."
-    output: "Read by the assembler to build articles."
+    output: "Read by the synthesiser when it chooses which pages to build."
     contains: "Entities, claims, provenance, scores. No copyrighted content."
     copyright: "PUBLIC - the data is meant to outlive the platform."
+  synthesiser:
+    kind: "Component (Python)"
+    zone: "public"
+    desc: "Reads the knowledge graph and decides which subjects now have enough corroborated information, across enough independent
+      sources, to deserve a page. For each, it gathers exactly the facts that page needs into a 'brief' - a complete, language-neutral
+      bundle of claims with their provenance. The choosing is deterministic; no prose is written here."
+    output: "One brief per page - the slice of the graph that page is written from."
+    contains: "The selection logic and the briefs: facts and claims with provenance, no copyrighted text."
+    copyright: "PUBLIC - briefs are facts and claims, not source text."
+  briefs:
+    kind: "Data store (public)"
+    zone: "public"
+    desc: "One language-neutral brief per page: the exact slice of the knowledge graph a page is built from, before any prose.
+      Its input hash is what tells the system when a page has gone out of date and needs rebuilding."
+    output: "The assembler's only input when it writes an article (per-record inspection pages come straight from a digest
+      instead)."
+    contains: "Selected claims with provenance and relationships. No copyrighted text."
+    copyright: "PUBLIC."
   assembler:
     kind: "Component (Python)"
     zone: "public"
-    desc: "Two inputs. The whole knowledge graph - an entity and all its claims - becomes a reader-facing entity article;
-      a single digest file becomes that one record's inspection page. Both land in content. It assembles only from sourced
-      claims, never adds facts from training data, and never generates imagery. Defaults to the Claude subscription."
-    output: "Entity articles (from the graph) + per-record inspection pages (from a single digest), both to Content."
+    desc: "Two kinds of page. For an entity article it reads one brief from the synthesiser and writes the prose from that
+      alone - it never reads the knowledge graph directly. For a per-record inspection page it reads a single digest. It assembles
+      only from sourced claims, never adds facts from training data, and never generates imagery. Defaults to the Claude subscription."
+    output: "Entity articles (from a brief) + per-record inspection pages (from a single digest), both to Content."
     contains: "Assembled prose, every sentence traceable to a claim and its source."
     copyright: "Its output is public."
   content:
