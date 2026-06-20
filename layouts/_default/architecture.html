@@ -185,8 +185,8 @@
     window.schedClick = function (id) {
       const n = SCHED[id];
       if (!n) return;
-      document.getElementById("sp-kind").textContent = "Scheduling";
-      document.getElementById("sp-name").textContent = n.kind;
+      document.getElementById("sp-kind").textContent = n.kind;
+      document.getElementById("sp-name").textContent = n.name;
       let html = `<div class="row"><div class="value">${n.desc}</div></div>`;
       if (n.points && n.points.length) {
         html += `<div class="row"><ul class="arch-points">` + n.points.map(p => `<li>${p}</li>`).join("") + `</ul></div>`;

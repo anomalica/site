@@ -9,18 +9,21 @@ overview:
     - "Click any step to see how it decides."
 nodes:
   ingest:
+    name: "New sources to bring in"
     kind: "To-do list - stage 1"
     desc: "Original material that has been found but not yet brought in: a video, a document, a web page. Until it is brought
       in, nothing further along can use it."
     points:
       - "Moves up the list when other pages already point to this source but it has never been added."
   digest:
+    name: "Records to pull the facts from"
     kind: "To-do list - stage 2"
     desc: "Sources that are now stored as clean text, waiting for the facts and people in them to be pulled out. Only material
       a person has checked is eligible, so nothing unreviewed gets built on."
     points:
       - "Moves up when the record is fully reviewed and mentions people or events many readers are looking for."
   assimilate:
+    name: "New facts to merge in"
     kind: "To-do list - stage 3"
     desc: "Newly extracted facts waiting to be folded into the single shared picture of everything known. This is where the
       same person named differently in two sources - 'David Fravor' in one, 'Commander Fravor' in another - is recognised
@@ -28,6 +31,7 @@ nodes:
     points:
       - "Runs when new facts have been extracted, or when the matching itself is improved and the whole picture is worth rebuilding."
   assemble:
+    name: "Pages to write or rebuild"
     kind: "To-do list - stage 4"
     desc: "Two kinds of job: a subject that now has enough confirmed facts to deserve a page but does not have one yet, and
       an existing page whose sources have changed since it was written."
@@ -35,6 +39,7 @@ nodes:
       - "Highest when readers are already trying to reach a page that does not exist yet, or when a well-read page has gone
         out of date."
   rank:
+    name: "Rank by impact"
     kind: "The decision"
     desc: "Every waiting job is given a score so the most worthwhile one rises to the top. Four things decide it:"
     points:
@@ -46,11 +51,13 @@ nodes:
     example: "Each job also carries a rough effort. When time is limited, the platform prefers the jobs that give the most
       value for the least work."
   do:
+    name: "Do the top job"
     kind: "The work"
     desc: "The single highest-scoring job is carried out - bringing in that source, pulling the facts from that record, rebuilding
       that page. When there is spare capacity, it simply keeps working down the list, most important first, until the work
       runs out."
   change:
+    name: "Something changed?"
     kind: "Keeping it current"
     desc: "Every finished page remembers exactly which facts it was built from. When one of those facts is later corrected,
       a new source adds to it, or two records are merged, the page is automatically marked 'might be out of date' and put
