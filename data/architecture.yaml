@@ -16,7 +16,7 @@ nodes:
     kind: "Component (Python)"
     zone: "public"
     desc: "Converts raw sources into structured text records. Per-format handlers: PDF, web, audio/video (transcription via
-      whisperx + speaker diarisation), ebook. Runs on the local GPU - no AI billing."
+      whisperx + speaker diarisation), ebook. Runs on the local graphics card."
     output: "One markdown + YAML record per source (to Ingests), plus the original file and the complete raw transcript (to
       sources/)."
     contains: "Just code - an open-source tool. The records it produces inherit the source's copyright, but the ingester itself
@@ -37,7 +37,7 @@ nodes:
     kind: "Data store (sources/)"
     zone: "source"
     desc: "Durable archive of the original raw files plus the complete raw AI transcripts (full whisperx + pyannote output,
-      confidences and all). Lets a record be re-rendered to a new format without re-running the GPU."
+      confidences and all). Lets a record be re-rendered to a new format without re-running it on the graphics card."
     output: "Re-render source for the ingester; provenance of last resort."
     contains: "The original files + raw transcripts. Copyright follows the source."
     copyright: "Follows the source - kept where copyright requires it, the same constraint as the ingests. (Backup of this
