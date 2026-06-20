@@ -13,7 +13,7 @@
           <button type="button" class="arch-tab" data-tab="sched">Scheduling</button>
         </div>
 
-        {{/* ---- Data flow tab (existing) ---- */}}
+        {{/* ---- Data flow tab (diagram) ---- */}}
         <div id="tab-flow" class="arch-tabpanel">
           <div class="arch-legend">
             <span><i class="arch-swatch" style="background:#F0D9C9;border:1px solid #B35A28"></i> Copyright follows the source</span>
@@ -42,18 +42,48 @@
           </div>
         </div>
 
-        {{/* ---- Scheduling tab (new) ---- */}}
+        {{/* ---- Scheduling tab (cards) ---- */}}
         <div id="tab-sched" class="arch-tabpanel" hidden>
           <div class="arch-legend">
-            <span><i class="arch-swatch" style="background:#D1F1F1;border:1px solid #0B6E6E"></i> An asset (a real thing in the chain)</span>
-            <span><i class="arch-swatch" style="background:#F0D9C9;border:1px solid #B35A28"></i> A wide point (many merge in / one fans out)</span>
-            <span><i class="arch-swatch" style="background:#E9E5DC;border:1px solid #5E5A50"></i> Side branch (inspection page)</span>
-            <span class="arch-legend-hint">Click any box to see how it is scheduled</span>
+            <span><i class="arch-swatch" style="background:#0B6E6E"></i> Graphics-card queue</span>
+            <span><i class="arch-swatch" style="background:#5E5A50"></i> Light local (runs eagerly)</span>
+            <span><i class="arch-swatch" style="background:#B35A28"></i> Language-model queue</span>
+            <span class="arch-legend-hint">Click any card to see how it is scheduled</span>
           </div>
 
           <div class="arch-layout">
-            <div class="arch-canvas">
-              <div class="arch-diagram"><pre class="mermaid">{{ (resources.Get "architecture/scheduling.mmd").Content | safeHTML }}</pre></div>
+            <div class="arch-canvas sched-board">
+              {{ $S := site.Data.scheduling }}
+              <div class="sched-featured">
+                {{ range $S.featured }}{{ $c := index $S.nodes . }}
+                  <button type="button" class="sched-card sched-card-feat" data-id="{{ . }}" onclick="schedClick(this.dataset.id)">
+                    <span class="sched-eyebrow">How it works</span>
+                    <span class="sched-title">{{ $c.name }}</span>
+                    <span class="sched-sum">{{ $c.summary }}</span>
+                  </button>
+                {{ end }}
+              </div>
+
+              <p class="sched-divider">Ten jobs, in two queues</p>
+
+              {{ range $S.lanes }}
+                <section class="sched-lane">
+                  <header class="sched-lane-head">
+                    <span class="sched-lane-name"><i class="sched-dot sched-dot-{{ .dot }}"></i>{{ .name }}</span>
+                    <span class="sched-queue">{{ .queue }}</span>
+                    <span class="sched-lane-cap">{{ .caption }}</span>
+                  </header>
+                  <div class="sched-grid">
+                    {{ range .ids }}{{ $c := index $S.nodes . }}
+                      <button type="button" class="sched-card" data-id="{{ . }}" onclick="schedClick(this.dataset.id)">
+                        {{ with $c.state }}<span class="sched-state">{{ . }}</span>{{ end }}
+                        <span class="sched-title">{{ $c.name }}</span>
+                        <span class="sched-sum">{{ $c.summary }}</span>
+                      </button>
+                    {{ end }}
+                  </div>
+                </section>
+              {{ end }}
             </div>
 
             <aside class="arch-panel">
@@ -145,6 +175,40 @@
     .arch-points { margin: 0; padding-left: 18px; }
     .arch-points li { margin-bottom: 6px; color: #1e1d19; }
     .arch-points li:last-child { margin-bottom: 0; }
+
+    /* ---- Scheduling cards ---- */
+    .sched-board { padding: 24px; }
+    .sched-featured { display: grid; gap: 16px; grid-template-columns: 1fr; margin-bottom: 22px; }
+    @media (min-width: 1024px) { .sched-featured { grid-template-columns: 1fr 1fr; } }
+    .sched-divider { font-family: var(--font-ui); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #5e5a50; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e9e5dc; }
+    .sched-lane { margin-bottom: 24px; }
+    .sched-lane:last-child { margin-bottom: 0; }
+    .sched-lane-head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; margin-bottom: 12px; }
+    .sched-lane-name { font-family: var(--font-ui); font-weight: 600; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #1e1d19; display: inline-flex; align-items: center; gap: 8px; }
+    .sched-lane-cap { grid-column: 1 / -1; font-family: var(--font-ui); font-size: 12.5px; color: #5e5a50; }
+    .sched-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+    .sched-dot-teal { background: #0b6e6e; }
+    .sched-dot-copper { background: #b35a28; }
+    .sched-dot-slate { background: #5e5a50; }
+    .sched-queue { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: #5e5a50; background: #e9e5dc; border-radius: 999px; padding: 3px 10px; justify-self: end; white-space: nowrap; }
+    .sched-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 1024px) { .sched-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .sched-card { text-align: left; display: flex; flex-direction: column; gap: 6px; min-height: 96px; cursor: pointer; background: #fff; border: 1px solid #e9e5dc; border-left: 2px solid transparent; border-radius: 10px; padding: 14px; font: inherit; color: #1e1d19; transition: border-color .12s, box-shadow .12s, transform .12s, background .12s; }
+    .sched-card:hover { box-shadow: 0 2px 10px rgba(3,31,31,.10); transform: translateY(-1px); }
+    .sched-card:focus-visible { outline: 2px solid #0b6e6e; outline-offset: 2px; }
+    .sched-card.is-active { border-left-color: #0b6e6e; background: #f4fbfb; }
+    .sched-state { align-self: flex-start; font-family: var(--font-ui); font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #5e5a50; background: #e9e5dc; border-radius: 999px; padding: 2px 9px; }
+    .sched-title { font-family: var(--font-ui); font-weight: 600; font-size: 15px; color: #1e1d19; }
+    .sched-sum { font-size: 13.5px; line-height: 1.45; color: #5e5a50; }
+    .sched-card-feat { padding: 18px 20px; min-height: 0; background: #fbf5ef; border: 1px solid #ecd9c8; border-left: 3px solid #b35a28; }
+    .sched-card-feat .sched-title { font-size: 17px; }
+    .sched-eyebrow { font-family: var(--font-ui); font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #b35a28; }
+    .sched-gate { padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; }
+    .sched-gate--block { background: #f6e3d7; color: #8a3f18; border-left: 3px solid #b35a28; }
+    .sched-gate--cost { background: #fbf0d9; color: #7a5a14; border-left: 3px solid #c89a2e; }
+    .sched-gate--stage { background: #e9e5dc; color: #5e5a50; border-left: 3px solid #5e5a50; }
+    .sched-factors { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+    .sched-factor { font-family: var(--font-ui); font-size: 11px; font-weight: 600; color: #064d4d; background: #d1f1f1; border-radius: 999px; padding: 2px 9px; }
   </style>
 
   <script type="module">
@@ -153,7 +217,7 @@
     // Data-flow node copy + links are editable data: site/data/architecture.yaml.
     const NODES = {{ site.Data.architecture.nodes | jsonify | safeJS }};
     const LINKS = {{ site.Data.architecture.links | jsonify | safeJS }};
-    // Scheduling node copy is editable data: site/data/scheduling.yaml.
+    // Scheduling card copy is editable data: site/data/scheduling.yaml.
     const SCHED = {{ site.Data.scheduling.nodes | jsonify | safeJS }};
 
     const ZONE_LABEL = { source: ["Source material", "source"], public: ["Public", "public"], review: ["Human review", "review"], store: ["Shared", "public"] };
@@ -185,16 +249,28 @@
     window.schedClick = function (id) {
       const n = SCHED[id];
       if (!n) return;
+      document.querySelectorAll("#tab-sched [data-id]").forEach((el) => el.classList.toggle("is-active", el.dataset.id === id));
       document.getElementById("sp-kind").textContent = n.kind;
       document.getElementById("sp-name").textContent = n.name;
       let html = `<div class="row"><div class="value">${n.desc}</div></div>`;
-      if (n.points && n.points.length) {
-        html += `<div class="row"><ul class="arch-points">` + n.points.map(p => `<li>${p}</li>`).join("") + `</ul></div>`;
+      if (n.kind === "How it works") {
+        if (n.points && n.points.length) {
+          html += `<div class="row"><ul class="arch-points">` + n.points.map(p => `<li>${p}</li>`).join("") + `</ul></div>`;
+        }
+      } else {
+        if (n.inputs) html += `<div class="row"><div class="label">Inputs</div><div class="value">${n.inputs}</div></div>`;
+        if (n.when) html += `<div class="row"><div class="label">When it runs</div><div class="value">${n.when}</div></div>`;
+        if (n.weight) {
+          const pills = ["demand", "staleness", "reach", "source quality"].map(f => `<span class="sched-factor">${f}</span>`).join("");
+          html += `<div class="row"><div class="label">How it is weighted</div><div class="sched-factors">${pills}</div><div class="value">${n.weight}</div></div>`;
+        }
+        if (n.gate) html += `<div class="row"><div class="sched-gate sched-gate--${n.gate.tone}">${n.gate.text}</div></div>`;
       }
-      if (n.example) {
-        html += `<div class="row"><div class="label">Example</div><div class="value">${n.example}</div></div>`;
-      }
+      if (n.example) html += `<div class="row"><div class="label">Example</div><div class="value">${n.example}</div></div>`;
       document.getElementById("sp-body").innerHTML = html;
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        document.querySelector("#tab-sched .arch-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     };
 
     mermaid.initialize({
@@ -210,20 +286,14 @@
       },
     });
 
-    // Render the default (data-flow) diagram now; render the scheduling diagram
-    // lazily the first time its tab is shown - Mermaid can't measure a diagram
-    // inside a display:none container, so it must be visible when run.
+    // The data-flow tab renders a Mermaid diagram; the scheduling tab is plain
+    // card HTML, so only the data-flow diagram needs a render pass.
     await mermaid.run({ querySelector: "#tab-flow .mermaid" });
 
-    let schedRendered = false;
     function showTab(name) {
       document.querySelectorAll(".arch-tab").forEach((b) => b.classList.toggle("arch-tab-active", b.dataset.tab === name));
       document.getElementById("tab-flow").hidden = name !== "flow";
       document.getElementById("tab-sched").hidden = name !== "sched";
-      if (name === "sched" && !schedRendered) {
-        schedRendered = true;
-        mermaid.run({ querySelector: "#tab-sched .mermaid" });
-      }
     }
     document.querySelectorAll(".arch-tab").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
   </script>

@@ -1,120 +1,177 @@
 # Copy for the /architecture/ "Scheduling" tab. Data, not code - edit here.
-# Diagram topology: assets/architecture/scheduling.mmd
-# The diagram is one of each real asset, top to bottom, with the cardinality on
-# every step. A change enters any box and flows downward; the two wide points
-# (many digests -> one graph; one graph -> many briefs) are where a single
-# change spreads. Node ids match the diagram, except the knowledge-graph spine
-# node is "kgraph" (Mermaid reserves the word "graph").
+# Rendered as clickable cards (not a diagram): two "how it works" featured
+# cards, then the jobs grouped by lane. `lanes` drives the card layout and
+# `featured` the top row; each id is a key under `nodes`.
+# Job nodes use the four-facet shape (inputs / when / weight / optional gate);
+# featured nodes ("How it works") use desc + points + example.
 overview:
-  title: "One change, traced to every page it touches"
+  title: "How the work is scheduled"
   body:
-    - "The knowledge base is never finished: sources keep arriving and existing ones keep being corrected. Rather than rebuild
-      everything each time, the platform follows one chain of real things - a source becomes a record, a record becomes a
-      digest, digests merge into one shared knowledge graph, the graph is sliced into briefs, and each brief is written up
-      as an article. Every step is one-to-one except the two wide points, and that is the whole story of how work spreads.
-      The platform walks this chain to decide what to work on next and to keep every finished page current."
-    - "Changes flow downward. The two wide points are where one change spreads: many digests merge into the single graph,
-      and the single graph fans out into many briefs (one per page). So correcting one digest can leave one or more pages
-      out of date, and the system can trace exactly which ones."
-    - "A job's place in the queue is scored on four things: demand (is anyone already trying to reach this), readiness (are
-      its sources reviewed and trustworthy), freshness (did one of its inputs just change), and knock-on (how much else doing
-      it unblocks - the two wide points score highest here)."
-    - "Click any box to see what it is, what one of it produces, when it goes out of date, and how its place in the queue
-      is scored."
+    - "The knowledge base is never finished, so the platform never rebuilds everything. Instead every job that could run -
+      bringing in a source, pulling out its facts, writing a page, translating it - is scored, and the highest-value one runs
+      next."
+    - "There are two separate queues, because the two kinds of effort don't trade: heavy work on the local graphics card,
+      and language-model work. Cheap local jobs run eagerly alongside both. Hard rules sit in front of all of it: nothing
+      is built from unreviewed sources, and anything that spends real money waits for approval."
+    - "Click any card to see what it is, what it runs on, when it runs, and how its place in the queue is decided."
 nodes:
-  source:
-    name: "A raw source"
-    kind: "Asset - stage 1"
-    desc: "One original item of source material in whatever form it was published: a video, an audio recording, a document,
-      a web page, an ebook. Until it has been brought in, nothing further down the chain can use it."
+  priority:
+    name: "How priority is decided"
+    kind: "How it works"
+    summary: "Every waiting job is scored; the highest runs next."
+    desc: "Every waiting job is given a score, and the highest-scoring one runs next."
     points:
-      - "Produces: one source becomes exactly one record (the ingester reads it once and writes a clean text version)."
-      - "Goes out of date: it does not - the original never changes. What changes is whether we have brought it in yet."
-      - "Priority: rises when pages already point at this source but it has never been added - a clear sign the work behind
-        it is wanted."
-    example: "A documentary names a witness interview that several existing pages already cite. The interview itself is not
-      yet in the system, so bringing it in jumps up the list."
-  record:
-    name: "A record"
-    kind: "Asset - stage 2"
-    desc: "One source turned into clean, structured text - the same words, laid out so the rest of the pipeline can read them.
-      A reviewer checks it against the original before anything is built on it."
+      - "Value comes from four things multiplied together - demand, staleness, reach and source quality - so a job has to
+        be wanted AND out of date AND high-reach to rank high. That value is then weighed against the effort it costs."
+      - "There are two separate queues - graphics-card work and language-model work - because those two kinds of effort don't
+        trade against each other."
+      - "Hard rules sit in front of all of it: never build from unreviewed sources; never run a job while something it depends
+        on is still queued; drop changes too small to matter; and anything that spends real money waits for a cost estimate
+        and a yes."
+    example: "A link points to a page that does not exist yet - the clearest sign of demand - so writing that page jumps up
+      the queue."
+  staleness:
+    name: "How we tell a page is out of date"
+    kind: "How it works"
+    summary: "Graded, not yes-or-no - measured by a content fingerprint."
+    desc: "Whether a page is out of date is a matter of degree, not a yes-or-no flag."
     points:
-      - "Produces: one record becomes exactly one digest (the digester reads the record once and pulls out its facts)."
-      - "Goes out of date: when a reviewer corrects the text - a mis-heard name, a wrong date, a relabelled speaker. The digest
-        below it then needs redoing."
-      - "Priority: rises once the record is fully reviewed and trustworthy, and higher still when it concerns people or events
-        many readers are looking for."
-    example: "A reviewer fixes a mis-transcribed name in one record. That record's digest is marked out of date and lined
-      up to be redone; records that were not touched are left alone."
+      - "Every fact carries a content fingerprint that deliberately ignores its score, so re-scoring a page never makes it
+        look out of date."
+      - "A page remembers the exact set of fingerprints it was built from. When it is recomputed, the old and new sets are
+        compared and the difference is a percentage - six facts changed out of twenty is thirty per cent."
+      - "Tiny changes (under about 5%) are ignored; big ones (over about 30%) jump the queue."
+    example: "A correction touches 6 of a page's 20 facts - 30% changed - so the page is re-queued ahead of pages with smaller
+      changes."
+  reingest:
+    name: "Re-ingest"
+    kind: "Graphics-card lane"
+    summary: "Re-transcribe one audio or video source from scratch."
+    state: "Heaviest"
+    desc: "Transcribe one audio or video source again from the original, producing a fresh clean-text record."
+    inputs: "One audio or video source."
+    when: "A source is brought in for the first time, or a change means it has to be transcribed again."
+    weight: "The heaviest job there is, so it needs strong demand to win the graphics-card queue."
+    example: "A long interview that several pages already cite is finally brought in; the demand pushes its transcription
+      up the queue."
+  rerender:
+    name: "Re-render"
+    kind: "Graphics-card lane"
+    summary: "Re-produce one record in the current format from the saved cache - no transcription."
+    desc: "Re-emit one record in the current format straight from its saved cache, reusing the existing transcript - no graphics-card
+      transcription needed."
+    inputs: "One record's saved cache, when only the output format changed."
+    when: "When the record format changes but the original source is untouched, so the words are reused and only re-laid-out."
+    weight: "Far cheaper than a re-ingest - no transcription - so it clears its queue quickly once a format change lands."
+    example: "A change to how transcripts are laid out re-renders existing records from cache, with no re-transcription."
+  import:
+    name: "Import"
+    kind: "Light local job"
+    summary: "Fold one digest into the shared graph and fingerprint its facts."
+    state: "Eager"
+    desc: "Merge one digest into the single shared knowledge graph, giving each fact a content fingerprint."
+    inputs: "One digest."
+    when: "Whenever a digest is created or changes."
+    weight: "Cheap and eager - it does not wait in a queue. Re-importing matches facts by fingerprint and keeps the unchanged
+      ones, so a record is never duplicated or churned."
+    example: "A re-imported record's unchanged facts are matched by fingerprint and left in place; only what actually changed
+      is updated."
+  rescore:
+    name: "Re-score"
+    kind: "Light local job"
+    summary: "Recompute evidence scores and search indexes over the graph."
+    state: "Eager"
+    desc: "Recompute the evidence scores and search indexes across the whole knowledge graph."
+    inputs: "The current knowledge graph."
+    when: "After the graph changes, or when the scoring method itself is adjusted."
+    weight: "Neutral in ranking: a re-score never makes a page out of date by itself, because the content fingerprint deliberately
+      ignores the score. It stays neutral until the scoring method is settled."
+    example: "Tuning the scoring method re-scores the whole graph without ageing a single page - the fingerprints are unchanged."
   digest:
-    name: "A digest"
-    kind: "Asset - stage 3"
-    desc: "Everything we pulled from one source: the facts, the people and events they involve, and where each came from -
-      who said it, where, how firmly. One digest, one source, no source text - just the facts and their provenance."
-    points:
-      - "Produces two things. It feeds upward into the one shared knowledge graph (merged with every other digest), and it
-        is shown directly as that source's inspection page (see the side branch)."
-      - "Goes out of date: when its record above is corrected, so the facts are re-extracted."
-      - "Priority: this is the first wide point. A digest whose facts touch many subjects can feed several briefs once merged,
-        so redoing it has a large knock-on - it scores high."
-    example: "Re-running one digest changes a claim about a named pilot. Because that pilot appears on several pages, the
-      merge below carries the change to each of them."
-  inspection:
-    name: "Its inspection page"
-    kind: "Side branch - 1:1"
-    desc: "A read-only page showing exactly what we pulled from one single source: its digest, laid out for a reader to inspect.
-      It is one-to-one with the source - not part of the main chain, which is why it sits off to the side - and it lets anyone
-      check our working source by source, before any merging or writing happens."
-    points:
-      - "Produces: nothing further - it is a leaf, the per-source 'show your working' view."
-      - "Goes out of date: whenever its digest changes, it is simply re-rendered from the new digest."
-      - "Priority: cheap and automatic - it tracks its digest, so it is never a job that competes for attention on its own."
-    example: "A reader following a claim on an article can open the inspection page for the exact source it came from and
-      see every fact drawn from that one source in one place."
-  kgraph:
-    name: "THE knowledge graph (one, shared)"
-    kind: "Where changes merge in"
-    desc: "The single shared picture of everything known. Every digest merges into it: the same real person named differently
-      across sources - 'David Fravor' in one, 'Commander Fravor' in another - is recognised as one entity, and every claim
-      about that entity is gathered in one place, with a note of how many independent sources agree and how strong the evidence
-      is. There is one graph, and everything downstream is built from it."
-    points:
-      - "This is the fan-in (merge). MANY digests come together into one graph - the first wide point on the chain."
-      - "Produces: it is sliced into briefs, one per page (the fan-out just below)."
-      - "Goes out of date: whenever any digest changes, or when the matching itself is improved and the whole picture is worth
-        rebuilding."
-      - "Priority / knock-on: because every page is built from this one graph, a change here is where the knock-on is measured.
-        One corrected digest can shift one or more entities, and the briefs below show exactly which pages inherit the change."
-    example: "Two sources turn out to describe the same craft under different names. Merging them into one entity here updates
-      every brief - and so every page - that draws on it."
-  brief:
-    name: "A brief (one per page)"
-    kind: "Where changes spread"
-    desc: "The exact slice of the graph that one page is built from: the entity, the claims chosen for it, and their provenance,
-      with no prose yet. One brief per page. A page is marked out of date by comparing what its brief is built from now against
-      what it was built from before - so the brief, not the article, is what flags a page as stale."
-    points:
-      - "This is the fan-out. ONE graph produces MANY briefs - one per page - the second wide point on the chain."
-      - "Produces: each brief becomes exactly one article (plus its translations)."
-      - "Goes out of date: when the slice of the graph it was built from changes, the system can tell that this one page,
-        and no other, needs rebuilding."
-      - "Priority: a brief is one unit of 'rebuild this page'. It scores on demand (is anyone trying to reach this page),
-        readiness (are its sources reviewed), and freshness (did its inputs just change)."
-    example: "A digest correction changes the claims on three entities. Exactly three briefs now draw on different facts,
-      so exactly three pages are re-queued, and every other page is left untouched."
-  article:
-    name: "An article (+ translations)"
-    kind: "Asset - final stage"
-    desc: "One finished, fully-sourced page, written from one brief alone and rendered into every displayed language. The
-      writer sees only the brief, so every sentence traces back to a sourced claim - nothing is invented. All articles together
-      are the published content."
-    points:
-      - "Produces: the public page - the end of the chain."
-      - "Goes out of date: when the facts its brief was built from change (a source corrected, a fact merged, an entity resolved),
-        the page is marked 'might be out of date' and re-queued. Nothing slips out of date unnoticed, and nothing is needlessly
-        rebuilt."
-      - "Priority: highest when readers are already trying to reach a page that does not exist yet, or when a well-read page
-        has gone out of date."
-    example: "A reader follows a link to a page that has not been written yet. That demand pushes its brief to the top of
-      the queue, so the missing page is the next one assembled."
+    name: "Digest"
+    kind: "Claude lane - language-model queue"
+    summary: "Read one reviewed record and pull out its factual claims."
+    desc: "Read one reviewed record and extract its atomic factual claims, with provenance for each."
+    inputs: "One fully-reviewed record."
+    when: "Once a record passes human review, or when a corrected record needs its facts extracted again."
+    weight: "Scored on the reach of what it unlocks - a record feeding many subjects ranks higher."
+    gate:
+      tone: "block"
+      text: "Gated: a record that has not been fully reviewed by a person is never digested."
+    example: "A reviewer marks a transcript good; digesting it is queued so its facts can enter the graph."
+  corroborate:
+    name: "Corroborate"
+    kind: "Claude lane - language-model queue"
+    summary: "Confirm near-duplicate claims and merge duplicate entities into one."
+    desc: "Confirm that near-duplicate claims describe the same thing, and merge entries that turn out to be the same real
+      entity."
+    inputs: "Claims and entities in the graph that look like duplicates."
+    when: "After new facts arrive that may match what is already in the graph."
+    weight: "High reach: one merge can make many pages out of date at once, so it scores strongly on knock-on."
+    example: "Two sources describe the same craft under different names; merging them updates every page that draws on it."
+  synthesise:
+    name: "Synthesise"
+    kind: "Claude lane - language-model queue"
+    summary: "Decide which pages should exist and build one brief per page."
+    desc: "Decide which subjects now deserve a page and build one brief per page - the exact slice of the graph that page
+      is written from - measuring how much each page has moved since it was last written."
+    inputs: "The knowledge graph."
+    when: "When the graph gains enough about a subject to deserve a page, or an existing page's slice of the graph has shifted."
+    weight: "Sets up everything downstream, and its staleness measurement is what tells later jobs which pages have drifted."
+    example: "A subject crosses the threshold of enough corroborated facts; a brief is built so its page can be written."
+  assemble:
+    name: "Assemble"
+    kind: "Claude lane - language-model queue"
+    summary: "Write one article from one brief."
+    desc: "Write one finished article from one brief alone - every sentence tracing back to a sourced claim, nothing invented."
+    inputs: "One brief."
+    when: "When a page has no article yet, or its brief has changed enough to be worth rewriting."
+    weight: "Highest when readers are already trying to reach a page that does not exist yet, or a well-read page has gone
+      out of date."
+    gate:
+      tone: "block"
+      text: "Gated: every source behind it must be reviewed, and nothing it depends on can still be queued."
+    example: "A link points to a page not yet written; that demand pushes its brief to the top, and the page is assembled
+      next."
+  translate:
+    name: "Translate"
+    kind: "Claude lane - language-model queue"
+    summary: "Render one finished page into one language."
+    state: "Staged"
+    desc: "Render one finished article into one displayed language."
+    inputs: "One finished article."
+    when: "After an article is written or updated, once per displayed language."
+    weight: "Staged: a core set of languages first, then more as capacity allows - not all at once."
+    example: "A new article is published in the core languages first, with the rest following as capacity frees up."
+  verify:
+    name: "Verify"
+    kind: "Claude lane - language-model queue"
+    summary: "A second model checks every statement traces back to the brief."
+    desc: "Have a second model, from a different provider, check that every statement in an article traces back to its brief.
+      Informational - it never blocks publishing."
+    inputs: "A finished article and its brief."
+    when: "After assembly, as an independent cross-check, when there is approved budget for it."
+    weight: "Informational only - it never gates a page. Run when its cost has been approved."
+    gate:
+      tone: "cost"
+      text: "Always behind the cost-approval gate - it runs on a metered model that can bill real money, so it waits for an
+        estimate and a yes."
+    example: "An assembled page is cross-checked by a different model to confirm nothing strayed from its brief; the result
+      informs reviewers but never holds up the page."
+lanes:
+  - name: "Graphics-card lane"
+    dot: "teal"
+    queue: "Graphics-card queue"
+    caption: "Heavy local graphics-card work - its own queue, not metered."
+    ids: [reingest, rerender]
+  - name: "Light local jobs"
+    dot: "slate"
+    queue: "No queue - runs eagerly"
+    caption: "Cheap local work - runs the moment it can, never queued against the heavy work."
+    ids: [import, rescore]
+  - name: "Claude lane"
+    dot: "copper"
+    queue: "Language-model queue"
+    caption: "Language-model work on the subscription - metered runs are gated."
+    ids: [digest, corroborate, synthesise, assemble, translate, verify]
+featured: [priority, staleness]
