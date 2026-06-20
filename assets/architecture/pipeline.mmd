@@ -20,17 +20,17 @@ flowchart TB
   site{{"Site"}}:::pub
   brand[("Brand")]:::store
 
-  raw -->|"original files"| ingester
-  ingester -->|"records"| ingests
+  raw -->|"original files (1:1)"| ingester
+  ingester -->|"records (1:1)"| ingests
   ingester -->|"originals + raw transcripts"| archive
-  ingests -->|"records"| digester
-  digester -->|"digest files"| digests
-  digests -->|"per-record digests"| assimilator
+  ingests -->|"records (1:1)"| digester
+  digester -->|"digest files (1:1)"| digests
+  digests ==>|"per-record digests (many -> one)"| assimilator
   assimilator <-->|"reads + updates"| kg
   kg -->|"entity + its claims"| synthesiser
-  synthesiser -->|"a brief per page"| briefs
-  briefs -->|"what the page is written from"| assembler
-  digests -->|"one record"| assembler
+  synthesiser ==>|"a brief per page (one -> many)"| briefs
+  briefs -->|"the page's brief (1:1)"| assembler
+  digests -->|"one record (1:1)"| assembler
   assembler -->|"entity articles + inspection pages"| content
   content -->|"renders"| site
   brand -.->|"tokens, logo"| site

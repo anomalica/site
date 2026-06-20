@@ -104,16 +104,17 @@ nodes:
     zone: "public"
     desc: "One language-neutral brief per page: the exact slice of the knowledge graph a page is built from, before any prose.
       Its input hash is what tells the system when a page has gone out of date and needs rebuilding."
-    output: "The assembler's only input when it writes an article (per-record inspection pages come straight from a digest
-      instead)."
+    output: "The assembler's only input when it writes an article. A per-record inspection page - a read-only page showing
+      exactly what was pulled from one single source - comes straight from a digest instead, not from a brief."
     contains: "Selected claims with provenance and relationships. No copyrighted text."
     copyright: "PUBLIC."
   assembler:
     kind: "Component (Python)"
     zone: "public"
     desc: "Two kinds of page. For an entity article it reads one brief from the synthesiser and writes the prose from that
-      alone - it never reads the knowledge graph directly. For a per-record inspection page it reads a single digest. It assembles
-      only from sourced claims, never adds facts from training data, and never generates imagery. Defaults to the Claude subscription."
+      alone - it never reads the knowledge graph directly. For a per-record inspection page - a read-only page showing exactly
+      what was pulled from one single source - it reads a single digest. It assembles only from sourced claims, never adds
+      facts from training data, and never generates imagery. Defaults to the Claude subscription."
     output: "Entity articles (from a brief) + per-record inspection pages (from a single digest), both to Content."
     contains: "Assembled prose, every sentence traceable to a claim and its source."
     copyright: "Its output is public."
