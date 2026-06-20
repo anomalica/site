@@ -1,34 +1,39 @@
 # Copy for the /architecture/ "Scheduling" tab. Data, not code - edit here.
 # Rendered as clickable cards (not a diagram): two "how it works" featured
-# cards, then the jobs grouped by lane. `lanes` drives the card layout and
-# `featured` the top row; each id is a key under `nodes`.
-# Job nodes use the four-facet shape (inputs / when / weight / optional gate);
-# featured nodes ("How it works") use desc + points + example.
+# cards, then the jobs grouped into two lanes - Local (free, eager, off the
+# priority queue) and Claude (the real prioritised language-model queue).
+# `lanes` drives the card layout and `featured` the top pair; each id is a key
+# under `nodes`. Job nodes: summary (card teaser), kind (panel eyebrow), desc,
+# inputs, when, optional state (card chip), optional factors[] (the job's REAL
+# priority drivers, shown as pills), weight (text), optional gate{tone,text}.
+# Featured nodes ("How it works"): desc + points + example.
+# Keep it public-voice and clean of money/cost terms - capacity only.
 overview:
   title: "How the work is scheduled"
   body:
-    - "The knowledge base is never finished, so the platform never rebuilds everything. Instead every job that could run -
-      bringing in a source, pulling out its facts, writing a page, translating it - is scored, and the highest-value one runs
-      next."
-    - "There are two separate queues, because the two kinds of effort don't trade: heavy work on the local graphics card,
-      and language-model work. Cheap local jobs run eagerly alongside both. Hard rules sit in front of all of it: nothing
-      is built from unreviewed sources, and the work keeps within the available capacity."
-    - "Click any card to see what it is, what it runs on, when it runs, and how its place in the queue is decided."
+    - "The knowledge base is never finished, so the platform never rebuilds everything. Every job that could run is scored,
+      and the highest-value one runs next - all aimed at one thing: getting a source the whole way to a finished page, not
+      maxing out any single stage."
+    - "Local work - bringing a video in, folding facts into the graph, re-scoring - runs automatically and for free, so it
+      is never really scheduled. The jobs that matter are the language-model ones, which draw on limited capacity: that is
+      the queue where priority decides the order."
+    - "Click any card to see what it is, what it runs on, when it runs, and what actually drives its place in the queue."
 nodes:
   priority:
     name: "How priority is decided"
     kind: "How it works"
-    summary: "Every waiting job is scored; the highest runs next."
-    desc: "Every waiting job is given a score, and the highest-scoring one runs next."
+    summary: "Every waiting job is scored for throughput; the highest runs next."
+    desc: "Every waiting job is scored, and the highest runs next - aimed at throughput: getting a source all the way to a
+      finished page, rather than maxing any one stage."
     points:
-      - "Value comes from four things multiplied together - demand, staleness, reach and source quality - so a job has to
-        be wanted AND out of date AND high-reach to rank high. That value is then weighed against the effort it costs."
-      - "There are two separate queues - graphics-card work and language-model work - because those two kinds of effort don't
-        trade against each other."
-      - "Hard rules sit in front of all of it: never build from unreviewed sources; never run a job while something it depends
+      - "Each job is scored on what actually drives that job - demand for a page, how out of date it is, how many duplicates
+        are waiting to merge - weighed against the effort it takes. Open any job to see its own drivers."
+      - "Local work runs automatically and for free, so it is not really scheduled. The language-model work draws on limited
+        capacity, so that is the real queue where priority decides the order."
+      - "Hard rules sit in front of it all: never build from unreviewed sources; never run a job while something it depends
         on is still queued; drop changes too small to matter; and keep within the available capacity."
-    example: "A link points to a page that does not exist yet - the clearest sign of demand - so writing that page jumps up
-      the queue."
+    example: "A link points to a page that does not exist yet - clear demand - so writing that page rises to the top of the
+      queue."
   staleness:
     name: "How we tell a page is out of date"
     kind: "How it works"
@@ -42,91 +47,88 @@ nodes:
       - "Tiny changes (under about 5%) are ignored; big ones (over about 30%) jump the queue."
     example: "A correction touches 6 of a page's 20 facts - 30% changed - so the page is re-queued ahead of pages with smaller
       changes."
-  reingest:
-    name: "Re-ingest"
-    kind: "Graphics-card lane"
-    summary: "Re-transcribe one audio or video source from scratch."
-    state: "Heaviest"
-    desc: "Transcribe one audio or video source again from the original, producing a fresh clean-text record."
-    inputs: "One audio or video source."
-    when: "A source is brought in for the first time, or a change means it has to be transcribed again."
-    weight: "The heaviest job there is, so it needs strong demand to win the graphics-card queue."
-    example: "A long interview that several pages already cite is finally brought in; the demand pushes its transcription
-      up the queue."
-  rerender:
-    name: "Re-render"
-    kind: "Graphics-card lane"
-    summary: "Re-produce one record in the current format from the saved cache - no transcription."
-    desc: "Re-emit one record in the current format straight from its saved cache, reusing the existing transcript - no graphics-card
-      transcription needed."
-    inputs: "One record's saved cache, when only the output format changed."
-    when: "When the record format changes but the original source is untouched, so the words are reused and only re-laid-out."
-    weight: "Far cheaper than a re-ingest - no transcription - so it clears its queue quickly once a format change lands."
-    example: "A change to how transcripts are laid out re-renders existing records from cache, with no re-transcription."
+  videoingest:
+    name: "Video ingest"
+    kind: "Local"
+    summary: "Bring in one video source and transcribe it."
+    desc: "Bring in one video source and transcribe it into a clean-text record. Video is the source type that needs transcribing;
+      it runs on the local graphics card."
+    inputs: "One video source."
+    when: "A new video source is brought in for the first time."
+    factors: ["source credibility", "already referenced"]
+    weight: "Among videos waiting to come in, the more credible the source - and the more existing pages already point to
+      it - the sooner it runs. It is never re-done to refresh a page; the original never changes, so staleness does not apply."
+    example: "A high-credibility documentary that several pages already cite is brought in ahead of an unreferenced clip."
   import:
     name: "Import"
-    kind: "Light local job"
+    kind: "Local"
     summary: "Fold one digest into the shared graph and fingerprint its facts."
     state: "Eager"
     desc: "Merge one digest into the single shared knowledge graph, giving each fact a content fingerprint."
     inputs: "One digest."
     when: "Whenever a digest is created or changes."
-    weight: "Cheap and eager - it does not wait in a queue. Re-importing matches facts by fingerprint and keeps the unchanged
-      ones, so a record is never duplicated or churned."
-    example: "A re-imported record's unchanged facts are matched by fingerprint and left in place; only what actually changed
-      is updated."
+    weight: "Runs eagerly the moment it can - cheap and local, so it has no place in the priority queue. Re-importing matches
+      facts by fingerprint and keeps the unchanged ones, so a record is never duplicated or churned."
+    example: "A re-imported record's unchanged facts are matched by fingerprint and left in place; only what changed is updated."
   rescore:
     name: "Re-score"
-    kind: "Light local job"
+    kind: "Local"
     summary: "Recompute evidence scores and search indexes over the graph."
     state: "Eager"
     desc: "Recompute the evidence scores and search indexes across the whole knowledge graph."
     inputs: "The current knowledge graph."
     when: "After the graph changes, or when the scoring method itself is adjusted."
-    weight: "Neutral in ranking: a re-score never makes a page out of date by itself, because the content fingerprint deliberately
-      ignores the score. It stays neutral until the scoring method is settled."
+    weight: "Runs eagerly with no priority - cheap and local. It never makes a page out of date by itself, because the content
+      fingerprint ignores the score."
     example: "Tuning the scoring method re-scores the whole graph without ageing a single page - the fingerprints are unchanged."
   digest:
     name: "Digest"
-    kind: "Claude lane - language-model queue"
+    kind: "Claude queue"
     summary: "Read one reviewed record and pull out its factual claims."
     desc: "Read one reviewed record and extract its atomic factual claims, with provenance for each."
     inputs: "One fully-reviewed record."
     when: "Once a record passes human review, or when a corrected record needs its facts extracted again."
-    weight: "Scored on the reach of what it unlocks - a record feeding many subjects ranks higher."
+    factors: ["topic demand", "reviewed"]
+    weight: "Driven by demand for the topics in the record - records feeding subjects readers want rank higher - and only
+      once the record has passed review."
     gate:
       tone: "block"
       text: "Gated: a record that has not been fully reviewed by a person is never digested."
-    example: "A reviewer marks a transcript good; digesting it is queued so its facts can enter the graph."
+    example: "A reviewer marks a transcript good; demand for its topics then moves it up the queue to be digested."
   corroborate:
     name: "Corroborate"
-    kind: "Claude lane - language-model queue"
+    kind: "Claude queue"
     summary: "Confirm near-duplicate claims and merge duplicate entities into one."
     desc: "Confirm that near-duplicate claims describe the same thing, and merge entries that turn out to be the same real
       entity."
     inputs: "Claims and entities in the graph that look like duplicates."
     when: "After new facts arrive that may match what is already in the graph."
-    weight: "High reach: one merge can make many pages out of date at once, so it scores strongly on knock-on."
+    factors: ["merge backlog"]
+    weight: "Driven by how many duplicate claims and entities are waiting to be merged - the bigger the backlog, the sooner
+      it runs. One merge can update many pages at once."
     example: "Two sources describe the same craft under different names; merging them updates every page that draws on it."
   synthesise:
     name: "Synthesise"
-    kind: "Claude lane - language-model queue"
+    kind: "Claude queue"
     summary: "Decide which pages should exist and build one brief per page."
     desc: "Decide which subjects now deserve a page and build one brief per page - the exact slice of the graph that page
       is written from - measuring how much each page has moved since it was last written."
     inputs: "The knowledge graph."
     when: "When the graph gains enough about a subject to deserve a page, or an existing page's slice of the graph has shifted."
-    weight: "Sets up everything downstream, and its staleness measurement is what tells later jobs which pages have drifted."
-    example: "A subject crosses the threshold of enough corroborated facts; a brief is built so its page can be written."
+    factors: ["demand for missing pages"]
+    weight: "Driven by demand for pages that do not exist yet - the subjects readers are trying to reach but cannot - so those
+      briefs get built first."
+    example: "A subject readers keep trying to reach has no page; synthesise builds its brief so the page can be written."
   assemble:
     name: "Assemble"
-    kind: "Claude lane - language-model queue"
+    kind: "Claude queue"
     summary: "Write one article from one brief."
     desc: "Write one finished article from one brief alone - every sentence tracing back to a sourced claim, nothing invented."
     inputs: "One brief."
     when: "When a page has no article yet, or its brief has changed enough to be worth rewriting."
-    weight: "Highest when readers are already trying to reach a page that does not exist yet, or a well-read page has gone
-      out of date."
+    factors: ["demand", "staleness", "reach"]
+    weight: "Driven by three things together: demand for the page, how out of date it is, and how widely it is read. Highest
+      when readers want a page that does not exist yet, or a well-read page has drifted."
     gate:
       tone: "block"
       text: "Gated: every source behind it must be reviewed, and nothing it depends on can still be queued."
@@ -134,39 +136,35 @@ nodes:
       next."
   translate:
     name: "Translate"
-    kind: "Claude lane - language-model queue"
+    kind: "Claude queue"
     summary: "Render one finished page into one language."
     state: "Staged"
     desc: "Render one finished article into one displayed language."
     inputs: "One finished article."
     when: "After an article is written or updated, once per displayed language."
-    weight: "Staged: a core set of languages first, then more as capacity allows - not all at once."
-    example: "A new article is published in the core languages first, with the rest following as capacity frees up."
+    factors: ["language demand"]
+    weight: "Driven by which languages are wanted - a core set of widely-read languages first, then more as capacity allows."
+    example: "A new article is rendered into the core languages first, with the rest following as capacity frees up."
   verify:
     name: "Verify"
-    kind: "Claude lane - language-model queue"
+    kind: "Claude queue"
     summary: "A second model checks every statement traces back to the brief."
     desc: "Have a second model, from a different provider, check that every statement in an article traces back to its brief
       - an independent cross-check that the writing stayed faithful to its sources. Informational, never a gate on publishing."
     inputs: "A finished article and its brief."
-    when: "After assembly, as an independent cross-check."
-    weight: "Informational only - it never gates a page."
-    example: "An assembled page is cross-checked by a different model to confirm nothing strayed from its brief; the result
-      informs reviewers but never holds up the page."
+    when: "Straight after a page is assembled."
+    weight: "Has no priority of its own - it simply follows assembly, running on a page once that page has just been written."
+    example: "As soon as a page is assembled, a different model cross-checks it against its brief; the result informs reviewers
+      but never holds up the page."
 lanes:
-  - name: "Graphics-card lane"
-    dot: "teal"
-    queue: "Graphics-card queue"
-    caption: "Heavy local graphics-card work - its own queue."
-    ids: [reingest, rerender]
-  - name: "Light local jobs"
+  - name: "Local"
     dot: "slate"
-    queue: "No queue - runs eagerly"
-    caption: "Cheap local work - runs the moment it can, never queued against the heavy work."
-    ids: [import, rescore]
-  - name: "Claude lane"
+    queue: "Runs automatically"
+    caption: "Free local work - runs the moment it can, off the priority queue. No scheduling needed."
+    ids: [videoingest, import, rescore]
+  - name: "Claude"
     dot: "copper"
-    queue: "Language-model queue"
-    caption: "Language-model work."
+    queue: "The priority queue"
+    caption: "Language-model work, drawing on limited capacity - this is the queue where priority decides the order."
     ids: [digest, corroborate, synthesise, assemble, translate, verify]
 featured: [priority, staleness]

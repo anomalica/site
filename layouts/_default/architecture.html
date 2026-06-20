@@ -45,26 +45,25 @@
         {{/* ---- Scheduling tab (cards) ---- */}}
         <div id="tab-sched" class="arch-tabpanel" hidden>
           <div class="arch-legend">
-            <span><i class="arch-swatch" style="background:#0B6E6E"></i> Graphics-card queue</span>
-            <span><i class="arch-swatch" style="background:#5E5A50"></i> Light local (runs eagerly)</span>
-            <span><i class="arch-swatch" style="background:#B35A28"></i> Language-model queue</span>
+            <span><i class="arch-swatch" style="background:#5E5A50"></i> Local &middot; runs automatically</span>
+            <span><i class="arch-swatch" style="background:#B35A28"></i> Claude &middot; the priority queue</span>
             <span class="arch-legend-hint">Click any card to see how it is scheduled</span>
           </div>
 
           <div class="arch-layout">
             <div class="arch-canvas sched-board">
               {{ $S := site.Data.scheduling }}
+              <p class="sched-section">How it works</p>
               <div class="sched-featured">
                 {{ range $S.featured }}{{ $c := index $S.nodes . }}
                   <button type="button" class="sched-card sched-card-feat" data-id="{{ . }}" onclick="schedClick(this.dataset.id)">
-                    <span class="sched-eyebrow">How it works</span>
                     <span class="sched-title">{{ $c.name }}</span>
                     <span class="sched-sum">{{ $c.summary }}</span>
                   </button>
                 {{ end }}
               </div>
 
-              <p class="sched-divider">Ten jobs, in two queues</p>
+              <p class="sched-divider">The jobs, by where they run</p>
 
               {{ range $S.lanes }}
                 <section class="sched-lane">
@@ -202,7 +201,7 @@
     .sched-sum { font-size: 13.5px; line-height: 1.45; color: #5e5a50; }
     .sched-card-feat { padding: 18px 20px; min-height: 0; background: #fbf5ef; border: 1px solid #ecd9c8; border-left: 3px solid #b35a28; }
     .sched-card-feat .sched-title { font-size: 17px; }
-    .sched-eyebrow { font-family: var(--font-ui); font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #b35a28; }
+    .sched-section { font-family: var(--font-ui); font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #b35a28; margin: 0 0 12px; }
     .sched-gate { padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; }
     .sched-gate--block { background: #f6e3d7; color: #8a3f18; border-left: 3px solid #b35a28; }
     .sched-factors { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
@@ -259,8 +258,10 @@
         if (n.inputs) html += `<div class="row"><div class="label">Inputs</div><div class="value">${n.inputs}</div></div>`;
         if (n.when) html += `<div class="row"><div class="label">When it runs</div><div class="value">${n.when}</div></div>`;
         if (n.weight) {
-          const pills = ["demand", "staleness", "reach", "source quality"].map(f => `<span class="sched-factor">${f}</span>`).join("");
-          html += `<div class="row"><div class="label">How it is weighted</div><div class="sched-factors">${pills}</div><div class="value">${n.weight}</div></div>`;
+          const pills = (n.factors && n.factors.length)
+            ? `<div class="sched-factors">` + n.factors.map(f => `<span class="sched-factor">${f}</span>`).join("") + `</div>`
+            : "";
+          html += `<div class="row"><div class="label">How it is weighted</div>${pills}<div class="value">${n.weight}</div></div>`;
         }
         if (n.gate) html += `<div class="row"><div class="sched-gate sched-gate--${n.gate.tone}">${n.gate.text}</div></div>`;
       }
