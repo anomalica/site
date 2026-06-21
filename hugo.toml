@@ -19,8 +19,8 @@ disableLanguages = ["ar","bn","de","en-us","es","fa","fr","hi","id","it","ja","k
 # or set here / per-environment for a deployed reviewer preview.
 [params]
 reviewerPreview = false
-# Reviewer tooling (workbench app) entry point - local dev for now.
-workbenchUrl = "http://localhost:5173"
+# Workbench app entry point (prod host; resolves after the apex DNS flip).
+workbenchUrl = "https://workbench.anomalica.is"
 
 [languages.en]
 languageName = "English"
