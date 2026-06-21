@@ -52,7 +52,15 @@
     <!-- Languages -->
     <div class="mt-10 border-t border-on-chrome/10 pt-6">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary/50 font-ui">
-        {{ $currentLang := site.Language.Lang }}{{ $translations := dict }}{{ range $.Translations }}{{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}{{ end }}{{ range $i, $lang := site.Data.languages }}{{ $langKey := .code | lower }}{{ if $i }} &middot; {{ end }}{{ $target := index $translations $langKey | default (replace $.RelPermalink (print "/" $currentLang "/") (print "/" $langKey "/")) }}<a href="{{ $target }}" class="hover:text-on-chrome-active transition-colors{{ if eq $langKey $currentLang }} text-on-chrome-secondary{{ end }}">{{ .native }}</a>{{ end }}
+        {{/* Only offer languages this page actually exists in (current + real
+             translations), so the switcher never dead-links to an untranslated
+             page - same existence-gate philosophy as the render-link hook. It
+             fills out on its own as translations are assembled. */}}
+        {{ $currentLang := site.Language.Lang }}
+        {{ $translations := dict }}{{ range .Translations }}{{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}{{ end }}
+        {{ $shown := slice }}
+        {{ range site.Data.languages }}{{ $k := .code | lower }}{{ $native := .native }}{{ if eq $k $currentLang }}{{ $shown = $shown | append (dict "native" $native "url" $.RelPermalink "cur" true) }}{{ else }}{{ with index $translations $k }}{{ $shown = $shown | append (dict "native" $native "url" . "cur" false) }}{{ end }}{{ end }}{{ end }}
+        {{ range $i, $l := $shown }}{{ if $i }} &middot; {{ end }}<a href="{{ $l.url }}" class="hover:text-on-chrome-active transition-colors{{ if $l.cur }} text-on-chrome-secondary{{ end }}">{{ $l.native }}</a>{{ end }}
       </div>
     </div>
   </div>
