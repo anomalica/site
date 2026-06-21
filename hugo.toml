@@ -7,6 +7,12 @@ defaultContentLanguageInSubdir = true
 # Serve from disk wipes orphans: removed/renamed pages 404 honestly instead of
 # lingering in public/ as phantom 200s (this Hugo serves public/ from disk).
 cleanDestinationDir = true
+# Launch scope: English only. The other 29 languages have no translated content
+# yet, so building them produces empty shells whose nav dead-links. Disable them
+# until the translate pipeline produces each one's content, then drop it from
+# this list. The language picker still showcases all 30 (disabled "coming" tiles)
+# from data/languages.json.
+disableLanguages = ["ar","bn","de","en-us","es","fa","fr","hi","id","it","ja","ko","mr","my","pl","pt","ru","sw","ta","te","th","tl","tr","uk","ur","uz","vi","zh","zh-hant"]
 
 # Reviewer-vs-public build gate. Default false = public-safe (no workbench
 # links). True under `hugo server` (local reviewer preview) via hugo.IsServer,
