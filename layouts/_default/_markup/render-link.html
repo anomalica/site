@@ -1,32 +1,28 @@
 {{- /*
   Markdown link render hook.
 
-  Three behaviours:
-  1. Internal entity-section links (/people/<slug>, /topics/<slug>, ...) are
-     existence-gated at render time: if the target page is in the build it
-     renders a language-relative <a>; if not, the link text is kept as plain
-     text with no href - so a prose entity mention can never dead-link, and it
-     lights up on its own once that page is assembled (never stale).
-  2. Other internal links (/about/, /architecture/, section indexes, ...) are
-     language-prefixed via relLangURL, no existence gate.
-  3. External links, workbench deep-links (http...), anchors and mailto pass
-     through untouched.
+  - Internal links (a single leading /) are existence-gated at render time for
+    EVERY section, not a fixed allow-list: if site.GetPage resolves the target
+    it renders a language-relative <a>; if not, the link text is kept as plain
+    text with no href. So a prose link can never dead-link, and it lights up on
+    its own once that page is built (never stale). This lets the assembler
+    over-link every potentially-linkable entity and rely on the site to strip
+    the ones whose page does not exist.
+    NB: a render hook only sees markdown links [text](/path); raw <a> in content
+    bypasses it entirely, so the assembler must emit markdown links only, with
+    bare (non-language-prefixed) paths.
+  - External links, workbench deep-links (http...), protocol-relative (//),
+    anchors (#...) and mailto pass through untouched.
 */ -}}
 {{- $dest := .Destination -}}
-{{- $sections := slice "people" "organisations" "projects" "events" "places" "documents" "objects" "topics" "patterns" "concepts" "records" -}}
 {{- $internal := and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
 {{- if $internal -}}
-  {{- $seg := index (split (strings.TrimPrefix "/" $dest) "/") 0 -}}
-  {{- if in $sections $seg -}}
-    {{- $lookup := index (split $dest "#") 0 -}}
-    {{- $lookup = index (split $lookup "?") 0 -}}
-    {{- if site.GetPage $lookup -}}
+  {{- $lookup := index (split $dest "#") 0 -}}
+  {{- $lookup = index (split $lookup "?") 0 -}}
+  {{- if site.GetPage $lookup -}}
 <a href="{{ $dest | relLangURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
-    {{- else -}}
-{{ .Text | safeHTML }}
-    {{- end -}}
   {{- else -}}
-<a href="{{ $dest | relLangURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
+{{ .Text | safeHTML }}
   {{- end -}}
 {{- else -}}
 <a href="{{ $dest }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
