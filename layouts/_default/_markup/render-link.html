@@ -13,7 +13,7 @@
      through untouched.
 */ -}}
 {{- $dest := .Destination -}}
-{{- $sections := slice "people" "organisations" "projects" "events" "places" "documents" "objects" "topics" "patterns" "records" -}}
+{{- $sections := slice "people" "organisations" "projects" "events" "places" "documents" "objects" "topics" "patterns" "concepts" "records" -}}
 {{- $internal := and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
 {{- if $internal -}}
   {{- $seg := index (split (strings.TrimPrefix "/" $dest) "/") 0 -}}
