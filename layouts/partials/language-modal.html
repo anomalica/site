@@ -34,15 +34,26 @@
       <div class="mb-10">
         <p class="section-label mb-4">{{ $label }}</p>
         <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {{/* Show all 30 languages (the coverage showcase), but only link the
+               ones this page actually exists in (current + real translations).
+               Untranslated languages render as a disabled tile, not a dead link;
+               they become clickable on their own as translations are assembled. */}}
           {{ range site.Data.languages }}
             {{ if eq .script $scriptKey }}
               {{ $langKey := .code | lower }}
               {{ $isActive := eq $langKey $currentLang }}
-              {{ $target := index $translations $langKey | default (replace $.RelPermalink (print "/" $currentLang "/") (print "/" $langKey "/")) }}
+              {{ $target := cond $isActive $.RelPermalink (index $translations $langKey) }}
+              {{ if $target }}
               <a href="{{ $target }}" class="group flex items-baseline justify-between rounded border border-border px-4 py-3 transition-colors hover:border-primary{{ if $isActive }} border-primary bg-primary-container{{ end }}">
                 <span class="font-ui text-sm font-medium{{ if $isActive }} text-primary{{ else }} text-on-surface group-hover:text-primary{{ end }}">{{ .name }}</span>
                 <span class="text-xs text-on-surface-muted">{{ .native }}</span>
               </a>
+              {{ else }}
+              <span class="flex items-baseline justify-between rounded border border-border px-4 py-3 opacity-40" title="Not yet available in this language" aria-disabled="true">
+                <span class="font-ui text-sm font-medium text-on-surface-muted">{{ .name }}</span>
+                <span class="text-xs text-on-surface-muted">{{ .native }}</span>
+              </span>
+              {{ end }}
             {{ end }}
           {{ end }}
         </div>
