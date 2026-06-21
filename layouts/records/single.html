@@ -1,10 +1,4 @@
 {{ define "main" }}
-  {{ $entityOrder := slice "person" "organisation" "project" "place" "event" "object" "document" "topic" }}
-  {{ $entityLabels := dict
-    "person" "People" "organisation" "Organisations" "project" "Projects"
-    "place" "Places" "event" "Events" "object" "Objects"
-    "document" "Documents" "topic" "Topics" }}
-
   <article class="bg-surface pt-14 pb-24">
     <div class="mx-auto max-w-3xl px-6">
       {{ with .Section }}
@@ -35,81 +29,24 @@
 
       {{ partial "article-references.html" . }}
 
-      {{/* ---- Facts breakdown: collapsed extraction-QA view ---- */}}
-      {{ if or .Params.facts .Params.entities }}
-        {{ $entityCount := 0 }}
-        {{ range $t, $list := .Params.entities }}{{ $entityCount = add $entityCount (len $list) }}{{ end }}
-        <details class="mt-12 border-t border-border pt-8">
-          <summary class="section-label cursor-pointer select-none">
-            Facts breakdown
-            <span class="text-on-surface-muted">({{ len .Params.facts }} facts, {{ $entityCount }} entities)</span>
-          </summary>
-
-          <p class="mt-3 mb-6 text-sm text-on-surface-muted">
-            Every entity and claim the digester extracted from this record, each citing the original wording. A review surface for checking extraction quality.
-          </p>
-
-          {{/* Entities, grouped by type */}}
-          {{ with .Params.entities }}
-            <div class="mb-10">
-              {{ range $type := $entityOrder }}
-                {{ with index $.Params.entities $type }}
-                  <div class="mb-5">
-                    <p class="mb-2 font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">
-                      {{ index $entityLabels $type }} <span class="opacity-60">{{ len . }}</span>
-                    </p>
-                    <div class="flex flex-wrap gap-1.5">
-                      {{ range . }}
-                        {{ partial "entity-tag.html" . }}
-                      {{ end }}
-                    </div>
-                  </div>
-                {{ end }}
-              {{ end }}
-            </div>
-          {{ end }}
-
-          {{/* Claims, one self-contained card each */}}
-          {{ with .Params.facts }}
-            <p class="mb-3 font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">Claims</p>
-            <div class="space-y-3">
-              {{ range . }}
-                <div {{ with .claim_id }}id="claim-{{ . }}" {{ end }}class="scroll-mt-24 rounded-lg border border-border bg-surface-raised p-4">
-                  <p class="text-sm text-on-surface">{{ .text }}</p>
-
-                  <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-ui text-xs">
-                    <span class="font-semibold uppercase tracking-wide text-primary">{{ .type }}</span>
-                    <span class="text-on-surface-muted">{{ with .attestation }}{{ replace . "_" " " }}{{ else }}unattributed{{ end }}</span>
-                    {{ with .speaker }}<span class="text-on-surface-secondary">{{ . }}</span>{{ end }}
-                  </div>
-
-                  {{ with .refs }}
-                    <div class="mt-2 flex flex-wrap gap-1.5">
-                      {{ range . }}
-                        {{ partial "entity-tag.html" . }}
-                      {{ end }}
-                    </div>
-                  {{ end }}
-
-                  {{ with .quote }}
-                    <blockquote class="mt-2 border-l-2 border-border pl-3 text-xs italic text-on-surface-muted">&ldquo;{{ . }}&rdquo;</blockquote>
-                  {{ end }}
-
-                  {{/* Workbench link is reviewer-only: gated out of public builds. */}}
-                  {{ $showWb := and (or hugo.IsServer site.Params.reviewerPreview) .workbench_url }}
-                  {{ if or .location $showWb }}
-                    <div class="mt-2 flex items-center gap-x-3 text-xs">
-                      {{ with .location }}<span class="text-on-surface-muted">{{ . }}</span>{{ end }}
-                      {{ if $showWb }}
-                        <a href="{{ .workbench_url }}" target="_blank" rel="noopener" class="ml-auto text-on-surface-muted hover:underline" title="Review this claim in the workbench (reviewer only)">Review in workbench &rarr;</a>
-                      {{ end }}
-                    </div>
-                  {{ end }}
-                </div>
-              {{ end }}
-            </div>
-          {{ end }}
-        </details>
+      {{/* Facts breakdown lives in the workbench now: the public record page links
+           out to the workbench record view instead of rendering the per-claim QA
+           breakdown inline. Origin is site.Params.workbenchUrl (pointed at the
+           deployed workbench at launch); record_hash comes from the assembler.
+           Fallback derives the record view from a claim's workbench_url for any
+           record still in the pre-drop format that carries facts. */}}
+      {{/* The workbench SPA deep-link matches the 56-char public_hash, not the
+           64-char content_hash. Strip any sha256: prefix, then take the first 56
+           hex (public_hash = content_hash[:56]) - robust whether the assembler
+           emits the bare 56-char, the 64-char, or a sha256:-prefixed form. */}}
+      {{ $wbRecord := "" }}
+      {{ with .Params.record_hash }}{{ $wbRecord = printf "%s/%s" site.Params.workbenchUrl (substr (strings.TrimPrefix "sha256:" .) 0 56) }}{{ end }}
+      {{ if not $wbRecord }}{{ with .Params.facts }}{{ with (index . 0).workbench_url }}{{ $wbRecord = index (split . "#") 0 }}{{ end }}{{ end }}{{ end }}
+      {{ with $wbRecord }}
+        <div class="mt-12 border-t border-border pt-8">
+          <a href="{{ . }}" target="_blank" rel="noopener" class="font-ui text-sm text-primary hover:underline">View the facts breakdown in the workbench &rarr;</a>
+          <p class="mt-2 text-sm text-on-surface-muted">Every claim and entity extracted from this record, each citing the original wording, in the review workbench.</p>
+        </div>
       {{ end }}
     </div>
   </article>
