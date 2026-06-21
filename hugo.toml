@@ -4,6 +4,9 @@ timeZone = "UTC"
 hasCJKLanguage = true
 defaultContentLanguage = "en"
 defaultContentLanguageInSubdir = true
+# Serve from disk wipes orphans: removed/renamed pages 404 honestly instead of
+# lingering in public/ as phantom 200s (this Hugo serves public/ from disk).
+cleanDestinationDir = true
 
 # Reviewer-vs-public build gate. Default false = public-safe (no workbench
 # links). True under `hugo server` (local reviewer preview) via hugo.IsServer,
