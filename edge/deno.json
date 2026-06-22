@@ -1,0 +1,14 @@
+{
+  "imports": {
+    "@bunny.net/edgescript-sdk": "npm:@bunny.net/edgescript-sdk@0.12.1"
+  },
+  "tasks": {
+    "test": "deno test --allow-env --allow-net",
+    "check": "deno check serve.ts main.ts && deno lint",
+    "dev": "deno run --allow-net --allow-env --watch serve.ts",
+    "bundle": "deno bundle serve.ts -o /tmp/site-edge-bundle.js"
+  },
+  "lint": {
+    "rules": { "tags": ["recommended"] }
+  }
+}
