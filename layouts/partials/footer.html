@@ -27,14 +27,10 @@
         <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_participate" }}</h3>
         <ul class="space-y-2 text-sm">
           <li><a href="https://github.com/anomalica" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_develop" }}</a></li>
-          {{/* Single Workbench entry (the review tool), replacing the dead "Review
-               content" link and the old "Workbench (reviewer)" entry. Reviewer-gated
-               for now because workbenchUrl is the local dev instance; at launch,
-               ungate and point it at the deployed workbench so it becomes the public
-               participation call-to-action. */}}
-          {{ if or hugo.IsServer site.Params.reviewerPreview }}
-            <li><a href="{{ site.Params.workbenchUrl }}" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_workbench" }}</a></li>
-          {{ end }}
+          {{/* Workbench is deployed and public-read, so this is a live public CTA
+               on the prod workbench host (site.Params.workbenchUrl). */}}
+          <li><a href="{{ site.Params.workbenchUrl }}" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_workbench" }}</a></li>
+          <li><a href="{{ "contact/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_contact" }}</a></li>
         </ul>
       </div>
 
