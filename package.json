@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "vendor": "bash scripts/fetch-alpine.sh",
+    "vendor": "bash scripts/fetch-vendor.sh",
     "predev": "npm run vendor",
     "dev": "concurrently \"npx @tailwindcss/cli -i assets/css/main.css -o assets/css/compiled.css --watch\" \"hugo server\"",
     "prebuild": "npm run vendor",

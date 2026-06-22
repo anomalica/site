@@ -17,6 +17,6 @@ go.sum
 yarn.lock
 .playwright-mcp
 .superpowers/
-# Vendored at build time by scripts/fetch-alpine.sh (pinned + sha256-verified);
+# Vendored at build time by scripts/fetch-vendor.sh (pinned + sha256-verified);
 # not committed - the git-hooks linter rejects minified third-party JS.
-assets/js/alpine.min.js
+assets/js/*.min.js

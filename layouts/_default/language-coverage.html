@@ -55,7 +55,15 @@
 
   </article>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  {{/* Self-hosted (vendored at build by scripts/fetch-vendor.sh) - no CDN. */}}
+  {{ with resources.Get "js/chart.min.js" }}
+    {{ if hugo.IsProduction }}
+      {{ $js := . | fingerprint }}
+      <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+    {{ else }}
+      <script src="{{ .RelPermalink }}"></script>
+    {{ end }}
+  {{ end }}
   <script>
     (function() {
       var EXCLUDED = { jv: true, ms: true, pcm: true };
