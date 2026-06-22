@@ -25,7 +25,9 @@
 
           <div class="arch-layout">
             <div class="arch-canvas">
-              <div class="arch-diagram"><pre class="mermaid">{{ (resources.Get "architecture/pipeline.mmd").Content | safeHTML }}</pre></div>
+              {{/* Pre-rendered static SVG (regenerate from pipeline.mmd - see
+                   assets/architecture/README.md). No runtime mermaid/CDN. */}}
+              <div class="arch-diagram">{{ (resources.Get "architecture/pipeline.svg").Content | safeHTML }}</div>
             </div>
 
             <aside class="arch-panel">
@@ -208,9 +210,7 @@
     .sched-factor { font-family: var(--font-ui); font-size: 11px; font-weight: 600; color: #064d4d; background: #d1f1f1; border-radius: 999px; padding: 2px 9px; }
   </style>
 
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-
+  <script>
     // Data-flow node copy + links are editable data: site/data/architecture.yaml.
     const NODES = {{ site.Data.architecture.nodes | jsonify | safeJS }};
     const LINKS = {{ site.Data.architecture.links | jsonify | safeJS }};
@@ -272,22 +272,15 @@
       }
     };
 
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: "loose",
-      theme: "base",
-      flowchart: { curve: "basis", nodeSpacing: 44, rankSpacing: 58, padding: 14, useMaxWidth: false },
-      themeVariables: {
-        fontFamily: "Outfit, sans-serif",
-        fontSize: "17px",
-        lineColor: "#5E5A50",
-        edgeLabelBackground: "#F8F6F1",
-      },
+    // The diagram is a pre-rendered static SVG. Mermaid would normally bind the
+    // node click handlers at render time; re-bind them here. Each node <g> keeps
+    // its id as "<prefix>-flowchart-<nodeId>-<n>".
+    document.querySelectorAll(".arch-diagram g.node.clickable").forEach((g) => {
+      const m = g.id.match(/-flowchart-(.+)-\d+$/);
+      if (!m) return;
+      g.style.cursor = "pointer";
+      g.addEventListener("click", () => window.nodeClick(m[1]));
     });
-
-    // The data-flow tab renders a Mermaid diagram; the scheduling tab is plain
-    // card HTML, so only the data-flow diagram needs a render pass.
-    await mermaid.run({ querySelector: "#tab-flow .mermaid" });
 
     function showTab(name) {
       document.querySelectorAll(".arch-tab").forEach((b) => b.classList.toggle("arch-tab-active", b.dataset.tab === name));
