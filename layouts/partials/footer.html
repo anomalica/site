@@ -8,7 +8,6 @@
           <li><a href="{{ "about/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_about" }}</a></li>
           <li><a href="{{ "decisions/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_decisions" }}</a></li>
           <li><a href="{{ "architecture/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_architecture" }}</a></li>
-          <li><a href="{{ "contact/" | relLangURL }}" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_contact" }}</a></li>
         </ul>
       </div>
 
@@ -22,9 +21,9 @@
         </ul>
       </div>
 
-      <!-- Participate -->
+      <!-- Contact / get involved -->
       <div>
-        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_participate" }}</h3>
+        <h3 class="font-ui text-xs font-bold uppercase tracking-[0.15em] text-on-chrome-active mb-4">{{ T "footer_contact" }}</h3>
         <ul class="space-y-2 text-sm">
           <li><a href="https://github.com/anomalica" target="_blank" rel="noopener" class="text-on-chrome-secondary hover:text-on-chrome-active transition-colors">{{ T "footer_develop" }}</a></li>
           {{/* Workbench is deployed and public-read, so this is a live public CTA
@@ -45,18 +44,15 @@
       </div>
     </div>
 
-    <!-- Languages -->
+    <!-- Languages: the full 30-language coverage showcase. The current language
+         and any real translations link; the rest render as disabled "coming"
+         labels (not dead links) and become clickable on their own as translations
+         are assembled - same existence-gate as the language modal. -->
     <div class="mt-10 border-t border-on-chrome/10 pt-6">
-      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary/50 font-ui">
-        {{/* Only offer languages this page actually exists in (current + real
-             translations), so the switcher never dead-links to an untranslated
-             page - same existence-gate philosophy as the render-link hook. It
-             fills out on its own as translations are assembled. */}}
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-on-chrome-secondary font-ui">
         {{ $currentLang := site.Language.Lang }}
         {{ $translations := dict }}{{ range .Translations }}{{ $translations = merge $translations (dict .Language.Lang .RelPermalink) }}{{ end }}
-        {{ $shown := slice }}
-        {{ range site.Data.languages }}{{ $k := .code | lower }}{{ $native := .native }}{{ if eq $k $currentLang }}{{ $shown = $shown | append (dict "native" $native "url" $.RelPermalink "cur" true) }}{{ else }}{{ with index $translations $k }}{{ $shown = $shown | append (dict "native" $native "url" . "cur" false) }}{{ end }}{{ end }}{{ end }}
-        {{ range $i, $l := $shown }}{{ if $i }} &middot; {{ end }}<a href="{{ $l.url }}" class="hover:text-on-chrome-active transition-colors{{ if $l.cur }} text-on-chrome-secondary{{ end }}">{{ $l.native }}</a>{{ end }}
+        {{ range $i, $lang := site.Data.languages }}{{ $k := .code | lower }}{{ $isActive := eq $k $currentLang }}{{ $target := cond $isActive $.RelPermalink (index $translations $k) }}{{ if $i }}<span class="text-on-chrome-secondary/30">&middot;</span>{{ end }}{{ if $target }}<a href="{{ $target }}" class="hover:text-on-chrome-active transition-colors{{ if $isActive }} text-on-chrome-active font-medium{{ end }}">{{ $lang.native }}</a>{{ else }}<span class="text-on-chrome-secondary/40 cursor-default" title="{{ $lang.name }} - not yet available">{{ $lang.native }}</span>{{ end }}{{ end }}
       </div>
     </div>
   </div>
