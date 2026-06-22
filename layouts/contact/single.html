@@ -1,0 +1,124 @@
+{{ define "main" }}
+  <article class="bg-surface pt-14 pb-24">
+    <div class="mx-auto max-w-3xl px-6">
+      <p class="section-label mb-1">{{ T "footer_contact" }}</p>
+      <h1 class="mb-2 text-3xl font-semibold">{{ .Title }}</h1>
+      {{ with .Params.description }}
+        <p class="mb-8 font-ui text-lg text-on-surface-muted">{{ . }}</p>
+      {{ end }}
+
+      {{/* Direct contact form. Posts JSON to the edge handler at /api/contact
+           (Bunny edge script), which verifies Turnstile and sends via Resend.
+           Gated by site.Params.contactFormEnabled (off until Resend + privacy
+           disclosure are live) so this never ships a dead form or loads the
+           Turnstile third-party prematurely. */}}
+      {{ if site.Params.contactFormEnabled }}
+      <section class="mb-12 rounded-lg border border-border bg-surface-raised p-6 sm:p-8">
+        <h2 class="font-ui text-xl font-semibold mb-1">Send a message</h2>
+        <p class="text-sm text-on-surface-secondary mb-6">Use this for general enquiries. For content errors or change proposals, the GitHub routes below are better.</p>
+
+        <form id="contact-form" class="space-y-5" novalidate>
+          <div>
+            <label for="cf-name" class="block font-ui text-sm font-medium mb-1.5">Name</label>
+            <input id="cf-name" name="name" type="text" required maxlength="200" autocomplete="name"
+              class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40">
+          </div>
+          <div>
+            <label for="cf-email" class="block font-ui text-sm font-medium mb-1.5">Email</label>
+            <input id="cf-email" name="email" type="email" required maxlength="320" autocomplete="email"
+              class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40">
+          </div>
+          <div>
+            <label for="cf-message" class="block font-ui text-sm font-medium mb-1.5">Message</label>
+            <textarea id="cf-message" name="message" required maxlength="5000" rows="6"
+              class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"></textarea>
+          </div>
+
+          {{/* Honeypot - hidden from people, tempting to bots. */}}
+          <div class="absolute left-[-9999px]" aria-hidden="true">
+            <label>Company<input name="company" type="text" tabindex="-1" autocomplete="off"></label>
+          </div>
+
+          <div class="cf-turnstile" data-sitekey="{{ site.Params.turnstileSiteKey }}" data-theme="auto"></div>
+
+          <div class="flex items-center gap-4">
+            <button type="submit" id="cf-submit"
+              class="rounded-md bg-primary px-5 py-2.5 font-ui text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">Send message</button>
+            <p id="cf-status" class="text-sm" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+
+        <p class="mt-5 text-xs text-on-surface-muted">Spam protection is provided by Cloudflare Turnstile and your message is delivered via Resend. See the <a href="{{ "legal/privacy/" | relLangURL }}" class="text-primary hover:text-primary-hover transition-colors">privacy policy</a>.</p>
+      </section>
+      {{ end }}
+
+      <div class="content">
+        {{ .Content }}
+      </div>
+    </div>
+  </article>
+
+  {{ if site.Params.contactFormEnabled }}
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+    (function () {
+      const form = document.getElementById("contact-form");
+      const status = document.getElementById("cf-status");
+      const button = document.getElementById("cf-submit");
+      if (!form) return;
+
+      const ERRORS = {
+        invalid_name: "Please enter your name.",
+        invalid_email: "Please enter a valid email address.",
+        invalid_message: "Please enter a message.",
+        missing_turnstile: "Please complete the spam check.",
+        turnstile_failed: "Spam check failed - please try again.",
+        email_not_configured: "The contact form is not live yet. Please try again later.",
+        send_failed: "Something went wrong sending your message. Please try again.",
+      };
+
+      function setStatus(text, ok) {
+        status.textContent = text;
+        status.className = "text-sm " + (ok ? "text-success" : "text-error");
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        setStatus("", true);
+        const token = (form.querySelector('[name="cf-turnstile-response"]') || {}).value || "";
+        if (!token) {
+          setStatus(ERRORS.missing_turnstile, false);
+          return;
+        }
+        button.disabled = true;
+        const payload = {
+          name: form.name.value,
+          email: form.email.value,
+          message: form.message.value,
+          company: form.company.value,
+          token: token,
+        };
+        try {
+          const res = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.ok) {
+            setStatus("Thanks - your message has been sent.", true);
+            form.reset();
+          } else {
+            setStatus(ERRORS[data.error] || "Something went wrong. Please try again.", false);
+          }
+        } catch {
+          setStatus("Network error - please try again.", false);
+        } finally {
+          button.disabled = false;
+          if (window.turnstile) window.turnstile.reset();
+        }
+      });
+    })();
+  </script>
+  {{ end }}
+{{ end }}
