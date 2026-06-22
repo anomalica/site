@@ -99,7 +99,10 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
-  const token = typeof body.token === "string" ? body.token : "";
+  // Accept the token under our own "token" key or Turnstile's default
+  // "cf-turnstile-response" field name, so frontend/handler can't drift.
+  const rawToken = body.token ?? body["cf-turnstile-response"];
+  const token = typeof rawToken === "string" ? rawToken : "";
 
   if (!name || name.length > MAX.name) return json(400, { error: "invalid_name" });
   if (!EMAIL_RE.test(email) || email.length > MAX.email)
