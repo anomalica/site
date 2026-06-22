@@ -2,6 +2,11 @@ baseURL = "https://anomalica.is"
 title = "Anomalica"
 timeZone = "UTC"
 hasCJKLanguage = true
+# Assembler/workbench drop presentation-directive inputs alongside content
+# (foo.directives.yaml, _directives.yaml, _directives.<lang>.yaml). They are build
+# inputs, not pages: Hugo otherwise copies the language-coded ones verbatim into
+# public/ and serves them at their literal URL. Exclude them from the content walk.
+ignoreFiles = ['directives(\.[A-Za-z-]+)?\.ya?ml$']
 defaultContentLanguage = "en"
 defaultContentLanguageInSubdir = true
 # Serve from disk wipes orphans: removed/renamed pages 404 honestly instead of
