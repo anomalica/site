@@ -1,0 +1,15 @@
+# Anthropic published list prices, USD per 1,000,000 tokens.
+# Source: Anthropic pricing (claude-api reference, list prices as of 2026-06-04).
+# Used ONLY to render a NOTIONAL "at list price" cost per record from the model +
+# token counts in each record's processing block. This is resource-usage
+# transparency - it is NOT the amount actually billed, and is identical whether a
+# record ran on the subscription or the metered API (the actual billing path and
+# spend gate are internal; see anomalica/CLAUDE.md operating rules).
+basis: "Anthropic list price, 2026-06-04"
+models:
+  claude-opus-4-8: {input: 5.0, output: 25.0}
+  claude-opus-4-7: {input: 5.0, output: 25.0}
+  claude-opus-4-6: {input: 5.0, output: 25.0}
+  claude-sonnet-4-6: {input: 3.0, output: 15.0}
+  claude-haiku-4-5: {input: 1.0, output: 5.0}
+  claude-fable-5: {input: 10.0, output: 50.0}

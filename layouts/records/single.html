@@ -29,6 +29,9 @@
 
       {{ partial "article-references.html" . }}
 
+      {{/* Per-record AI-usage transparency (model/tokens/notional list-price cost). */}}
+      {{ partial "ai-usage.html" . }}
+
       {{/* Facts breakdown lives in the workbench now: the public record page links
            out to the workbench record view instead of rendering the per-claim QA
            breakdown inline. Origin is site.Params.workbenchUrl (pointed at the

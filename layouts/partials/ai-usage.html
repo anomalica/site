@@ -1,0 +1,62 @@
+{{/* Per-record AI-usage transparency. Renders the record's processing chain
+     (model + token counts per pipeline stage, carried forward by the pipeline)
+     and a NOTIONAL cost computed from data/model_prices.yaml (list price) -
+     identical whether the record ran on subscription or metered, so it reveals
+     nothing about the actual billing path. See anomalica/CLAUDE.md: per-record
+     model/tokens/list-price cost is public; actual spend is internal. */}}
+{{ with .Params.processing }}
+  {{ $prices := site.Data.model_prices.models }}
+  <section class="mt-12 border-t border-border pt-8">
+    <p class="section-label mb-2">AI processing</p>
+    <p class="text-sm text-on-surface-secondary mb-4 max-w-2xl">The AI work that produced this record, by pipeline stage. Cost is notional - what this record's compute would cost at Anthropic's published list price, identical whether it ran on a subscription or the metered API.</p>
+    <div class="overflow-x-auto rounded-lg border border-border">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-surface-alt text-left">
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Stage</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Model</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Input tokens</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Output tokens</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cost (list price)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ $total := 0.0 }}
+          {{ $inTotal := 0 }}
+          {{ $outTotal := 0 }}
+          {{ range . }}
+            {{ $in := int .tokens.input }}
+            {{ $out := int .tokens.output }}
+            {{/* Prefer a digester-stored notional cost; otherwise derive it
+                 from the site-side list-price table. Works under either of the
+                 (still-being-settled) store-vs-derive shapes. */}}
+            {{ $cost := 0.0 }}
+            {{ with .notional_cost_usd }}
+              {{ $cost = float . }}
+            {{ else }}
+              {{ with index $prices .model }}
+                {{ $cost = add (mul (div (float $in) 1000000.0) .input) (mul (div (float $out) 1000000.0) .output) }}
+              {{ end }}
+            {{ end }}
+            {{ $total = add $total $cost }}
+            {{ $inTotal = add $inTotal $in }}
+            {{ $outTotal = add $outTotal $out }}
+            <tr class="border-t border-border">
+              <td class="px-3 py-2.5 font-medium">{{ .stage | humanize }}</td>
+              <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ .model }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $in }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $out }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $cost }}</td>
+            </tr>
+          {{ end }}
+          <tr class="border-t-2 border-border font-semibold">
+            <td class="px-3 py-2.5" colspan="2">Total</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ $inTotal }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ $outTotal }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $total }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+{{ end }}
