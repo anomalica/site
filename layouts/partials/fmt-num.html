@@ -1,0 +1,12 @@
+{{/* Adaptive integer formatting for token counts: 1.2M / 191k / 420. Call:
+     partial "fmt-num.html" $n  (returns a string). */}}
+{{ $n := . }}
+{{ $out := "" }}
+{{ if ge $n 1000000 }}
+  {{ $out = printf "%.1fM" (div (float $n) 1000000.0) }}
+{{ else if ge $n 1000 }}
+  {{ $out = printf "%.0fk" (div (float $n) 1000.0) }}
+{{ else }}
+  {{ $out = printf "%d" (int $n) }}
+{{ end }}
+{{ return $out }}

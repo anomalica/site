@@ -1,0 +1,15 @@
+{{/* Returns the notional USD cost of one processing entry. Single source of the
+     cost rule so the per-record panel and the architecture-page aggregate can't
+     drift. Prefers a digester-stored notional_cost_usd; else derives it from the
+     site-side list-price table. Call: partial "notional-cost.html" (dict "entry" $e "prices" $prices) */}}
+{{ $entry := .entry }}
+{{ $prices := .prices }}
+{{ $cost := 0.0 }}
+{{ with $entry.notional_cost_usd }}
+  {{ $cost = float . }}
+{{ else }}
+  {{ with index $prices $entry.model }}
+    {{ $cost = add (mul (div (float (int $entry.tokens.input)) 1000000.0) .input) (mul (div (float (int $entry.tokens.output)) 1000000.0) .output) }}
+  {{ end }}
+{{ end }}
+{{ return $cost }}

@@ -1,0 +1,93 @@
+{{/* Whole-corpus AI-usage overview for the architecture page: an explainer of
+     the transparency model plus aggregate notional cost (total, by stage, by
+     model) across every record carrying a processing block. Uses the shared
+     notional-cost partial so it can't drift from the per-record panel. Renders
+     nothing until at least one record has processing data. */}}
+{{ $prices := site.Data.model_prices.models }}
+{{ $records := where site.RegularPages "Section" "records" }}
+{{ $agg := newScratch }}
+{{ $nrecords := 0 }}
+{{ range $records }}
+  {{ with .Params.processing }}
+    {{ $nrecords = add $nrecords 1 }}
+    {{ range . }}
+      {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
+      {{ $in := int .tokens.input }}
+      {{ $out := int .tokens.output }}
+      {{ $agg.Add "cost" $cost }}{{ $agg.Add "in" $in }}{{ $agg.Add "out" $out }}
+      {{ $agg.Add (printf "stage_%s_cost" .stage) $cost }}
+      {{ $agg.Add (printf "stage_%s_in" .stage) $in }}
+      {{ $agg.Add (printf "stage_%s_out" .stage) $out }}
+      {{ $agg.Add (printf "model_%s_cost" .model) $cost }}
+      {{ $agg.Add (printf "model_%s_in" .model) $in }}
+      {{ $agg.Add (printf "model_%s_out" .model) $out }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ if gt $nrecords 0 }}
+  <section class="mt-10">
+    <p class="section-label mb-2">AI processing transparency</p>
+    <p class="mb-6 max-w-2xl text-on-surface-secondary">Every record is processed by AI at each pipeline stage. We record the model and token counts that produced it and show, per record, a notional cost - what that compute would cost at Anthropic's published list price. The figure is the same whether a record ran on a subscription or the metered API. Per-record detail is on each <a href="{{ "records/" | relLangURL }}" class="text-primary hover:text-primary-hover transition-colors">record page</a>; the whole-corpus total is below.</p>
+
+    <div class="mb-6 rounded-lg border border-border bg-surface-raised p-5">
+      <p class="font-ui text-sm text-on-surface-secondary">Total across {{ $nrecords }} processed record{{ if ne $nrecords 1 }}s{{ end }}, at list price</p>
+      <p class="mt-1 text-3xl font-semibold tabular-nums">${{ printf "%.2f" ($agg.Get "cost") }}</p>
+      <p class="mt-1 font-ui text-sm text-on-surface-muted tabular-nums">{{ partial "fmt-num.html" ($agg.Get "in") }} input + {{ partial "fmt-num.html" ($agg.Get "out") }} output tokens</p>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div>
+        <p class="section-label mb-2">By stage</p>
+        <div class="overflow-x-auto rounded-lg border border-border">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-surface-alt text-left">
+              <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Stage</th>
+              <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Tokens</th>
+              <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cost</th>
+            </tr></thead>
+            <tbody>
+              {{ range slice "ingest" "digest" "assimilate" "assemble" }}
+                {{ $sc := $agg.Get (printf "stage_%s_cost" .) }}
+                {{ if $sc }}
+                  {{ $st := add ($agg.Get (printf "stage_%s_in" .)) ($agg.Get (printf "stage_%s_out" .)) }}
+                  <tr class="border-t border-border">
+                    <td class="px-3 py-2 font-medium">{{ . | humanize }}</td>
+                    <td class="px-3 py-2 text-right tabular-nums text-on-surface-secondary">{{ partial "fmt-num.html" $st }}</td>
+                    <td class="px-3 py-2 text-right tabular-nums">${{ printf "%.2f" $sc }}</td>
+                  </tr>
+                {{ end }}
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <p class="section-label mb-2">By model</p>
+        <div class="overflow-x-auto rounded-lg border border-border">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-surface-alt text-left">
+              <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Model</th>
+              <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Tokens</th>
+              <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cost</th>
+            </tr></thead>
+            <tbody>
+              {{ $models := slice }}
+              {{ range $mname, $_ := $prices }}{{ $models = $models | append $mname }}{{ end }}
+              {{ range sort $models }}
+                {{ $mc := $agg.Get (printf "model_%s_cost" .) }}
+                {{ if $mc }}
+                  {{ $mt := add ($agg.Get (printf "model_%s_in" .)) ($agg.Get (printf "model_%s_out" .)) }}
+                  <tr class="border-t border-border">
+                    <td class="px-3 py-2 font-mono text-xs text-on-surface-secondary">{{ . }}</td>
+                    <td class="px-3 py-2 text-right tabular-nums text-on-surface-secondary">{{ partial "fmt-num.html" $mt }}</td>
+                    <td class="px-3 py-2 text-right tabular-nums">${{ printf "%.2f" $mc }}</td>
+                  </tr>
+                {{ end }}
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+{{ end }}

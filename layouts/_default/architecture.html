@@ -102,6 +102,10 @@
           </div>
         </div>
       </div>
+
+      {{/* Whole-corpus AI-usage overview (explainer + aggregate). Inert until
+           records carry processing data. */}}
+      {{ partial "ai-usage-aggregate.html" . }}
     </div>
   </section>
 

@@ -27,17 +27,7 @@
           {{ range . }}
             {{ $in := int .tokens.input }}
             {{ $out := int .tokens.output }}
-            {{/* Prefer a digester-stored notional cost; otherwise derive it
-                 from the site-side list-price table. Works under either of the
-                 (still-being-settled) store-vs-derive shapes. */}}
-            {{ $cost := 0.0 }}
-            {{ with .notional_cost_usd }}
-              {{ $cost = float . }}
-            {{ else }}
-              {{ with index $prices .model }}
-                {{ $cost = add (mul (div (float $in) 1000000.0) .input) (mul (div (float $out) 1000000.0) .output) }}
-              {{ end }}
-            {{ end }}
+            {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
             {{ $total = add $total $cost }}
             {{ $inTotal = add $inTotal $in }}
             {{ $outTotal = add $outTotal $out }}
