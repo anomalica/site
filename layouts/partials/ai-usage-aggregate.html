@@ -8,19 +8,20 @@
 {{ $agg := newScratch }}
 {{ $nrecords := 0 }}
 {{ range $records }}
-  {{ with .Params.processing }}
+  {{ with .Params.ai_usage }}
     {{ $nrecords = add $nrecords 1 }}
     {{ range . }}
       {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
       {{ $in := int .tokens.input }}
       {{ $out := int .tokens.output }}
+      {{ $mk := partial "model-key.html" .model }}
       {{ $agg.Add "cost" $cost }}{{ $agg.Add "in" $in }}{{ $agg.Add "out" $out }}
       {{ $agg.Add (printf "stage_%s_cost" .stage) $cost }}
       {{ $agg.Add (printf "stage_%s_in" .stage) $in }}
       {{ $agg.Add (printf "stage_%s_out" .stage) $out }}
-      {{ $agg.Add (printf "model_%s_cost" .model) $cost }}
-      {{ $agg.Add (printf "model_%s_in" .model) $in }}
-      {{ $agg.Add (printf "model_%s_out" .model) $out }}
+      {{ $agg.Add (printf "model_%s_cost" $mk) $cost }}
+      {{ $agg.Add (printf "model_%s_in" $mk) $in }}
+      {{ $agg.Add (printf "model_%s_out" $mk) $out }}
     {{ end }}
   {{ end }}
 {{ end }}

@@ -4,7 +4,7 @@
      identical whether the record ran on subscription or metered, so it reveals
      nothing about the actual billing path. See anomalica/CLAUDE.md: per-record
      model/tokens/list-price cost is public; actual spend is internal. */}}
-{{ with .Params.processing }}
+{{ with .Params.ai_usage }}
   {{ $prices := site.Data.model_prices.models }}
   <section class="mt-12 border-t border-border pt-8">
     <p class="section-label mb-2">AI processing</p>
@@ -33,7 +33,7 @@
             {{ $outTotal = add $outTotal $out }}
             <tr class="border-t border-border">
               <td class="px-3 py-2.5 font-medium">{{ .stage | humanize }}</td>
-              <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ .model }}</td>
+              <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ partial "model-key.html" .model }}</td>
               <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $in }}</td>
               <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $out }}</td>
               <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $cost }}</td>

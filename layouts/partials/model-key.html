@@ -1,0 +1,5 @@
+{{/* Normalise a model id to its undated family key: strips a trailing -YYYYMMDD
+     date suffix so claude-haiku-4-5-20251001 -> claude-haiku-4-5 (matches the
+     price-table keys and groups dated snapshots with their family). Bare ids
+     pass through unchanged. Call: partial "model-key.html" .model */}}
+{{ return (replaceRE "-[0-9]{8}$" "" .) }}
