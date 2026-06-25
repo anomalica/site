@@ -11,17 +11,24 @@
   {{ with .Params.ai_usage }}
     {{ $nrecords = add $nrecords 1 }}
     {{ range . }}
-      {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
-      {{ $in := int .tokens.input }}
-      {{ $out := int .tokens.output }}
-      {{ $mk := partial "model-key.html" .model }}
-      {{ $agg.Add "cost" $cost }}{{ $agg.Add "in" $in }}{{ $agg.Add "out" $out }}
-      {{ $agg.Add (printf "stage_%s_cost" .stage) $cost }}
-      {{ $agg.Add (printf "stage_%s_in" .stage) $in }}
-      {{ $agg.Add (printf "stage_%s_out" .stage) $out }}
-      {{ $agg.Add (printf "model_%s_cost" $mk) $cost }}
-      {{ $agg.Add (printf "model_%s_in" $mk) $in }}
-      {{ $agg.Add (printf "model_%s_out" $mk) $out }}
+      {{/* Only token-based (Claude) entries carry cost; local GPU/CPU stages
+           (duration only) contribute nothing to the cost aggregate. Stage and
+           model keys are collected from the data, not hardcoded. */}}
+      {{ if .tokens }}
+        {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
+        {{ $in := int .tokens.input }}
+        {{ $out := int .tokens.output }}
+        {{ $mk := partial "model-key.html" .model }}
+        {{ $agg.Add "cost" $cost }}{{ $agg.Add "in" $in }}{{ $agg.Add "out" $out }}
+        {{ $agg.Add (printf "stage_%s_cost" .stage) $cost }}
+        {{ $agg.Add (printf "stage_%s_in" .stage) $in }}
+        {{ $agg.Add (printf "stage_%s_out" .stage) $out }}
+        {{ $agg.Add (printf "model_%s_cost" $mk) $cost }}
+        {{ $agg.Add (printf "model_%s_in" $mk) $in }}
+        {{ $agg.Add (printf "model_%s_out" $mk) $out }}
+        {{ $agg.SetInMap "stagekeys" .stage .stage }}
+        {{ $agg.SetInMap "modelkeys" $mk $mk }}
+      {{ end }}
     {{ end }}
   {{ end }}
 {{ end }}
@@ -47,7 +54,7 @@
               <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cost</th>
             </tr></thead>
             <tbody>
-              {{ range slice "ingest" "digest" "assimilate" "assemble" }}
+              {{ range $agg.GetSortedMapValues "stagekeys" }}
                 {{ $sc := $agg.Get (printf "stage_%s_cost" .) }}
                 {{ if $sc }}
                   {{ $st := add ($agg.Get (printf "stage_%s_in" .)) ($agg.Get (printf "stage_%s_out" .)) }}
@@ -72,9 +79,7 @@
               <th class="px-3 py-2 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cost</th>
             </tr></thead>
             <tbody>
-              {{ $models := slice }}
-              {{ range $mname, $_ := $prices }}{{ $models = $models | append $mname }}{{ end }}
-              {{ range sort $models }}
+              {{ range $agg.GetSortedMapValues "modelkeys" }}
                 {{ $mc := $agg.Get (printf "model_%s_cost" .) }}
                 {{ if $mc }}
                   {{ $mt := add ($agg.Get (printf "model_%s_in" .)) ($agg.Get (printf "model_%s_out" .)) }}

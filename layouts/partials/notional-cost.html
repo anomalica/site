@@ -8,8 +8,12 @@
 {{ with $entry.notional_cost_usd }}
   {{ $cost = float . }}
 {{ else }}
-  {{ with index $prices (partial "model-key.html" $entry.model) }}
-    {{ $cost = add (mul (div (float (int $entry.tokens.input)) 1000000.0) .input) (mul (div (float (int $entry.tokens.output)) 1000000.0) .output) }}
+  {{/* Derive only for token-based (Claude) entries; local stages have no
+       tokens and no cost. */}}
+  {{ with $entry.tokens }}
+    {{ with index $prices (partial "model-key.html" $entry.model) }}
+      {{ $cost = add (mul (div (float (int $entry.tokens.input)) 1000000.0) .input) (mul (div (float (int $entry.tokens.output)) 1000000.0) .output) }}
+    {{ end }}
   {{ end }}
 {{ end }}
 {{ return $cost }}

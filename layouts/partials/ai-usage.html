@@ -25,19 +25,29 @@
           {{ $inTotal := 0 }}
           {{ $outTotal := 0 }}
           {{ range . }}
-            {{ $in := int .tokens.input }}
-            {{ $out := int .tokens.output }}
-            {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
-            {{ $total = add $total $cost }}
-            {{ $inTotal = add $inTotal $in }}
-            {{ $outTotal = add $outTotal $out }}
-            <tr class="border-t border-border">
-              <td class="px-3 py-2.5 font-medium">{{ .stage | humanize }}</td>
-              <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ partial "model-key.html" .model }}</td>
-              <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $in }}</td>
-              <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $out }}</td>
-              <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $cost }}</td>
-            </tr>
+            {{ if .tokens }}
+              {{/* Token-based (Claude) stage. */}}
+              {{ $in := int .tokens.input }}
+              {{ $out := int .tokens.output }}
+              {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
+              {{ $total = add $total $cost }}
+              {{ $inTotal = add $inTotal $in }}
+              {{ $outTotal = add $outTotal $out }}
+              <tr class="border-t border-border">
+                <td class="px-3 py-2.5 font-medium">{{ .stage | humanize }}</td>
+                <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ partial "model-key.html" .model }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $in }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $out }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $cost }}</td>
+              </tr>
+            {{ else }}
+              {{/* Local GPU/CPU stage (transcribe, diarise): wall-time, no token cost. */}}
+              <tr class="border-t border-border">
+                <td class="px-3 py-2.5 font-medium">{{ .stage | humanize }}</td>
+                <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ partial "model-key.html" .model }}</td>
+                <td colspan="3" class="px-3 py-2.5 text-right tabular-nums text-on-surface-muted">{{ with .duration_s }}{{ . }}s &middot; {{ end }}local compute, no token cost</td>
+              </tr>
+            {{ end }}
           {{ end }}
           <tr class="border-t-2 border-border font-semibold">
             <td class="px-3 py-2.5" colspan="2">Total</td>
