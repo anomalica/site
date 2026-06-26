@@ -181,6 +181,14 @@
     .arch-points li { margin-bottom: 6px; color: #1e1d19; }
     .arch-points li:last-child { margin-bottom: 0; }
 
+    /* ---- Front-matter field spec (node-click panel) ---- */
+    .spec-fields { display: flex; flex-direction: column; gap: 11px; margin-top: 6px; }
+    .spec-field code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12.5px; color: #0b6e6e; word-break: break-all; }
+    .spec-tag { display: inline-block; margin-left: 6px; font-family: var(--font-ui); font-size: 10px; font-weight: 600; letter-spacing: .02em; padding: 1px 7px; border-radius: 999px; background: #e9e5dc; color: #5e5a50; vertical-align: middle; }
+    .spec-tag.req { background: #f6e3d7; color: #8a3f18; }
+    .spec-tag.fmt { background: #d1f1f1; color: #064d4d; }
+    .spec-desc { font-size: 12.5px; line-height: 1.45; color: #5e5a50; margin-top: 3px; }
+
     /* ---- Scheduling cards ---- */
     .sched-board { padding: 24px; }
     .sched-featured { display: grid; gap: 16px; grid-template-columns: 1fr; margin-bottom: 22px; }
@@ -220,6 +228,14 @@
     const LINKS = {{ site.Data.architecture.links | jsonify | safeJS }};
     // Scheduling card copy is editable data: site/data/scheduling.yaml.
     const SCHED = {{ site.Data.scheduling.nodes | jsonify | safeJS }};
+    // Per-record-type front-matter field specs. Single source of truth is the
+    // meta-repo's structured format-specs (surfaced via site.Data.format_specs);
+    // null until that lands, so the spec section just doesn't render. Data-driven
+    // - whatever fields the spec declares are shown, no hardcoded field list.
+    const SPECS = {{ with site.Data.format_specs }}{{ . | jsonify | safeJS }}{{ else }}null{{ end }};
+    // A record-bearing node maps to the record type whose front matter it holds
+    // (both the producing component and its store resolve to the same spec).
+    const SPEC_FOR = { ingester: "ingest", ingests: "ingest", digester: "digest", digests: "digest", synthesiser: "brief", briefs: "brief", assembler: "content", content: "content" };
 
     const ZONE_LABEL = { source: ["Source material", "source"], public: ["Public", "public"], review: ["Human review", "review"], store: ["Shared", "public"] };
     const ZONE_COLOR = { source: "#B35A28", public: "#0B6E6E", review: "#5E5A50", store: "#0B6E6E" };
@@ -239,11 +255,26 @@
               : `<span class="note">${l.note}</span>`).join("") +
           `</div></div>`
         : "";
+      const spec = SPECS && SPECS[SPEC_FOR[id]];
+      const specHtml = spec
+        ? `<div class="row"><div class="label">Captured in front matter</div>` +
+            (spec.summary ? `<div class="value note">${spec.summary}</div>` : "") +
+            `<div class="spec-fields">` +
+            (spec.fields || []).map(f =>
+              `<div class="spec-field"><code>${f.name}</code>` +
+              (f.required ? `<span class="spec-tag req">required</span>` : "") +
+              (f.type ? `<span class="spec-tag">${f.type}</span>` : "") +
+              (f.formats && f.formats.indexOf("all") < 0 ? `<span class="spec-tag fmt">${f.formats.join(", ")}</span>` : "") +
+              (f.description ? `<div class="spec-desc">${f.description}</div>` : "") +
+              `</div>`).join("") +
+            `</div></div>`
+        : "";
       document.getElementById("p-body").innerHTML =
         `<div class="row"><div class="value">${n.desc}</div></div>` +
         `<div class="row"><div class="label">Output</div><div class="value">${n.output}</div></div>` +
         `<div class="row"><div class="label">What it contains</div><div class="value">${n.contains}</div></div>` +
         `<div class="row"><div class="label">Copyright / access</div><div class="value"><span class="badge ${zclass}">${zlabel}</span> &nbsp;${n.copyright}</div></div>` +
+        specHtml +
         linksHtml;
     };
 
