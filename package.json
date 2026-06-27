@@ -9,7 +9,7 @@
     "predev": "npm run vendor",
     "dev": "concurrently \"npx @tailwindcss/cli -i assets/css/main.css -o assets/css/compiled.css --watch\" \"hugo server\"",
     "prebuild": "npm run vendor",
-    "build": "npx @tailwindcss/cli -i assets/css/main.css -o assets/css/compiled.css --minify && hugo --gc --minify"
+    "build": "npx @tailwindcss/cli -i assets/css/main.css -o assets/css/compiled.css --minify && hugo --gc --minify -e production"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.1",
