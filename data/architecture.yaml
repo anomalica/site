@@ -164,7 +164,7 @@ links:
     - label: "View on GitHub"
       url: "https://github.com/anomalica/assimilator"
   kg:
-    - note: "Downloadable dataset - published from the digests once the site is live."
+    - note: "Download coming - a dated, citable SQLite snapshot of the public graph, once the first reviewed dataset is ready."
   assembler:
     - label: "View on GitHub"
       url: "https://github.com/anomalica/assembler"
