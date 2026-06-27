@@ -233,9 +233,9 @@
     // null until that lands, so the spec section just doesn't render. Data-driven
     // - whatever fields the spec declares are shown, no hardcoded field list.
     const SPECS = {{ with site.Data.format_specs }}{{ . | jsonify | safeJS }}{{ else }}null{{ end }};
-    // A record-bearing node maps to the record type whose front matter it holds
-    // (both the producing component and its store resolve to the same spec).
-    const SPEC_FOR = { ingester: "ingest", ingests: "ingest", digester: "digest", digests: "digest", synthesiser: "brief", briefs: "brief", assembler: "content", content: "content" };
+    // The front-matter spec belongs to the artefact (the files), not the process
+    // that produces it - only the store/output nodes resolve to a spec.
+    const SPEC_FOR = { ingests: "ingest", digests: "digest", briefs: "brief", content: "content" };
 
     const ZONE_LABEL = { source: ["Source material", "source"], public: ["Public", "public"], review: ["Human review", "review"], store: ["Shared", "public"] };
     const ZONE_COLOR = { source: "#B35A28", public: "#0B6E6E", review: "#5E5A50", store: "#0B6E6E" };
