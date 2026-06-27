@@ -32,7 +32,7 @@ turnstileSiteKey = "0x4AAAAAADpGTmvDDkyVDZ29"
 # Contact form gate. OFF until the Resend key + send.anomalica.is DNS are live
 # AND the privacy policy names Cloudflare Turnstile + Resend. While off, the
 # contact page shows only the GitHub routes and loads no Turnstile third-party.
-contactFormEnabled = false
+contactFormEnabled = true
 
 [languages.en]
 languageName = "English"
