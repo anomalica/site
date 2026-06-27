@@ -216,6 +216,19 @@ disableWatch = true
 source = "hugo_stats.json"
 target = "assets/notwatching/hugo_stats.json"
 
+# Mounting a file into data/ replaces Hugo's default data mount, so the project's
+# own data/ must be re-declared explicitly alongside it.
+[[module.mounts]]
+source = "data"
+target = "data"
+
+# Canonical front-matter/format specs - single source owned by the meta-repo.
+# Mounted (not copied) so the architecture page renders from the one authoritative
+# file; never hand-maintain a second copy here.
+[[module.mounts]]
+source = "../anomalica/reference/format-specs.yaml"
+target = "data/format_specs.yaml"
+
 [outputs]
 home = ["HTML", "RSS"]
 
