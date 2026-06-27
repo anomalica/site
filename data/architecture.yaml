@@ -23,16 +23,16 @@ nodes:
       is public."
     copyright: "PUBLIC - open-source code."
   ingests:
-    kind: "Data store (private repo)"
+    kind: "Data store (private)"
     zone: "source"
     desc: "The records store. One markdown + YAML file per source, content-addressed by hash. This is the binding contract
       every downstream stage reads against."
     output: "Records, consumed by the digester and the workbench."
     contains: "The full source text of each record, so its copyright follows the source - a mix of public-domain and copyrighted
       material."
-    copyright: "Follows the source. The repo is kept private because it can hold copyrighted text we are not allowed to republish,
-      with proof-of-possession gating in the workbench - a copyright constraint, not secrecy; public-domain material here
-      is free to share."
+    copyright: "Follows the source. This store is kept private because it can hold copyrighted text we are not allowed to
+      republish, with proof-of-possession gating in the workbench - a copyright constraint, not secrecy; public-domain material
+      here is free to share."
   archive:
     kind: "Data store (sources/)"
     zone: "source"
@@ -62,7 +62,7 @@ nodes:
     contains: "Structured facts with provenance - no copyrighted text, just claims traceable to a source."
     copyright: "Its output (digests) is public."
   digests:
-    kind: "Data store (public repo)"
+    kind: "Data store (public)"
     zone: "public"
     desc: "Per-record digest files: the nodes and claims extracted from one source. This is the source of truth for the knowledge
       graph - the graph is rebuildable from these."
@@ -78,7 +78,7 @@ nodes:
       each run. This is where the project's differentiator lives."
     output: "Reads and writes the SQLite knowledge graph - maintains it incrementally."
     contains: "The integration logic - import, entity matching, scoring, corroboration, embeddings and search - now its own
-      repository, split out of the digester. Shares the digest format and the Claude transport with the digester via the anomalica-common
+      component, split out of the digester. Shares the digest format and the Claude transport with the digester via the anomalica-common
       library."
     copyright: "Its output (the graph) is public."
   kg:
@@ -119,7 +119,7 @@ nodes:
     contains: "Assembled prose, every sentence traceable to a claim and its source."
     copyright: "Its output is public."
   content:
-    kind: "Data store (public repo)"
+    kind: "Data store (public)"
     zone: "public"
     desc: "The rendered articles plus their media. Each entity article and per-record inspection page, with live deep-links
       back to the exact source."
@@ -129,13 +129,13 @@ nodes:
   site:
     kind: "Component (Hugo + Tailwind)"
     zone: "public"
-    desc: "The Hugo static site that renders the content repo to public HTML, in up to 30 displayed languages. Templates and
-      styling only - it holds no content itself."
+    desc: "The Hugo static site that renders the content to public HTML, in up to 30 displayed languages. Templates and styling
+      only - it holds no content itself."
     output: "The public website."
     contains: "Static HTML, the design system."
     copyright: "PUBLIC."
   brand:
-    kind: "Shared assets (repo)"
+    kind: "Shared assets"
     zone: "store"
     desc: "The shared visual identity - triangle logo, deep-teal palette, Outfit + Noto Sans typography, design tokens - consumed
       by the site and the workbench. (These very colours are the brand palette.)"
@@ -145,39 +145,39 @@ nodes:
 
 links:
   ingester:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/ingester"
   ingests:
-    - note: "Private repository - holds copyrighted source material, never published."
+    - note: "Private store - holds copyrighted source material, never published."
   archive:
-    - note: "Private archive - not a repository."
+    - note: "Private archive."
   workbench:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/workbench"
     - note: "Private review tool - runs locally, not publicly deployed."
   digester:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/digester"
   digests:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/digests"
   assimilator:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/assimilator"
   kg:
     - note: "Downloadable dataset - published from the digests once the site is live."
   assembler:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/assembler"
   content:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/content"
   site:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/site"
     - label: "Visit the live site"
       url: "https://anomalica.is"
       note: "not yet deployed"
   brand:
-    - label: "Repository"
+    - label: "View on GitHub"
       url: "https://github.com/anomalica/brand"
