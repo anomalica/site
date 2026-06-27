@@ -34,6 +34,10 @@ turnstileSiteKey = "0x4AAAAAADpGTmvDDkyVDZ29"
 # contact page shows only the GitHub routes and loads no Turnstile third-party.
 contactFormEnabled = true
 
+# Public contact email shown on the contact page. Must be an address that
+# actually receives mail (apex MX is on Proton).
+contactEmail = "hello@anomalica.is"
+
 [languages.en]
 languageName = "English"
 languageCode = "en-GB"
@@ -222,12 +226,18 @@ target = "assets/notwatching/hugo_stats.json"
 source = "data"
 target = "data"
 
-# Canonical front-matter/format specs - single source owned by the meta-repo.
-# Mounted (not copied) so the architecture page renders from the one authoritative
-# file; never hand-maintain a second copy here.
+# Canonical single-source files owned by the meta-repo, mounted (not copied) so
+# the architecture page renders from the one authoritative copy; never hand-maintain
+# a second copy here. format-specs feeds the node front-matter panels; architecture
+# feeds the node detail panels. (pipeline.svg is rendered offline from the meta-repo's
+# reference/pipeline.mmd - see assets/architecture/README.md.)
 [[module.mounts]]
 source = "../anomalica/reference/format-specs.yaml"
 target = "data/format_specs.yaml"
+
+[[module.mounts]]
+source = "../anomalica/reference/architecture.yaml"
+target = "data/architecture.yaml"
 
 [outputs]
 home = ["HTML", "RSS"]
