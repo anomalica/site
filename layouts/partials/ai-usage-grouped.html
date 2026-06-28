@@ -1,0 +1,67 @@
+{{/* Per-page AI-usage transparency for assembled article/entity pages. An article
+     aggregates many source-record digests, so it's GROUPED by stage (one summed
+     Digest row + one Assemble row + Total) - per-entry would be a wall for a topic
+     drawing on 10+ sources. Token stages only (articles have no local GPU stages).
+     Shares notional-cost / fmt-cost / fmt-int / model-key with the per-record panel
+     so the figures can't drift. Genericised wording ("this page"). */}}
+{{ with .Params.ai_usage }}
+  {{ $prices := site.Data.model_prices.models }}
+  {{ $sc := newScratch }}
+  {{ $order := slice }}
+  {{ range . }}
+    {{ if .tokens }}
+      {{ $stage := .stage }}
+      {{ $cost := partial "notional-cost.html" (dict "entry" . "prices" $prices) }}
+      {{ $in := int .tokens.input }}
+      {{ $out := int .tokens.output }}
+      {{ $mk := partial "model-key.html" .model }}
+      {{ if not ($sc.Get (printf "seen_%s" $stage)) }}
+        {{ $sc.Set (printf "seen_%s" $stage) true }}
+        {{ $order = $order | append $stage }}
+      {{ end }}
+      {{ $sc.Add (printf "%s_cost" $stage) $cost }}
+      {{ $sc.Add (printf "%s_in" $stage) $in }}
+      {{ $sc.Add (printf "%s_out" $stage) $out }}
+      {{ $sc.SetInMap (printf "%s_models" $stage) $mk $mk }}
+      {{ $sc.Add "total_cost" $cost }}
+      {{ $sc.Add "total_in" $in }}
+      {{ $sc.Add "total_out" $out }}
+    {{ end }}
+  {{ end }}
+  {{ if gt (len $order) 0 }}
+  <section class="mt-12 border-t border-border pt-8">
+    <p class="section-label mb-2">AI processing</p>
+    <p class="text-sm text-on-surface-secondary mb-4 max-w-2xl">The AI work that produced this page, by pipeline stage - the source material it draws on was digested, then this page was assembled. Cost is notional - what this compute would cost at Anthropic's published list price, identical whether it ran on a subscription or the metered API.</p>
+    <div class="overflow-x-auto rounded-lg border border-border">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-surface-alt text-left">
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Stage</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary">Model</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Input tokens</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Output tokens</th>
+            <th class="px-3 py-2.5 font-ui text-xs font-semibold uppercase tracking-wider text-on-surface-secondary text-right">Cost (list price)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range $stage := $order }}
+            <tr class="border-t border-border">
+              <td class="px-3 py-2.5 font-medium">{{ $stage | humanize }}</td>
+              <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ delimit ($sc.GetSortedMapValues (printf "%s_models" $stage)) ", " }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ partial "fmt-int.html" ($sc.Get (printf "%s_in" $stage)) }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ partial "fmt-int.html" ($sc.Get (printf "%s_out" $stage)) }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-cost.html" ($sc.Get (printf "%s_cost" $stage)) }}</td>
+            </tr>
+          {{ end }}
+          <tr class="border-t-2 border-border font-semibold">
+            <td class="px-3 py-2.5" colspan="2">Total</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-int.html" ($sc.Get "total_in") }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-int.html" ($sc.Get "total_out") }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-cost.html" ($sc.Get "total_cost") }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {{ end }}
+{{ end }}

@@ -32,6 +32,12 @@
       </div>
 
       {{ partial "article-references.html" . }}
+
+      {{/* Per-artefact AI-usage transparency (grouped by stage). Self-gates on
+           .Params.ai_usage, so it shows on assembled articles but not on
+           structural pages. See anomalica/CLAUDE.md: per-artefact AI usage is
+           public. */}}
+      {{ partial "ai-usage-grouped.html" . }}
     </div>
   </article>
 {{ end }}
