@@ -65,5 +65,30 @@
 
   {{ partial "footer.html" . }}
   {{ partial "language-modal.html" . }}
+
+  {{/* Analytics: self-hosted Umami via a first-party POST (no external script, no
+       cookies, no PII), so the "no third-party services" claim holds. Production
+       only, so the dev server doesn't pollute stats. See legal/privacy. */}}
+  {{ if hugo.IsProduction }}
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("umami.disabled") === "1") return;
+      } catch (e) {}
+      var endpoint = "https://analytics.anomalica.is", id = "75a7c240-1ce0-4348-973f-400c2b022987";
+      var p = location.pathname, url = p.endsWith("/") && p !== "/" ? p.slice(0, -1) : p;
+      var ref = document.referrer && document.referrer.indexOf(location.origin) !== 0 ? document.referrer : "";
+      fetch(endpoint + "/api/send", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ type: "event", payload: {
+          website: id, hostname: location.hostname, language: navigator.language,
+          screen: screen.width + "x" + screen.height, url: url, title: document.title, referrer: ref
+        } }),
+        credentials: "omit",
+      }).catch(function () {});
+    })();
+  </script>
+  {{ end }}
 </body>
 </html>
