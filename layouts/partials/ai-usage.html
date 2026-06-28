@@ -36,9 +36,9 @@
               <tr class="border-t border-border">
                 <td class="px-3 py-2.5 font-medium">{{ .stage | humanize }}</td>
                 <td class="px-3 py-2.5 font-mono text-xs text-on-surface-secondary">{{ partial "model-key.html" .model }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $in }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ $out }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $cost }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ partial "fmt-int.html" $in }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-on-surface-secondary">{{ partial "fmt-int.html" $out }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-cost.html" $cost }}</td>
               </tr>
             {{ else }}
               {{/* Local GPU/CPU stage (transcribe, diarise): wall-time, no token cost. */}}
@@ -51,9 +51,9 @@
           {{ end }}
           <tr class="border-t-2 border-border font-semibold">
             <td class="px-3 py-2.5" colspan="2">Total</td>
-            <td class="px-3 py-2.5 text-right tabular-nums">{{ $inTotal }}</td>
-            <td class="px-3 py-2.5 text-right tabular-nums">{{ $outTotal }}</td>
-            <td class="px-3 py-2.5 text-right tabular-nums">${{ printf "%.4f" $total }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-int.html" $inTotal }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-int.html" $outTotal }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums">{{ partial "fmt-cost.html" $total }}</td>
           </tr>
         </tbody>
       </table>

@@ -1,0 +1,13 @@
+{{- /* Integer with thousands separators, no precision loss (lang.NumFmt is
+       unavailable in this Hugo build). e.g. 40908 -> 40,908. */ -}}
+{{- $s := printf "%d" (int .) -}}
+{{- $n := len $s -}}
+{{- $out := "" -}}
+{{- range $i := seq 0 (sub $n 1) -}}
+  {{- $out = printf "%s%s" $out (substr $s $i 1) -}}
+  {{- $rem := sub (sub $n 1) $i -}}
+  {{- if and (gt $rem 0) (eq (mod $rem 3) 0) -}}
+    {{- $out = printf "%s," $out -}}
+  {{- end -}}
+{{- end -}}
+{{- $out -}}

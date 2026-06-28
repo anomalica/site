@@ -1,0 +1,7 @@
+{{- /* Format a notional USD cost: 2 decimals for the normal range, a sub-cent
+       marker for tiny non-zero costs, so the column reads $0.35 not $0.3500. */ -}}
+{{- $c := . -}}
+{{- if le $c 0.0 -}}$0.00
+{{- else if lt $c 0.005 -}}&lt;$0.01
+{{- else -}}${{ printf "%.2f" $c }}
+{{- end -}}
