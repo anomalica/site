@@ -102,10 +102,6 @@
           </div>
         </div>
       </div>
-
-      {{/* Whole-corpus AI-usage overview (explainer + aggregate). Inert until
-           records carry processing data. */}}
-      {{ partial "ai-usage-aggregate.html" . }}
     </div>
   </section>
 
@@ -237,10 +233,13 @@
     // The front-matter spec belongs to the artefact (the files), not the process
     // that produces it - only the store/output nodes resolve to a spec. Content is
     // omitted: its spec is still provisional (layout unratified) in the canonical.
-    const SPEC_FOR = { ingests: "ingest", digests: "digest", briefs: "brief" };
+    const SPEC_FOR = { ingests: "ingest", raw_digests: "raw_digest", fused_digests: "fused_digest", briefs: "brief" };
 
     const ZONE_LABEL = { source: ["Source material", "source"], public: ["Public", "public"], review: ["Human review", "review"], store: ["Shared", "public"] };
     const ZONE_COLOR = { source: "#B35A28", public: "#0B6E6E", review: "#5E5A50", store: "#0B6E6E" };
+    // Panel titles come from the rendered SVG node labels (single source: the .mmd),
+    // populated by the click-binding loop below; falls back to the id if absent.
+    const LABELS = {};
 
     window.nodeClick = function (id) {
       const n = NODES[id];
@@ -248,7 +247,7 @@
       const [zlabel, zclass] = ZONE_LABEL[n.zone] || ["", "public"];
       document.getElementById("p-kind").textContent = n.kind;
       document.getElementById("p-kind").style.color = ZONE_COLOR[n.zone] || "#0B6E6E";
-      document.getElementById("p-name").textContent = id === "kg" ? "SQLite knowledge graph" : id.charAt(0).toUpperCase() + id.slice(1);
+      document.getElementById("p-name").textContent = LABELS[id] || (id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " "));
       const links = LINKS[id] || [];
       const linksHtml = links.length
         ? `<div class="row links"><div class="label">Links</div><div class="value">` +
@@ -321,6 +320,8 @@
     document.querySelectorAll(".arch-diagram g.node.clickable").forEach((g) => {
       const m = g.id.match(/-flowchart-(.+)-\d+$/);
       if (!m) return;
+      const label = (g.querySelector(".nodeLabel") || g).textContent.trim();
+      if (label) LABELS[m[1]] = label;
       g.style.cursor = "pointer";
       g.addEventListener("click", () => window.nodeClick(m[1]));
     });
