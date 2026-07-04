@@ -120,10 +120,9 @@
     // if the mount is missing, so the spec section just doesn't render. Data-driven
     // - whatever fields the spec declares are shown, no hardcoded field list.
     const SPECS = {{ with site.Data.format_specs }}{{ .types | jsonify | safeJS }}{{ else }}null{{ end }};
-    // The front-matter spec belongs to the artefact (the files), not the process
-    // that produces it - only the store/output nodes resolve to a spec. Content is
-    // omitted: its spec is still provisional (layout unratified) in the canonical.
-    const SPEC_FOR = { ingest: "ingest", digests: "raw_digest", selected: "fused_digest", briefs: "brief" };
+    // Which format-specs type a node's front-matter panel shows comes from the node
+    // data's `spec:` field (architecture.yaml), not a hardcoded map - so a node or
+    // spec-key rename only touches the data. Artefact nodes carry a spec; processes don't.
 
     const ZONE_LABEL = { source: ["Source material", "source"], public: ["Public", "public"], review: ["Human review", "review"], store: ["Shared", "public"] };
     const ZONE_COLOR = { source: "#B35A28", public: "#0B6E6E", review: "#5E5A50", store: "#0B6E6E" };
@@ -146,7 +145,7 @@
               : `<span class="note">${l.note}</span>`).join("") +
           `</div></div>`
         : "";
-      const spec = SPECS && SPECS[SPEC_FOR[id]];
+      const spec = SPECS && n.spec && SPECS[n.spec];
       const specHtml = spec
         ? `<div class="row"><div class="label">Captured in front matter</div>` +
             (spec.summary ? `<div class="value note">${spec.summary}</div>` : "") +
