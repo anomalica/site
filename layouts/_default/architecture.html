@@ -168,6 +168,7 @@
         : "";
       document.getElementById("p-body").innerHTML =
         `<div class="row"><div class="value">${n.desc}</div></div>` +
+        (n.format ? `<div class="row"><div class="label">File type</div><div class="value">${n.format}</div></div>` : "") +
         `<div class="row"><div class="label">Output</div><div class="value">${n.output}</div></div>` +
         `<div class="row"><div class="label">What it contains</div><div class="value">${n.contains}</div></div>` +
         `<div class="row"><div class="label">Copyright / access</div><div class="value"><span class="badge ${zclass}">${zlabel}</span> &nbsp;${n.copyright}</div></div>` +
