@@ -65,12 +65,19 @@
     </div>
   </section>
 
-  <!-- Status -->
-  <section class="bg-surface py-10">
-    <div class="mx-auto max-w-3xl px-6 text-center">
-      <p class="text-sm text-on-surface-muted">
-        {{ T "status_early" }}
-      </p>
-    </div>
-  </section>
+  <!-- Status: the empty state ONLY. This notice told every visitor "content will
+       appear as the assembly pipeline comes online" while ~60 article pages already
+       existed behind the browse cards above - it rendered unconditionally, so it
+       could only ever go stale, and nothing would have flagged it. Deriving it from
+       the actual page count means it retires itself. -->
+  {{ $articles := where site.RegularPages "Section" "!=" "" }}
+  {{ if eq (len $articles) 0 }}
+    <section class="bg-surface py-10">
+      <div class="mx-auto max-w-3xl px-6 text-center">
+        <p class="text-sm text-on-surface-muted">
+          {{ T "status_early" }}
+        </p>
+      </div>
+    </section>
+  {{ end }}
 {{ end }}
