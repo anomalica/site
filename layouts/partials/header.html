@@ -35,11 +35,18 @@
               (dict "key" "topics" "urlpath" "topics")
               (dict "key" "patterns" "urlpath" "patterns")
             }}
+            {{/* Only offer a type that has pages. Four of these nine sections
+                 were empty on 2026-08-21 - documents, matters, patterns and
+                 places - so the menu invited a reader into a listing with
+                 nothing in it. A type earns its place in the nav by having
+                 something to show. */}}
             {{ range $categories }}
+              {{ if (where site.RegularPages "Section" .urlpath) }}
               <a href="{{ print "/" .urlpath "/" | relLangURL }}" class="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-on-chrome/5">
                 <span class="font-ui font-medium text-on-surface">{{ T .key }}</span>
                 <span class="text-xs text-on-surface-muted">{{ T (print .key "_desc") }}</span>
               </a>
+              {{ end }}
             {{ end }}
           </div>
         </div>
@@ -96,7 +103,9 @@
   <div x-show="mobileOpen" x-transition class="lg:hidden border-t border-border px-6 py-4">
     <ul class="space-y-3 font-ui text-sm">
       {{ range (slice "people" "organisations" "projects" "events" "places" "documents" "objects" "topics" "patterns") }}
-        <li><a href="{{ print "/" . "/" | relLangURL }}" class="text-on-chrome hover:text-on-chrome-active">{{ T . }}</a></li>
+        {{ if (where site.RegularPages "Section" .) }}
+          <li><a href="{{ print "/" . "/" | relLangURL }}" class="text-on-chrome hover:text-on-chrome-active">{{ T . }}</a></li>
+        {{ end }}
       {{ end }}
     </ul>
   </div>
