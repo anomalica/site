@@ -6,10 +6,13 @@
        A name wrapped in square brackets - "[interviewer 2]", "[audience
        member]" - is a role description scoped to one recording, not a person's
        name, so it never links even if a page of that name exists. The brackets
-       stay: they are what tells the reader it is a role. */ -}}
+       stay: they are what tells the reader it is a role. A bare "Speaker 3" is
+       the older unbracketed form of the same thing and follows the same rule. */ -}}
 {{- $page := false -}}
 {{- $name := printf "%v" .name -}}
-{{- $roleDescription := and (strings.HasPrefix $name "[") (strings.HasSuffix $name "]") -}}
+{{- $bracketed := and (strings.HasPrefix $name "[") (strings.HasSuffix $name "]") -}}
+{{- $diarisationId := findRE `(?i)^\[?\s*speaker\s+\d+\s*\]?$` $name 1 -}}
+{{- $roleDescription := or $bracketed $diarisationId -}}
 {{- with .url }}{{ $page = site.GetPage . }}{{ end -}}
 {{- if and $page (not $roleDescription) -}}
 <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>

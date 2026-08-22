@@ -15,13 +15,17 @@
     "[interviewer 2]", "[audience member]". It identifies who someone was in one
     recording, is scoped to that record, and names no person, so it must never
     become a link even if a node page of that name exists. The brackets are the
-    reader's signal and stay in the text.
+    reader's signal and stay in the text. A bare "Speaker 3" is the same thing
+    in the older unbracketed notation - a diarisation id, never a person - and
+    is held to the same rule.
   - External links, workbench deep-links (http...), protocol-relative (//),
     anchors (#...) and mailto pass through untouched.
 */ -}}
 {{- $dest := .Destination -}}
 {{- $text := printf "%v" .Text -}}
-{{- $roleDescription := and (strings.HasPrefix $text "[") (strings.HasSuffix $text "]") -}}
+{{- $bracketed := and (strings.HasPrefix $text "[") (strings.HasSuffix $text "]") -}}
+{{- $diarisationId := findRE `(?i)^\[?\s*speaker\s+\d+\s*\]?$` $text 1 -}}
+{{- $roleDescription := or $bracketed $diarisationId -}}
 {{- $internal := and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
 {{- if $roleDescription -}}
 {{ .Text | safeHTML }}
