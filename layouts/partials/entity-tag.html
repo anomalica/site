@@ -3,16 +3,10 @@
        still visible. The link lights up on its own once the target page is
        assembled - no re-render of this page needed. Expects a context with
        .name and .url (url may be null or a bare /section/slug path).
-       A name wrapped in square brackets - "[interviewer 2]", "[audience
-       member]" - is a role description scoped to one recording, not a person's
-       name, so it never links even if a page of that name exists. The brackets
-       stay: they are what tells the reader it is a role. A bare "Speaker 3" is
-       the older unbracketed form of the same thing and follows the same rule. */ -}}
+       A name that stands in for an unknown person never links, whatever its
+       url resolves to - see partials/is-role-description.html. */ -}}
 {{- $page := false -}}
-{{- $name := printf "%v" .name -}}
-{{- $bracketed := and (strings.HasPrefix $name "[") (strings.HasSuffix $name "]") -}}
-{{- $diarisationId := findRE `(?i)^\[?\s*speaker\s+\d+\s*\]?$` $name 1 -}}
-{{- $roleDescription := or $bracketed $diarisationId -}}
+{{- $roleDescription := partial "is-role-description.html" .name -}}
 {{- with .url }}{{ $page = site.GetPage . }}{{ end -}}
 {{- if and $page (not $roleDescription) -}}
 <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>

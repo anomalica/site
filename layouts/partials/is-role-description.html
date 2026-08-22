@@ -1,0 +1,27 @@
+{{- /* Reports whether a name value is a stand-in for an unknown person rather
+       than a person's name, so no surface renders it as a link or resolves it
+       to a page. Takes the value, returns a bool.
+
+       Two notations, both record-scoped - the "[interviewer 2]" in one
+       recording is not the one in another:
+       - square brackets mean the text DESCRIBES who someone was, their real
+         name being unknown: "[interviewer 2]", "[audience member]", and on the
+         creator side "[senior US intelligence officer]", "[redacted]";
+       - "Speaker 3", bracketed or bare, is a diarisation id from the older
+         notation. The digit is what makes it an id, so a real name carrying the
+         word ("Speaker Pelosi") is untouched.
+
+       This is a lexical test, which the spec warns against in general - a guard
+       should test position, not enumerate notations, because notations move.
+       Position is unavailable at this layer: by the time a value reaches a
+       template it is a bare string, its frontmatter field or speaker comment
+       long gone. So the test is lexical by necessity, and every link surface
+       calls this one partial rather than restating the pattern, so a notation
+       change is one edit.
+
+       Callers: the markdown link render hook and the entity chip. Any future
+       surface that would link a speaker or creator name calls it too. */ -}}
+{{- $value := printf "%v" . -}}
+{{- $bracketed := and (strings.HasPrefix $value "[") (strings.HasSuffix $value "]") -}}
+{{- $diarisationId := findRE `(?i)^\[?\s*speaker\s+\d+\s*\]?$` $value 1 -}}
+{{- return (or $bracketed (gt (len $diarisationId) 0)) -}}

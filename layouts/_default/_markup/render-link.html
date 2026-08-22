@@ -11,21 +11,14 @@
     NB: a render hook only sees markdown links [text](/path); raw <a> in content
     bypasses it entirely, so the assembler must emit markdown links only, with
     bare (non-language-prefixed) paths.
-  - Link text wrapped in square brackets is a role description, not a name -
-    "[interviewer 2]", "[audience member]". It identifies who someone was in one
-    recording, is scoped to that record, and names no person, so it must never
-    become a link even if a node page of that name exists. The brackets are the
-    reader's signal and stay in the text. A bare "Speaker 3" is the same thing
-    in the older unbracketed notation - a diarisation id, never a person - and
-    is held to the same rule.
+  - Link text that stands in for an unknown person - "[interviewer 2]",
+    "[redacted]", "Speaker 3" - never links, whether or not a page of that name
+    exists, and keeps its brackets. See partials/is-role-description.html.
   - External links, workbench deep-links (http...), protocol-relative (//),
     anchors (#...) and mailto pass through untouched.
 */ -}}
 {{- $dest := .Destination -}}
-{{- $text := printf "%v" .Text -}}
-{{- $bracketed := and (strings.HasPrefix $text "[") (strings.HasSuffix $text "]") -}}
-{{- $diarisationId := findRE `(?i)^\[?\s*speaker\s+\d+\s*\]?$` $text 1 -}}
-{{- $roleDescription := or $bracketed $diarisationId -}}
+{{- $roleDescription := partial "is-role-description.html" .Text -}}
 {{- $internal := and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
 {{- if $roleDescription -}}
 {{ .Text | safeHTML }}
