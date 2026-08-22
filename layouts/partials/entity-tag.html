@@ -2,10 +2,16 @@
        the build; otherwise renders a plain, non-clickable chip with the name
        still visible. The link lights up on its own once the target page is
        assembled - no re-render of this page needed. Expects a context with
-       .name and .url (url may be null or a bare /section/slug path). */ -}}
+       .name and .url (url may be null or a bare /section/slug path).
+       A name wrapped in square brackets - "[interviewer 2]", "[audience
+       member]" - is a role description scoped to one recording, not a person's
+       name, so it never links even if a page of that name exists. The brackets
+       stay: they are what tells the reader it is a role. */ -}}
 {{- $page := false -}}
+{{- $name := printf "%v" .name -}}
+{{- $roleDescription := and (strings.HasPrefix $name "[") (strings.HasSuffix $name "]") -}}
 {{- with .url }}{{ $page = site.GetPage . }}{{ end -}}
-{{- if $page -}}
+{{- if and $page (not $roleDescription) -}}
 <a href="{{ .url | relLangURL }}" class="tag tag-neutral transition-opacity hover:opacity-80">{{ .name }}</a>
 {{- else -}}
 <span class="tag tag-neutral">{{ .name }}</span>

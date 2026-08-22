@@ -11,12 +11,21 @@
     NB: a render hook only sees markdown links [text](/path); raw <a> in content
     bypasses it entirely, so the assembler must emit markdown links only, with
     bare (non-language-prefixed) paths.
+  - Link text wrapped in square brackets is a role description, not a name -
+    "[interviewer 2]", "[audience member]". It identifies who someone was in one
+    recording, is scoped to that record, and names no person, so it must never
+    become a link even if a node page of that name exists. The brackets are the
+    reader's signal and stay in the text.
   - External links, workbench deep-links (http...), protocol-relative (//),
     anchors (#...) and mailto pass through untouched.
 */ -}}
 {{- $dest := .Destination -}}
+{{- $text := printf "%v" .Text -}}
+{{- $roleDescription := and (strings.HasPrefix $text "[") (strings.HasSuffix $text "]") -}}
 {{- $internal := and (strings.HasPrefix $dest "/") (not (strings.HasPrefix $dest "//")) -}}
-{{- if $internal -}}
+{{- if $roleDescription -}}
+{{ .Text | safeHTML }}
+{{- else if $internal -}}
   {{- $lookup := index (split $dest "#") 0 -}}
   {{- $lookup = index (split $lookup "?") 0 -}}
   {{- if site.GetPage $lookup -}}
