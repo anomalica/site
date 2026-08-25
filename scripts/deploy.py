@@ -264,6 +264,35 @@ def verify_no_dead_links(build_dir: Path) -> None:
     log(f"  no dead internal links across {len(pages)} pages")
 
 
+def report_alias_changes(build_dir: Path, persist: bool) -> None:
+    """Name any redirect that has stopped being built.
+
+    Aliases live in a page's front matter, so a rebuild of that page silently
+    drops them - and because the build no longer emits the redirect, the deploy
+    dutifully deletes it and a URL that worked an hour ago starts 404ing. That
+    has happened once already, to /people/david-grusch/ and /organisations/nasa/.
+    Nothing else reports it: the alias is not a page, so no page count changes.
+    """
+    current = sorted(
+        "/" + str(page.parent.relative_to(build_dir)) + "/"
+        for page in build_dir.rglob("index.html")
+        if "http-equiv=refresh" in page.read_text(errors="replace")[:600]
+    )
+    previous = []
+    if LINK_STATE.exists():
+        previous = json.loads(LINK_STATE.read_text()).get("aliases", [])
+    dropped = [alias for alias in previous if alias not in current]
+    if dropped:
+        log(f"  WARNING: {len(dropped)} redirect(s) no longer built - these will 404:")
+        for alias in dropped:
+            log(f"    {alias}")
+    log(f"  {len(current)} redirect(s) in the build")
+    if persist:
+        state = json.loads(LINK_STATE.read_text()) if LINK_STATE.exists() else {}
+        state["aliases"] = current
+        LINK_STATE.write_text(json.dumps(state, indent=1, sort_keys=True))
+
+
 def resolves(build_dir: Path, path: str) -> bool:
     target = build_dir / path.lstrip("/")
     if target.is_file():
@@ -466,6 +495,7 @@ def main() -> int:
         report_unresolved_links(
             build_dir, content_source=content_source, persist=not args.dry_run
         )
+        report_alias_changes(build_dir, persist=not args.dry_run)
 
         storage_key = secret("BUNNY_SITE_STORAGE_PASSWORD")
         local = local_files(build_dir)
