@@ -11,6 +11,12 @@
     NB: a render hook only sees markdown links [text](/path); raw <a> in content
     bypasses it entirely, so the assembler must emit markdown links only, with
     bare (non-language-prefixed) paths.
+  - Only the FIRST mention of a target in a page links; later mentions of the
+    same page render as plain text. The assembler links every mention, which was
+    invisible while most targets had no page yet - as the entity pages land, a
+    page that quietly held ten stripped mentions turns into ten live links to
+    the same place. First-mention-only is the ordinary editorial rule and keeps
+    an article readable rather than blue.
   - Link text that stands in for an unknown person - "[interviewer 2]",
     "[redacted]", "Speaker 3" - never links, whether or not a page of that name
     exists, and keeps its brackets. See partials/is-role-description.html.
@@ -25,7 +31,9 @@
 {{- else if $internal -}}
   {{- $lookup := index (split $dest "#") 0 -}}
   {{- $lookup = index (split $lookup "?") 0 -}}
-  {{- if site.GetPage $lookup -}}
+  {{- $seen := or (.Page.Store.Get "linkedTargets") slice -}}
+  {{- if and (site.GetPage $lookup) (not (in $seen $lookup)) -}}
+    {{- $_ := .Page.Store.Set "linkedTargets" ($seen | append $lookup) -}}
 <a href="{{ $dest | relLangURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
   {{- else -}}
 {{ .Text | safeHTML }}
