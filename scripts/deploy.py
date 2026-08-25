@@ -278,9 +278,7 @@ def report_alias_changes(build_dir: Path, persist: bool) -> None:
         for page in build_dir.rglob("index.html")
         if "http-equiv=refresh" in page.read_text(errors="replace")[:600]
     )
-    previous = []
-    if LINK_STATE.exists():
-        previous = json.loads(LINK_STATE.read_text()).get("aliases", [])
+    previous = read_state().get("aliases", [])
     dropped = [alias for alias in previous if alias not in current]
     if dropped:
         log(f"  WARNING: {len(dropped)} redirect(s) no longer built - these will 404:")
@@ -288,9 +286,7 @@ def report_alias_changes(build_dir: Path, persist: bool) -> None:
             log(f"    {alias}")
     log(f"  {len(current)} redirect(s) in the build")
     if persist:
-        state = json.loads(LINK_STATE.read_text()) if LINK_STATE.exists() else {}
-        state["aliases"] = current
-        LINK_STATE.write_text(json.dumps(state, indent=1, sort_keys=True))
+        write_state("aliases", current)
 
 
 def resolves(build_dir: Path, path: str) -> bool:
@@ -301,6 +297,22 @@ def resolves(build_dir: Path, path: str) -> bool:
 
 
 LINK_STATE = REPO / ".deploy-link-state.json"
+
+
+def read_state() -> dict:
+    return json.loads(LINK_STATE.read_text()) if LINK_STATE.exists() else {}
+
+
+def write_state(key: str, value) -> None:
+    """Merge one key into the state file.
+
+    Each reporter keeps its own baseline in here, so a whole-file write from one
+    of them silently wipes another's - which is how the alias guard came to miss
+    the first regression it was written for.
+    """
+    state = read_state()
+    state[key] = value
+    LINK_STATE.write_text(json.dumps(state, indent=1, sort_keys=True))
 
 
 def report_unresolved_links(
@@ -352,9 +364,7 @@ def report_unresolved_links(
     # inbound links while bringing new outbound ones to pages nobody has built
     # yet. The split is the signal - a flat total is churn, a rising ADDED with
     # nothing cleared is the assembler linking into empty space.
-    previous = {}
-    if LINK_STATE.exists():
-        previous = json.loads(LINK_STATE.read_text()).get("targets", {})
+    previous = read_state().get("targets", {})
     if previous:
         cleared = {k: v for k, v in previous.items() if k not in counts}
         added = {k: v for k, v in counts.items() if k not in previous}
@@ -365,7 +375,7 @@ def report_unresolved_links(
         for target, count in sorted(added.items(), key=lambda kv: -kv[1])[:5]:
             log(f"    +{count:3d}  {target}")
     if persist:
-        LINK_STATE.write_text(json.dumps({"targets": counts}, indent=1, sort_keys=True))
+        write_state("targets", counts)
     return total
 
 
@@ -393,19 +403,38 @@ def request(
         return exc.code, exc.read()
 
 
-def remote_files(key: str, prefix: str = "") -> dict[str, str]:
-    """Map every stored path to its SHA256, walking the zone depth-first."""
-    url = f"{STORAGE_API}/{ZONE}/{prefix}"
-    status, payload = request("GET", url, key)
+def list_remote_directory(key: str, prefix: str) -> tuple[dict[str, str], list[str]]:
+    status, payload = request("GET", f"{STORAGE_API}/{ZONE}/{prefix}", key)
     if status != 200:
         raise DeployError(f"listing {prefix or '/'} failed: {status}")
-    found: dict[str, str] = {}
+    files: dict[str, str] = {}
+    directories: list[str] = []
     for entry in json.loads(payload or b"[]"):
         name = entry["ObjectName"]
         if entry.get("IsDirectory"):
-            found.update(remote_files(key, f"{prefix}{name}/"))
+            directories.append(f"{prefix}{name}/")
         else:
-            found[f"{prefix}{name}"] = (entry.get("Checksum") or "").lower()
+            files[f"{prefix}{name}"] = (entry.get("Checksum") or "").lower()
+    return files, directories
+
+
+def remote_files(key: str) -> dict[str, str]:
+    """Map every stored path to its SHA256.
+
+    One request per directory, and the zone has one per page, so this is walked
+    a level at a time in parallel - serially it dominated the whole deploy.
+    """
+    found: dict[str, str] = {}
+    level = [""]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=UPLOAD_WORKERS) as pool:
+        while level:
+            next_level: list[str] = []
+            for files, directories in pool.map(
+                lambda prefix: list_remote_directory(key, prefix), level
+            ):
+                found.update(files)
+                next_level.extend(directories)
+            level = next_level
     return found
 
 
