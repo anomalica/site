@@ -21,3 +21,4 @@ yarn.lock
 # not committed - the git-hooks linter rejects minified third-party JS.
 assets/js/*.min.js
 __pycache__
+.deploy-link-state.json

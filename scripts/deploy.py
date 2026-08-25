@@ -271,8 +271,14 @@ def resolves(build_dir: Path, path: str) -> bool:
     return (target / "index.html").is_file()
 
 
+LINK_STATE = REPO / ".deploy-link-state.json"
+
+
 def report_unresolved_links(
-    build_dir: Path, content_source: Path | None = None, limit: int = 15
+    build_dir: Path,
+    content_source: Path | None = None,
+    persist: bool = False,
+    limit: int = 15,
 ) -> int:
     """Count internal links the templates had to strip for want of a page.
 
@@ -304,13 +310,33 @@ def report_unresolved_links(
                 if not resolves_in_language(build_dir, path):
                     inbound.setdefault(path, set()).add(source.name)
 
-    total = sum(len(sources) for sources in inbound.values())
-    log(f"  {total} stripped link(s) to {len(inbound)} missing page(s)")
-    ranked = sorted(inbound.items(), key=lambda kv: (-len(kv[1]), kv[0]))
-    for target, sources in ranked[:limit]:
-        log(f"    {len(sources):3d}  {target}")
+    counts = {target: len(sources) for target, sources in inbound.items()}
+    total = sum(counts.values())
+    log(f"  {total} stripped link(s) to {len(counts)} missing page(s)")
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    for target, count in ranked[:limit]:
+        log(f"    {count:3d}  {target}")
     if len(ranked) > limit:
         log(f"    ... {len(ranked) - limit} more")
+
+    # The total barely moves between tranches: pages that land clear their own
+    # inbound links while bringing new outbound ones to pages nobody has built
+    # yet. The split is the signal - a flat total is churn, a rising ADDED with
+    # nothing cleared is the assembler linking into empty space.
+    previous = {}
+    if LINK_STATE.exists():
+        previous = json.loads(LINK_STATE.read_text()).get("targets", {})
+    if previous:
+        cleared = {k: v for k, v in previous.items() if k not in counts}
+        added = {k: v for k, v in counts.items() if k not in previous}
+        log(
+            f"  since the last deploy: cleared {sum(cleared.values())} link(s) "
+            f"to {len(cleared)} page(s), added {sum(added.values())} to {len(added)}"
+        )
+        for target, count in sorted(added.items(), key=lambda kv: -kv[1])[:5]:
+            log(f"    +{count:3d}  {target}")
+    if persist:
+        LINK_STATE.write_text(json.dumps({"targets": counts}, indent=1, sort_keys=True))
     return total
 
 
@@ -437,7 +463,9 @@ def main() -> int:
         log("Verifying the build")
         verify_assets_fingerprinted(build_dir)
         verify_no_dead_links(build_dir)
-        report_unresolved_links(build_dir, content_source=content_source)
+        report_unresolved_links(
+            build_dir, content_source=content_source, persist=not args.dry_run
+        )
 
         storage_key = secret("BUNNY_SITE_STORAGE_PASSWORD")
         local = local_files(build_dir)
