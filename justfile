@@ -9,3 +9,11 @@ serve:
 # Production build into ./public (minified CSS + Hugo)
 build:
     npm run build
+
+# Build, verify and publish to the bunny zone behind anomalica.is, then purge
+deploy:
+    ./scripts/deploy.py
+
+# Build and verify only - reports what a deploy would upload, delete and strip
+deploy-check:
+    ./scripts/deploy.py --dry-run

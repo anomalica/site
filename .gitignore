@@ -20,3 +20,4 @@ yarn.lock
 # Vendored at build time by scripts/fetch-vendor.sh (pinned + sha256-verified);
 # not committed - the git-hooks linter rejects minified third-party JS.
 assets/js/*.min.js
+__pycache__
