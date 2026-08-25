@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import tarfile
 import hashlib
 import json
 import os
@@ -53,7 +54,8 @@ AGE_KEY = Path.home() / ".config/sops/age/keys.txt"
 
 UPLOAD_WORKERS = 8
 
-CONTENT_ROOTS = (REPO / "content/english", REPO.parent / "content/pages")
+CONTENT_REPO = REPO.parent / "content"
+CONTENT_ROOTS = (REPO / "content/english", CONTENT_REPO / "pages")
 # One level of nesting, so a role description keeps its brackets: [[redacted]](/x).
 MARKDOWN_LINK = re.compile(r"\[((?:[^\[\]]|\[[^\]]*\])*)\]\((/[^)\s]*)\)")
 # Mirrors layouts/partials/is-role-description.html: a stand-in for an unknown
@@ -97,10 +99,78 @@ def secret(key: str) -> str:
     return result.stdout.strip()
 
 
+# --- the content repo -------------------------------------------------------
+
+
+def content_state() -> tuple[str, str, list[str]]:
+    """Branch, commit and uncommitted files of the mounted content repository."""
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", "-C", str(CONTENT_REPO), *args],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+    branch = git("rev-parse", "--abbrev-ref", "HEAD")
+    head = git("rev-parse", "--short", "HEAD")
+    dirty = [line[2:].strip() for line in git("status", "--porcelain").splitlines()]
+    return branch, head, dirty
+
+
+def snapshot_content(destination: Path) -> Path:
+    """Export the content repo at HEAD, and build against that instead of the tree.
+
+    The build MOUNTS this repository, so without this it publishes whatever is on
+    disk at the moment hugo runs - a page the assembler is halfway through
+    writing, or whichever branch happens to be checked out. Neither shows up in a
+    build log. Exporting HEAD means a deploy always publishes a committed state
+    and the assembler can keep working while it runs.
+    """
+    branch, head, dirty = content_state()
+    destination.mkdir(parents=True, exist_ok=True)
+    archive = destination.parent / "content.tar"
+    with archive.open("wb") as handle:
+        subprocess.run(
+            ["git", "-C", str(CONTENT_REPO), "archive", "HEAD"],
+            stdout=handle,
+            check=True,
+        )
+    with tarfile.open(archive) as tar:
+        tar.extractall(destination, filter="data")
+    archive.unlink()
+    uncommitted = f" ({len(dirty)} uncommitted, not published)" if dirty else ""
+    log(f"Content repo {branch} at {head}{uncommitted}")
+    return destination
+
+
 # --- build -------------------------------------------------------------------
 
 
-def build(destination: Path) -> None:
+def module_override(content_source: Path, path: Path) -> Path:
+    """A second config that re-points the content mounts at the snapshot.
+
+    Generated from the project's own mounts rather than restated, so it keeps
+    working when hugo.toml changes.
+    """
+    import tomllib
+
+    config = tomllib.loads((REPO / "hugo.toml").read_text())
+    lines = ["[module]"]
+    for mount in config.get("module", {}).get("mounts", []):
+        source = mount["source"]
+        if source.startswith("../content/"):
+            source = str(content_source / source[len("../content/") :])
+        lines.append("[[module.mounts]]")
+        for key, value in mount.items():
+            rendered = f'"{source}"' if key == "source" else json.dumps(value)
+            lines.append(f"{key} = {rendered}")
+    path.write_text("\n".join(lines) + "\n")
+    return path
+
+
+def build(destination: Path, content_source: Path) -> None:
     log(f"Building into {destination}")
     subprocess.run(["npm", "run", "vendor", "--silent"], cwd=REPO, check=True)
     # The committed compiled.css is the readable build the dev server watches.
@@ -125,8 +195,19 @@ def build(destination: Path) -> None:
         )
         # -e production is load-bearing: without it hugo.IsProduction is false in
         # this environment and templates render their development branch.
+        override = module_override(content_source, destination.parent / "mounts.toml")
         subprocess.run(
-            ["hugo", "--gc", "--minify", "-e", "production", "-d", str(destination)],
+            [
+                "hugo",
+                "--gc",
+                "--minify",
+                "-e",
+                "production",
+                "-d",
+                str(destination),
+                "--config",
+                f"hugo.toml,{override}",
+            ],
             cwd=REPO,
             check=True,
         )
@@ -190,7 +271,9 @@ def resolves(build_dir: Path, path: str) -> bool:
     return (target / "index.html").is_file()
 
 
-def report_unresolved_links(build_dir: Path, limit: int = 15) -> int:
+def report_unresolved_links(
+    build_dir: Path, content_source: Path | None = None, limit: int = 15
+) -> int:
     """Count internal links the templates had to strip for want of a page.
 
     These never reach the HTML - the markdown link hook renders them as plain
@@ -199,8 +282,13 @@ def report_unresolved_links(build_dir: Path, limit: int = 15) -> int:
     should fall as entity pages land, and a rise means the assembler is
     emitting links to pages nobody is building.
     """
+    roots = (
+        (REPO / "content/english", content_source / "pages")
+        if content_source
+        else CONTENT_ROOTS
+    )
     inbound: dict[str, set[str]] = {}
-    for root in CONTENT_ROOTS:
+    for root in roots:
         if not root.is_dir():
             continue
         for source in root.rglob("*.md"):
@@ -341,13 +429,15 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    build_dir = Path(tempfile.mkdtemp(prefix="anomalica-site-"))
+    workspace = Path(tempfile.mkdtemp(prefix="anomalica-site-"))
+    build_dir = workspace / "site"
     try:
-        build(build_dir)
+        content_source = snapshot_content(workspace / "content")
+        build(build_dir, content_source)
         log("Verifying the build")
         verify_assets_fingerprinted(build_dir)
         verify_no_dead_links(build_dir)
-        report_unresolved_links(build_dir)
+        report_unresolved_links(build_dir, content_source=content_source)
 
         storage_key = secret("BUNNY_SITE_STORAGE_PASSWORD")
         local = local_files(build_dir)
@@ -395,7 +485,7 @@ def main() -> int:
         if args.keep_build:
             log(f"build left at {build_dir}")
         else:
-            shutil.rmtree(build_dir, ignore_errors=True)
+            shutil.rmtree(workspace, ignore_errors=True)
 
 
 if __name__ == "__main__":
