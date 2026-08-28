@@ -1,0 +1,24 @@
+{{- /* Whether a model is PERMITTED to write anything a reader reads.
+
+       Permission, not use: a model can be allowed to write and not currently
+       chosen for it. Derived rather than listed - a reader-facing stage bans
+       watermarking STATES, so the answer follows from the provider's state in
+       the watermarking table, and adding a provider there with a banned state
+       bans it here too.
+
+       Takes a dict of `model` (entry) and `policy`; returns true or false. */ -}}
+{{- $model := .model -}}
+{{- $policy := .policy -}}
+{{- $state := "" -}}
+{{- with index $policy.watermarking $model.provider }}{{ $state = .state }}{{ end -}}
+{{- $permitted := true -}}
+{{- range $policy.stages -}}
+  {{- if .reader_facing -}}
+    {{- if in .deny_watermarking $state }}{{ $permitted = false }}{{ end -}}
+    {{- range .deny }}{{ if eq . (printf "%s/*" $model.provider) }}{{ $permitted = false }}{{ end }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $policy.deny -}}
+  {{- if eq .pattern (printf "%s/*" $model.provider) }}{{ $permitted = false }}{{ end -}}
+{{- end -}}
+{{- return $permitted -}}

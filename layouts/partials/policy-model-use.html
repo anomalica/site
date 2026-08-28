@@ -1,0 +1,22 @@
+{{- /* Where a model is used, in the stages' own plain descriptions.
+
+       The catalogue is organised by model because that is what a reader asked
+       about; the stage list is our filing system. So a stage contributes its
+       PURPOSE ("Extract claims and nodes from a reviewed ingest") and not its
+       id ("digest"). First choice and fallback are distinguished because the
+       difference is real: a fallback runs when the first is unavailable.
+
+       Takes a dict of `model` (id string) and `policy`; returns a slice of
+       dicts with `purpose`, `first` (bool) and `reader_facing` (bool). */ -}}
+{{- $model := .model -}}
+{{- $policy := .policy -}}
+{{- $uses := slice -}}
+{{- range $policy.stages -}}
+  {{- $stage := . -}}
+  {{- range $i, $candidate := .priority -}}
+    {{- if eq $candidate $model -}}
+      {{- $uses = $uses | append (dict "purpose" $stage.purpose "first" (eq $i 0) "reader_facing" $stage.reader_facing) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $uses -}}

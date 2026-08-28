@@ -1,110 +1,192 @@
-{{- /* The public model-policy page.
+{{- /* The public model-policy page: a catalogue of every model, whether it is
+     used, where, and why.
 
-     Generated from anomalica/architecture/model-policy.yaml, mounted as
-     data/model_policy.yaml - the same file every component resolves its model
-     choice against at runtime. So the page cannot describe a policy the
-     pipeline does not follow.
+     TWO SOURCES, DELIBERATELY KEPT APART.
 
-     THE STRUCTURE IS GENERATED; THE PROSE IS NOT. Every sentence of reasoning
-     here is a `rationale` value written by a person and rendered verbatim.
-     Where one is absent the page says so. Nothing may invent a justification
-     for our own model choices: that would be the one claim on the site a
-     reader could not check.
+     What WROTE the pages comes from the pages themselves - each carries a
+     `built_by` stamp naming the model that produced it - counted here over
+     site.RegularPages, so it is a fact about this site rather than a claim.
 
-     The page answers one question in its first screen - who writes the words
-     you are reading, and what is not allowed to - and keeps the full matrix
-     below for anyone checking. Everything in the answer is derived from the
-     data, not asserted: the writer is the assemble stage's first choice, and
-     the barred list is its deny globs resolved against the model list. */ -}}
+     What is PERMITTED comes from anomalica/architecture/model-policy.yaml,
+     mounted as data/model_policy.yaml: the same file every component resolves
+     against at runtime.
+
+     THE TWO DISAGREE, and the disagreement is the honest part. A page written
+     last month by a model the policy has since barred is still on the site. An
+     earlier version of this page collapsed the two and announced that articles
+     "are written by" the policy's current first choice - a model that had at
+     that point written nothing at all. Deriving from intent and presenting it
+     as fact is the one failure this page cannot afford. If you are tempted to
+     write one sentence here, check which of the two you are describing.
+
+     THE STRUCTURE IS GENERATED; THE PROSE IS NOT. Every reason is a rationale
+     written by a person, rendered verbatim, with no editorialising around it -
+     the facts are laid out and the reader draws the conclusion. */ -}}
 {{ define "main" }}
   {{ $policy := site.Data.model_policy }}
   {{ if not $policy }}
     {{ errorf "model policy data is missing: expected data/model_policy.yaml (mounted from ../anomalica/architecture/model-policy.yaml). Refusing to render an empty policy page." }}
   {{ end }}
 
-  {{ $writing := "" }}
-  {{ $barred := slice }}
-  {{ $writingStage := false }}
-  {{ range $policy.stages }}
-    {{ if and .reader_facing (eq .id "assemble") }}
-      {{ $writingStage = . }}
-      {{ $writing = index .priority 0 }}
-      {{ $barred = partial "policy-barred.html" (dict "stage" . "policy" $policy) }}
-    {{ end }}
+  {{/* Count what actually wrote the published pages, from their own stamps. */}}
+  {{ $counts := dict }}
+  {{ $total := 0 }}
+  {{ range site.RegularPages }}
+    {{ $model := "not recorded" }}
+    {{ with .Params.built_by }}{{ with .model }}{{ $model = . }}{{ end }}{{ end }}
+    {{ $counts = merge $counts (dict $model (add (index $counts $model | default 0) 1)) }}
+    {{ $total = add $total 1 }}
   {{ end }}
+  {{ $written := slice }}
+  {{ range $model, $n := $counts }}
+    {{ $written = $written | append (dict "model" $model "pages" $n) }}
+  {{ end }}
+  {{ $written = sort $written "pages" "desc" }}
 
-  {{/* ---- The answer ---- */}}
   <section class="bg-surface pt-14 pb-12">
     <div class="mx-auto max-w-3xl px-6">
       <p class="section-label mb-3">Model policy</p>
-
-      {{ with $writing }}
-        <h1 class="mb-6 text-3xl font-semibold leading-tight lg:text-4xl">
-          The articles on this site are written by
-          <span class="text-primary">{{ . }}</span>.
-        </h1>
-      {{ end }}
-
-      {{/* Only the APPROVED ones belong in this sentence. The rule also refuses
-           models we have never approved, which costs us nothing and would pad
-           the count with names that prove nothing. */}}
-      {{ $barredApproved := where $barred "status" "approved" }}
-      {{ with $barredApproved }}
-        <p class="mb-3 text-lg text-on-surface-secondary">
-          {{ len . }} models we have approved for other work are not allowed to write them:
-        </p>
-        <div class="mb-8 flex flex-wrap gap-2">
-          {{ range . }}<span class="tag tag-copper">{{ .id }}</span>{{ end }}
-        </div>
-      {{ end }}
-
-      {{ with $writingStage }}
-        {{ $providers := partial "policy-banned-providers.html" (dict "stage" . "policy" $policy) }}
-        {{ with $providers }}
-          {{/* The rule is not a list of names, it is a test applied to the table
-               below - so show the test and what it currently resolves to, which
-               a reader can check for themselves. */}}
-          <p class="mb-8 text-sm text-on-surface-secondary">
-            The rule is not a list of names. Any provider whose watermarking state is
-            {{ range $i, $state := $writingStage.deny_watermarking }}{{ if $i }} or {{ end }}<span class="font-medium text-on-surface">{{ $state }}</span>{{ end }}
-            is refused, which today means
-            {{ range $i, $p := . }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}.
-          </p>
-        {{ end }}
-      {{ end }}
-
-      {{ with $writingStage }}
-        <p class="max-w-2xl text-on-surface">{{ partial "policy-prose.html" .rationale }}</p>
-      {{ end }}
-
-      {{/* Two facts a reader needs to weigh the rest, and no more than that.
-           Every other sentence on this page is theirs, not ours. */}}
-      <p class="mt-6 max-w-2xl text-sm text-on-surface-secondary">
-        This page is generated from the file the pipeline reads, so it cannot describe a
-        rule the pipeline does not follow. The reasons below are written by a person.
+      <h1 class="mb-4 text-3xl font-semibold leading-tight lg:text-4xl">
+        Every model we use, and what for
+      </h1>
+      <p class="max-w-2xl text-lg text-on-surface-secondary">
+        Articles here are written by an AI model from claims taken out of source
+        documents. This page lists every model involved, what each one does, which
+        ones are not allowed near the writing, and why.
       </p>
     </div>
   </section>
 
-  {{/* ---- Why: watermarking ---- */}}
+  {{/* ---- What actually wrote the pages ---- */}}
   <section class="border-t border-border bg-surface-alt py-12">
     <div class="mx-auto max-w-3xl px-6">
-      <h2 class="mb-2 font-ui text-xl font-semibold">Why a better model is not always allowed</h2>
+      <h2 class="mb-2 font-ui text-xl font-semibold">What wrote the {{ $total }} pages on this site</h2>
+      <p class="mb-8 max-w-2xl text-on-surface-secondary">
+        Counted from the pages themselves. Each one records the model that produced
+        it, so this is what happened rather than what we intend.
+      </p>
+
+      <div class="divide-y divide-border border-y border-border">
+        {{ range $written }}
+          {{ $share := div (mul .pages 100.0) $total }}
+          <div class="py-4">
+            <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4">
+              <span class="font-ui text-sm font-medium text-on-surface">{{ .model }}</span>
+              <span class="font-ui text-xs text-on-surface-muted">
+                {{ .pages }} {{ cond (eq .pages 1) "page" "pages" }} &middot; {{ lang.FormatNumber 0 $share }}%
+              </span>
+            </div>
+            <div class="h-1 w-full overflow-hidden rounded bg-border">
+              {{/* An absence is not a model: it should not read as one more
+                   coloured bar in the list. */}}
+              <div class="h-full rounded {{ if eq .model "not recorded" }}bg-border-strong{{ else }}bg-primary{{ end }}" style="width: {{ $share }}%"></div>
+            </div>
+          </div>
+        {{ end }}
+      </div>
+
+      <p class="mt-4 text-sm text-on-surface-muted">
+        &ldquo;Not recorded&rdquo; is a page written before we started stamping the model
+        into it, or one written by hand.
+      </p>
+    </div>
+  </section>
+
+  {{/* ---- The catalogue ---- */}}
+  <section class="bg-surface py-12">
+    <div class="mx-auto max-w-3xl px-6">
+      <h2 class="mb-2 font-ui text-xl font-semibold">The models</h2>
+      <p class="mb-8 max-w-2xl text-on-surface-secondary">
+        A model that is not on this list cannot be used for anything.
+      </p>
+
+      <div class="divide-y divide-border border-y border-border">
+        {{ range $policy.models }}
+          {{ $model := . }}
+          {{ $uses := partial "policy-model-use.html" (dict "model" .id "policy" $policy) }}
+          {{ $mayWrite := partial "policy-may-write.html" (dict "model" . "policy" $policy) }}
+          {{ $wrote := 0 }}
+          {{ with index $counts .id }}{{ $wrote = . }}{{ end }}
+
+          <article class="py-6">
+            <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 class="font-ui text-base font-semibold text-on-surface">{{ .id }}</h3>
+              <span class="font-ui text-xs text-on-surface-muted">
+                {{ .provider }}
+                {{ with .context }}
+                  &middot; {{ if ge . 1000000 }}{{ lang.FormatNumber 0 (div (float .) 1000000) }}M{{ else }}{{ lang.FormatNumber 0 (div (float .) 1000) }}k{{ end }} context
+                {{ end }}
+                {{ with .price }}&middot; ${{ .input }} / ${{ .output }} per million tokens{{ end }}
+              </span>
+            </div>
+
+            <div class="mb-4 flex flex-wrap gap-1.5">
+              <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ .status }}</span>
+              {{ if $mayWrite }}
+                <span class="tag tag-teal">may write articles</span>
+              {{ else }}
+                <span class="tag tag-copper">not for articles</span>
+              {{ end }}
+              {{ if gt $wrote 0 }}
+                <span class="tag tag-outline">wrote {{ $wrote }} of the pages here</span>
+              {{ end }}
+            </div>
+
+            {{ with $uses }}
+              <p class="mb-2 font-ui text-xs uppercase tracking-wider text-on-surface-muted">Used for</p>
+              <ul class="mb-4 space-y-1 text-sm text-on-surface-secondary">
+                {{ range . }}
+                  <li class="flex gap-2">
+                    <span class="text-on-surface-muted">&bull;</span>
+                    <span>{{ .purpose }}{{ if not .first }} <span class="text-on-surface-muted">(only if the first choice is unavailable)</span>{{ end }}</span>
+                  </li>
+                {{ end }}
+              </ul>
+            {{ else }}
+              <p class="mb-4 text-sm text-on-surface-secondary">Not used for anything yet.</p>
+            {{ end }}
+
+            <p class="max-w-2xl text-sm leading-relaxed text-on-surface-secondary">
+              {{ partial "policy-prose.html" .rationale }}
+            </p>
+          </article>
+        {{ end }}
+      </div>
+
+      {{ with $policy.status_meanings }}
+        <dl class="mt-8 space-y-3">
+          {{ range $status, $meaning := . }}
+            <div class="grid gap-x-4 gap-y-1 sm:grid-cols-[9rem_1fr]">
+              <dt><span class="tag {{ if eq $status "approved" }}tag-teal{{ else if eq $status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $status }}</span></dt>
+              <dd class="text-sm leading-relaxed text-on-surface-secondary">{{ $meaning }}</dd>
+            </div>
+          {{ end }}
+        </dl>
+      {{ end }}
+    </div>
+  </section>
+
+  {{/* ---- Why some are kept away from the writing ---- */}}
+  <section class="border-t border-border bg-surface-alt py-12">
+    <div class="mx-auto max-w-3xl px-6">
+      <h2 class="mb-2 font-ui text-xl font-semibold">Why some models are kept away from the writing</h2>
+      <p class="mb-8 max-w-2xl text-on-surface-secondary">
+        Some providers add a hidden marker to text their models generate. This site
+        exists to reproduce what sources say, so its writing is kept clear of one.
+        Whether a provider does this decides what its models may write here.
+      </p>
 
       {{ with $policy.watermarking_meanings }}
         <dl class="mb-10 space-y-4">
           {{ range $state, $meaning := . }}
             <div class="grid gap-x-4 gap-y-1 sm:grid-cols-[9rem_1fr]">
-              <dt>
-                <span class="tag {{ if eq $state "clean" }}tag-teal{{ else if eq $state "open_weights" }}tag-teal{{ else if eq $state "watermarks" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $state }}</span>
-              </dt>
+              <dt><span class="tag {{ if or (eq $state "clean") (eq $state "open_weights") }}tag-teal{{ else if eq $state "watermarks" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $state }}</span></dt>
               <dd class="text-sm leading-relaxed text-on-surface-secondary">{{ $meaning }}</dd>
             </div>
           {{ end }}
         </dl>
       {{ end }}
 
-      <h3 class="mb-4 font-ui text-sm font-semibold uppercase tracking-wider text-on-surface-muted">By provider</h3>
       <div class="divide-y divide-border border-y border-border">
         {{ range $provider, $entry := $policy.watermarking }}
           <div class="grid gap-x-4 gap-y-1 py-4 sm:grid-cols-[9rem_1fr]">
@@ -114,131 +196,28 @@
                 {{ $entry.state }}{{ with $entry.since }} &middot; since {{ . }}{{ end }}
               </p>
             </div>
-            <p class="text-sm leading-relaxed text-on-surface-secondary">
-              {{ partial "policy-prose.html" $entry.rationale }}
-            </p>
+            <p class="text-sm leading-relaxed text-on-surface-secondary">{{ partial "policy-prose.html" $entry.rationale }}</p>
           </div>
         {{ end }}
       </div>
-    </div>
-  </section>
-
-  {{/* ---- The matrix: stages ---- */}}
-  <section class="bg-surface py-12">
-    <div class="mx-auto max-w-3xl px-6">
-      <h2 class="mb-2 font-ui text-xl font-semibold">Every stage, and what writes it</h2>
-      <p class="mb-8 max-w-2xl text-on-surface-secondary">
-        A model can be right for one stage and refused at another.
-      </p>
-
-      {{ range $group := slice (dict "label" "What a reader reads" "reader" true) (dict "label" "Behind the page" "reader" false) }}
-        <h3 class="mb-4 mt-10 font-ui text-sm font-semibold uppercase tracking-wider text-on-surface-muted first:mt-0">{{ $group.label }}</h3>
-        <div class="divide-y divide-border border-y border-border">
-          {{ range $policy.stages }}
-            {{ if eq .reader_facing $group.reader }}
-              <article class="py-5">
-                <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                  <h4 class="font-ui text-base font-medium text-on-surface">{{ .purpose }}</h4>
-                  <code class="font-mono text-xs text-on-surface-muted">{{ .id }}</code>
-                </div>
-
-                <div class="mb-3 flex flex-wrap items-baseline gap-1.5">
-                  {{ if eq .uses_model false }}
-                    <span class="text-sm text-on-surface-secondary">No model &mdash; this stage is code.</span>
-                  {{ else }}
-                    {{ range $i, $model := .priority }}
-                      <span class="tag {{ if $i }}tag-outline{{ else }}tag-teal{{ end }}">{{ if $i }}or {{ end }}{{ $model }}</span>
-                    {{ end }}
-                    {{ with partial "policy-banned-providers.html" (dict "stage" . "policy" $policy) }}
-                      <span class="text-xs text-on-surface-muted">
-                        never {{ range $i, $p := . }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}
-                      </span>
-                    {{ else }}
-                      {{ with partial "policy-barred.html" (dict "stage" . "policy" $policy) }}
-                        <span class="text-xs text-on-surface-muted">
-                          not {{ range $i, $m := . }}{{ if $i }}, {{ end }}{{ $m.id }}{{ end }}
-                        </span>
-                      {{ end }}
-                    {{ end }}
-                  {{ end }}
-                </div>
-
-                <p class="max-w-2xl text-sm leading-relaxed text-on-surface-secondary">
-                  {{ partial "policy-prose.html" .rationale }}
-                </p>
-              </article>
-            {{ end }}
-          {{ end }}
-        </div>
-      {{ end }}
 
       {{ with $policy.deny }}
-        <h3 class="mb-4 mt-12 font-ui text-sm font-semibold uppercase tracking-wider text-on-surface-muted">Refused at every stage</h3>
+        <h3 class="mb-4 mt-10 font-ui text-sm font-semibold uppercase tracking-wider text-on-surface-muted">Refused outright</h3>
         <div class="divide-y divide-border border-y border-border">
           {{ range . }}
-            <div class="py-5">
+            <div class="py-4">
               <code class="font-mono text-sm text-on-surface">{{ .pattern }}</code>
               <p class="mt-2 max-w-2xl text-sm leading-relaxed text-on-surface-secondary">{{ partial "policy-prose.html" .reason }}</p>
             </div>
           {{ end }}
         </div>
       {{ end }}
-    </div>
-  </section>
-
-  {{/* ---- The matrix: models ---- */}}
-  <section class="border-t border-border bg-surface-alt py-12">
-    <div class="mx-auto max-w-3xl px-6">
-      <h2 class="mb-2 font-ui text-xl font-semibold">Every model we name</h2>
-      {{ with $policy.updated }}
-        <p class="mb-6 text-on-surface-secondary">
-          Prices are per million tokens, as recorded on {{ dateFormat "2 January 2006" . }}.
-        </p>
-      {{ end }}
-
-      {{ with $policy.status_meanings }}
-        <dl class="mb-10 space-y-3">
-          {{ range $status, $meaning := . }}
-            <div class="grid gap-x-4 gap-y-1 sm:grid-cols-[9rem_1fr]">
-              <dt>
-                <span class="tag {{ if eq $status "approved" }}tag-teal{{ else if eq $status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $status }}</span>
-              </dt>
-              <dd class="text-sm leading-relaxed text-on-surface-secondary">{{ $meaning }}</dd>
-            </div>
-          {{ end }}
-        </dl>
-      {{ end }}
-
-      <div class="divide-y divide-border border-y border-border">
-        {{ range $policy.models }}
-          <article class="py-5">
-            <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h3 class="font-ui text-base font-medium text-on-surface">{{ .id }}</h3>
-              <span class="font-ui text-xs text-on-surface-muted">
-                {{ .status }} &middot; {{ .provider }}
-                {{ with .context }}
-                  &middot; {{ if ge . 1000000 }}{{ lang.FormatNumber 0 (div (float .) 1000000) }}M{{ else }}{{ lang.FormatNumber 0 (div (float .) 1000) }}k{{ end }} context
-                {{ end }}
-                {{ with .price }}&middot; ${{ .input }} in / ${{ .output }} out{{ end }}
-              </span>
-            </div>
-            <p class="max-w-2xl text-sm leading-relaxed text-on-surface-secondary">
-              {{ partial "policy-prose.html" .rationale }}
-            </p>
-          </article>
-        {{ end }}
-      </div>
-
-      {{ with $policy.aliases }}
-        <p class="mt-6 text-sm text-on-surface-muted">
-          Short names used in our configuration:
-          {{ range $alias, $target := . }}<span class="font-mono">{{ $alias }}</span> = {{ $target }}. {{ end }}
-        </p>
-      {{ end }}
 
       <p class="mt-10 border-t border-border pt-5 text-sm text-on-surface-muted">
-        Last revised {{ dateFormat "2 January 2006" $policy.updated }}. If something here
-        looks wrong, <a href="{{ "contact/" | relLangURL }}" class="text-primary hover:underline">tell us</a>.
+        The permissions here are generated from the file the pipeline reads, last
+        revised {{ dateFormat "2 January 2006" $policy.updated }}; the page counts are
+        taken from the pages themselves. If something looks wrong,
+        <a href="{{ "contact/" | relLangURL }}" class="text-primary hover:underline">tell us</a>.
       </p>
     </div>
   </section>
