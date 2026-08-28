@@ -122,10 +122,15 @@
 
             <div class="mb-4 flex flex-wrap gap-1.5">
               <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ .status }}</span>
+              {{ $state := "" }}
+              {{ with index $policy.watermarking .provider }}{{ $state = .state }}{{ end }}
               {{ if $mayWrite }}
                 <span class="tag tag-teal">may write articles</span>
               {{ else }}
-                <span class="tag tag-copper">not for articles</span>
+                {{/* Name the state that bars it: "not for articles" alone invites
+                     the reader to assume the provider watermarks, and for one of
+                     them that is not what the evidence says. */}}
+                <span class="tag tag-copper">not for articles &mdash; {{ .provider }} is {{ $state }}</span>
               {{ end }}
               {{ if gt $wrote 0 }}
                 <span class="tag tag-outline">wrote {{ $wrote }} of the pages here</span>
@@ -166,38 +171,85 @@
     </div>
   </section>
 
-  {{/* ---- Why some are kept away from the writing ---- */}}
+  {{/* ---- Watermarking, per provider ---- */}}
   <section class="border-t border-border bg-surface-alt py-12">
     <div class="mx-auto max-w-3xl px-6">
       <h2 class="mb-2 font-ui text-xl font-semibold">Why some models are kept away from the writing</h2>
       <p class="mb-8 max-w-2xl text-on-surface-secondary">
-        Some providers add a hidden marker to text their models generate. This site
-        exists to reproduce what sources say, so its writing is kept clear of one.
-        Whether a provider does this decides what its models may write here.
+        A watermark is a hidden signal a provider can add to the text its models
+        generate. This site reproduces what sources say, so its writing is kept clear
+        of one. What each provider does was researched on
+        {{ with (index $policy.watermarking "google").checked }}{{ dateFormat "2 January 2006" . }}{{ end }},
+        with the sources listed so you can check it rather than take our word.
       </p>
 
       {{ with $policy.watermarking_meanings }}
         <dl class="mb-10 space-y-4">
           {{ range $state, $meaning := . }}
             <div class="grid gap-x-4 gap-y-1 sm:grid-cols-[9rem_1fr]">
-              <dt><span class="tag {{ if or (eq $state "clean") (eq $state "open_weights") }}tag-teal{{ else if eq $state "watermarks" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $state }}</span></dt>
+              <dt><span class="tag {{ if eq $state "clean" }}tag-teal{{ else if eq $state "watermarks" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $state }}</span></dt>
               <dd class="text-sm leading-relaxed text-on-surface-secondary">{{ $meaning }}</dd>
             </div>
           {{ end }}
         </dl>
       {{ end }}
 
+      {{/* Most restrictive first. Alphabetical order would open on a provider
+           nothing turns on and bury the two the rule actually acts against. */}}
+      {{ $order := slice "watermarks" "unknown" "clean" }}
       <div class="divide-y divide-border border-y border-border">
-        {{ range $provider, $entry := $policy.watermarking }}
-          <div class="grid gap-x-4 gap-y-1 py-4 sm:grid-cols-[9rem_1fr]">
-            <div>
-              <p class="font-ui text-sm font-semibold text-on-surface">{{ $provider }}</p>
-              <p class="mt-1 font-ui text-xs text-on-surface-muted">
-                {{ $entry.state }}{{ with $entry.since }} &middot; since {{ . }}{{ end }}
-              </p>
-            </div>
-            <p class="text-sm leading-relaxed text-on-surface-secondary">{{ partial "policy-prose.html" $entry.rationale }}</p>
-          </div>
+        {{ range $state := $order }}
+          {{ range $provider, $entry := $policy.watermarking }}
+            {{ if eq $entry.state $state }}
+              <div class="py-5">
+                <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <h3 class="font-ui text-base font-semibold text-on-surface">{{ $provider }}</h3>
+                  <span class="font-ui text-xs text-on-surface-muted">
+                    {{ with $entry.confidence }}{{ . }} confidence{{ end }}
+                    {{ with $entry.checked }}&middot; checked {{ dateFormat "2 January 2006" . }}{{ end }}
+                  </span>
+                </div>
+
+                <div class="mb-3 flex flex-wrap gap-1.5">
+                  <span class="tag {{ if eq $entry.state "clean" }}tag-teal{{ else if eq $entry.state "watermarks" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $entry.state }}</span>
+                  {{/* `since` is the date watermarking began, so it only means
+                       something where watermarking is established. */}}
+                  {{ if eq $entry.state "watermarks" }}{{ with $entry.since }}<span class="tag tag-outline">since {{ dateFormat "2 January 2006" . }}</span>{{ end }}{{ end }}
+                  {{ if $entry.open_weights }}<span class="tag tag-teal">open weights</span>{{ end }}
+                </div>
+
+                {{ with $entry.rationale }}
+                  <p class="mb-3 max-w-2xl text-sm leading-relaxed text-on-surface">{{ partial "policy-prose.html" . }}</p>
+                {{ end }}
+
+                {{/* The full findings run to several hundred words each. They are
+                     the evidence for everything above, so they stay on the page
+                     rather than being summarised into something unattributable -
+                     folded away so the section can still be read at a glance. */}}
+                {{ if or $entry.evidence $entry.caveat }}
+                  <details class="mt-2">
+                    <summary class="cursor-pointer select-none font-ui text-xs uppercase tracking-wider text-primary">What we found</summary>
+                    {{ with $entry.evidence }}
+                      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-on-surface-secondary">{{ partial "policy-prose.html" . }}</p>
+                    {{ end }}
+                    {{ with $entry.caveat }}
+                      <p class="mt-4 font-ui text-xs uppercase tracking-wider text-on-surface-muted">What we could not establish</p>
+                      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-on-surface-secondary">{{ partial "policy-prose.html" . }}</p>
+                    {{ end }}
+                  </details>
+                {{ end }}
+
+                {{ with $entry.sources }}
+                  <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                    <span class="text-on-surface-muted">Sources:</span>
+                    {{ range $i, $url := . }}
+                      <a href="{{ $url }}" target="_blank" rel="noopener nofollow" class="text-primary hover:underline">{{ add $i 1 }}. {{ (urls.Parse $url).Host }}</a>
+                    {{ end }}
+                  </p>
+                {{ end }}
+              </div>
+            {{ end }}
+          {{ end }}
         {{ end }}
       </div>
 
