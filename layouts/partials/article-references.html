@@ -46,13 +46,19 @@
                 View the source record &rarr;
               </a>
             {{ end }}
-            {{/* Workbench is reviewer-only: gated out of public builds. */}}
-            {{ if or hugo.IsServer site.Params.reviewerPreview }}
-              {{ with .workbench_url }}
-                <a href="{{ . }}" target="_blank" rel="noopener" class="text-on-surface-muted hover:underline" title="Review this claim in the workbench (reviewer only)">
-                  Review in workbench &rarr;
-                </a>
-              {{ end }}
+            {{/* A record page is a summary and carries only some of the claims
+                 drawn from its source, so for most references the workbench is
+                 the ONLY place the cited claim can be read - with the gate that
+                 used to hide this link, 8,268 of them had nowhere to go. The
+                 claim TEXT is our own paraphrase and public for every record;
+                 the verbatim quote and the source body stay behind the
+                 possession gate, which the workbench applies when it builds its
+                 snapshot rather than relying on this link being hidden.
+                 The reader is following a citation, not being asked to review. */}}
+            {{ with .workbench_url }}
+              <a href="{{ . }}" target="_blank" rel="noopener" class="text-primary hover:underline" title="See this claim against its source">
+                View this claim &rarr;
+              </a>
             {{ end }}
           </div>
         </li>

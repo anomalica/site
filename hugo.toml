@@ -19,11 +19,7 @@ cleanDestinationDir = true
 # from data/languages.json.
 disableLanguages = ["ar","bn","de","en-us","es","fa","fr","hi","id","it","ja","ko","mr","my","pl","pt","ru","sw","ta","te","th","tl","tr","uk","ur","uz","vi","zh","zh-hant"]
 
-# Reviewer-vs-public build gate. Default false = public-safe (no workbench
-# links). True under `hugo server` (local reviewer preview) via hugo.IsServer,
-# or set here / per-environment for a deployed reviewer preview.
 [params]
-reviewerPreview = false
 # Workbench app entry point (prod host; resolves after the apex DNS flip).
 workbenchUrl = "https://workbench.anomalica.is"
 # Cloudflare Turnstile public site key for the contact form (managed mode,
