@@ -1,0 +1,196 @@
+{{- /* The public model-policy page.
+
+     Generated from anomalica/architecture/model-policy.yaml, mounted as
+     data/model_policy.yaml - the same file every component resolves its model
+     choice against at runtime. So the page cannot describe a policy the
+     pipeline does not follow.
+
+     THE STRUCTURE IS GENERATED; THE PROSE IS NOT. Every sentence of reasoning
+     on this page is a `rationale` value written by a person and rendered
+     verbatim. Where one is absent the page says so. Nothing here may invent a
+     justification for our own model choices: that would be the one claim on
+     the site a reader could not check, and the one most flattering to us. An
+     honest gap invites the correction; fluent filler forecloses it. */ -}}
+{{ define "main" }}
+  {{ $policy := site.Data.model_policy }}
+  {{ if not $policy }}
+    {{ errorf "model policy data is missing: expected data/model_policy.yaml (mounted from ../anomalica/architecture/model-policy.yaml). Refusing to render an empty policy page." }}
+  {{ end }}
+
+  <section class="bg-surface py-12 lg:py-16">
+    <div class="mx-auto max-w-3xl px-6">
+      <p class="section-label mb-2">Policy</p>
+      <h1 class="mb-3 text-3xl font-semibold lg:text-4xl">{{ .Title }}</h1>
+      {{ with .Params.description }}
+        <p class="mb-8 text-lg text-on-surface-secondary">{{ . }}</p>
+      {{ end }}
+
+      {{/* The watermarking bar is the least obvious rule in the file and the
+           most consequential, so it leads. The words are the file's own, taken
+           from the stage the rule bites hardest on. */}}
+      {{ range $policy.stages }}
+        {{ if and .reader_facing .rationale }}
+          {{ if eq .id "assemble" }}
+            <div class="mb-10 rounded-lg border-l-2 border-primary bg-surface-alt p-5">
+              <p class="section-label mb-2">The rule that shapes the rest</p>
+              <p class="text-on-surface">{{ partial "policy-prose.html" .rationale }}</p>
+            </div>
+          {{ end }}
+        {{ end }}
+      {{ end }}
+
+      {{/* ---- Stages ---- */}}
+      <h2 class="mb-1 font-ui text-xl font-semibold">Stages</h2>
+      <p class="mb-6 text-sm text-on-surface-secondary">
+        Each stage of the pipeline resolves its own model. A model can be right for
+        one stage and refused at another.
+      </p>
+
+      <div class="space-y-5">
+        {{ range $policy.stages }}
+          <article class="rounded-lg border border-border bg-surface-raised p-5">
+            <div class="mb-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h3 class="font-ui text-base font-semibold text-on-surface">{{ .id }}</h3>
+              {{ if .reader_facing }}
+                <span class="tag tag-teal">Reader-facing</span>
+              {{ end }}
+            </div>
+            <p class="mb-4 text-sm text-on-surface-secondary">{{ .purpose }}</p>
+
+            <dl class="grid gap-3 sm:grid-cols-[7rem_1fr]">
+              <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Uses</dt>
+              <dd class="-ml-3 flex flex-wrap items-baseline gap-1.5">
+                {{ if eq .uses_model false }}
+                  <span class="ml-3 text-sm text-on-surface">No model. This stage is code.</span>
+                {{ else }}
+                  {{ range $i, $model := .priority }}
+                    <span class="tag tag-neutral">{{ if $i }}then {{ end }}{{ $model }}</span>
+                  {{ else }}
+                    <span class="ml-3 text-sm text-on-surface-muted">None listed.</span>
+                  {{ end }}
+                {{ end }}
+              </dd>
+
+              {{ if ne .uses_model false }}
+                <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Refuses</dt>
+                <dd class="-ml-3 flex flex-wrap gap-1.5">
+                  {{ range .deny }}
+                    <span class="tag tag-neutral font-mono">{{ . }}</span>
+                  {{ else }}
+                    <span class="ml-3 text-sm text-on-surface-muted">Nothing beyond the models listed above.</span>
+                  {{ end }}
+                </dd>
+              {{ end }}
+
+              {{ with .enforced_by }}
+                <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Enforced by</dt>
+                <dd class="text-sm text-on-surface-secondary">{{ . }}</dd>
+              {{ end }}
+
+              <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Why</dt>
+              <dd class="text-sm leading-relaxed text-on-surface">
+                {{ partial "policy-prose.html" .rationale }}
+              </dd>
+            </dl>
+          </article>
+        {{ end }}
+      </div>
+
+      {{/* ---- Watermarking ---- */}}
+      <h2 class="mb-1 mt-14 font-ui text-xl font-semibold">Watermarking, by provider</h2>
+      <p class="mb-6 text-sm text-on-surface-secondary">
+        Three states, and <span class="font-medium text-on-surface">unknown</span> is not
+        the same as clean: a provider nobody has checked has not passed a check.
+      </p>
+
+      <div class="space-y-4">
+        {{ range $provider, $entry := $policy.watermarking }}
+          <div class="rounded-lg border border-border bg-surface-raised p-4">
+            <div class="mb-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h3 class="font-ui text-sm font-semibold text-on-surface">{{ $provider }}</h3>
+              {{/* The restrictive state is the one worth seeing first, so it
+                   carries the accent rather than the permissive one. */}}
+              <span class="tag {{ if eq $entry.state "clean" }}tag-teal{{ else if eq $entry.state "watermarks" }}tag-copper{{ else }}tag-neutral{{ end }}">{{ $entry.state }}</span>
+              {{ with $entry.since }}
+                <span class="text-xs text-on-surface-muted">since {{ . }}</span>
+              {{ end }}
+            </div>
+            <p class="text-sm leading-relaxed text-on-surface-secondary">
+              {{ partial "policy-prose.html" $entry.rationale }}
+            </p>
+          </div>
+        {{ end }}
+      </div>
+
+      {{/* ---- Models ---- */}}
+      <h2 class="mb-1 mt-14 font-ui text-xl font-semibold">Models</h2>
+      <p class="mb-6 text-sm text-on-surface-secondary">
+        Every model the pipeline may name. One this file does not list cannot be
+        dispatched at all.
+        {{ with $policy.status_meanings }}
+        {{ end }}
+      </p>
+
+      {{ with $policy.status_meanings }}
+        <dl class="mb-6 grid gap-2 rounded-lg border border-border bg-surface-alt p-4 sm:grid-cols-[8rem_1fr]">
+          {{ range $status, $meaning := . }}
+            <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">{{ $status }}</dt>
+            <dd class="text-sm text-on-surface-secondary">{{ $meaning }}</dd>
+          {{ end }}
+        </dl>
+      {{ end }}
+
+      {{ with $policy.aliases }}
+        <p class="mb-6 text-sm text-on-surface-secondary">
+          Short names used in configuration:
+          {{ range $alias, $target := . }}<span class="tag tag-neutral">{{ $alias }} = {{ $target }}</span> {{ end }}
+        </p>
+      {{ end }}
+
+      <div class="space-y-5">
+        {{ range $policy.models }}
+          <article class="rounded-lg border border-border bg-surface-raised p-5">
+            <div class="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h3 class="font-ui text-base font-semibold text-on-surface">{{ .id }}</h3>
+              <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-neutral{{ end }}">{{ .status }}</span>
+              <span class="text-xs text-on-surface-muted">{{ .provider }}</span>
+            </div>
+
+            <div class="mb-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-on-surface-muted">
+              {{ with .context }}
+                <span>
+                  {{ if ge . 1000000 }}
+                    {{ lang.FormatNumber 0 (div (float .) 1000000) }}M
+                  {{ else }}
+                    {{ lang.FormatNumber 0 (div (float .) 1000) }}k
+                  {{ end }}
+                  token context
+                </span>
+              {{ end }}
+              {{ with .price }}
+                {{/* Prices go stale, so they carry the date the file was last
+                     revised rather than standing as a current quote. */}}
+                <span>
+                  ${{ .input }} in / ${{ .output }} out per million tokens
+                  {{ with $policy.updated }}<span class="opacity-70">(recorded {{ dateFormat "2 January 2006" . }})</span>{{ end }}
+                </span>
+              {{ end }}
+            </div>
+
+            <p class="text-sm leading-relaxed text-on-surface">
+              {{ partial "policy-prose.html" .rationale }}
+            </p>
+          </article>
+        {{ end }}
+      </div>
+
+      <p class="mt-12 border-t border-border pt-5 text-sm text-on-surface-muted">
+        Generated from the policy file the pipeline reads at runtime, last revised
+        {{ dateFormat "2 January 2006" $policy.updated }}. Every reason above is
+        written by a person; where one is missing this page says so rather than
+        filling the gap. Corrections are welcome
+        <a href="{{ "contact/" | relLangURL }}" class="text-primary hover:underline">here</a>.
+      </p>
+    </div>
+  </section>
+{{ end }}

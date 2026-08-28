@@ -235,6 +235,12 @@ target = "data/format_specs.yaml"
 source = "../anomalica/reference/architecture.yaml"
 target = "data/architecture.yaml"
 
+# The model policy is the source of truth for what the pipeline may dispatch,
+# and the public page is generated from it so the two cannot disagree.
+[[module.mounts]]
+source = "../anomalica/architecture/model-policy.yaml"
+target = "data/model_policy.yaml"
+
 [outputs]
 # JSON on the home page is the site-wide search index (layouts/index.json).
 home = ["HTML", "RSS", "JSON"]

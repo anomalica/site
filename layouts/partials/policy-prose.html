@@ -1,0 +1,22 @@
+{{- /* One rationale from the model policy, or an honest gap.
+
+       Takes the raw `rationale` value. Renders it verbatim - the prose in that
+       file is written by a person and nothing here may embellish it. An absent
+       one says so: a page that quietly filled the gap would be the one claim on
+       the site a reader could not check.
+
+       The strip is for a line marker (#magic___^_^___line) that the tool
+       writing that file leaves inside the string rather than in a comment. It
+       has been removed at source once and came back with the next write, so the
+       page defends itself rather than publishing the artefact. Raised with the
+       spec repo; when the writer stops emitting it this does nothing. */ -}}
+{{- $prose := "" -}}
+{{- /* `with` rather than printf: a null rationale formats as the literal
+       string "<nil>", which is not empty, so the gap would print as junk
+       instead of saying it is a gap. */ -}}
+{{- with . }}{{ $prose = printf "%v" . | replaceRE `\s*#magic_+\^_\^_+line` "" }}{{ end -}}
+{{- if $prose -}}
+{{ $prose }}
+{{- else -}}
+<span class="text-on-surface-muted">Not yet documented.</span>
+{{- end -}}
