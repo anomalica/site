@@ -1,9 +1,4 @@
-{{/* Labels for the section chip on a search hit. Built from the same i18n keys
-     the browse menu uses, so a renamed type is renamed in one place. */}}
-{{ $sectionLabels := dict }}
-{{ range site.Sections }}{{ $sectionLabels = merge $sectionLabels (dict .Section (T .Section | default (.Section | humanize))) }}{{ end }}
-{{ $sectionLabels = $sectionLabels | jsonify }}
-<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="siteSearch('{{ "index.json" | relLangURL }}', {{ $sectionLabels }})" @click.outside="unitsOpen = false">
+<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="siteSearch('{{ "index.json" | relLangURL }}')" @click.outside="unitsOpen = false">
   <nav class="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2">
     <!-- Logo -->
     <a href="{{ site.Home.RelPermalink }}" class="flex-none">
@@ -72,7 +67,7 @@
                 <span class="block truncate font-ui text-sm font-medium text-on-surface" x-text="hit.t"></span>
                 <span class="mt-0.5 block truncate text-xs text-on-surface-muted" x-text="hit.d"></span>
               </span>
-              <span class="flex-none font-ui text-[0.65rem] uppercase tracking-wider text-on-surface-muted" x-text="label(hit.s)"></span>
+              <span class="flex-none font-ui text-[0.65rem] uppercase tracking-wider text-on-surface-muted" x-text="hit.l"></span>
             </a>
           </template>
           <template x-if="!loading && results.length === 0">
@@ -135,7 +130,7 @@
             <span class="block truncate font-ui text-sm font-medium text-on-surface" x-text="hit.t"></span>
             <span class="mt-0.5 block truncate text-xs text-on-surface-muted" x-text="hit.d"></span>
           </span>
-          <span class="flex-none font-ui text-[0.65rem] uppercase tracking-wider text-on-surface-muted" x-text="label(hit.s)"></span>
+          <span class="flex-none font-ui text-[0.65rem] uppercase tracking-wider text-on-surface-muted" x-text="hit.l"></span>
         </a>
       </template>
       <template x-if="!loading && results.length === 0">
@@ -171,7 +166,7 @@
        needs no maintenance - a page that exists is in it, a page that does not
        cannot be. It is fetched on the first interaction rather than on page
        load: nobody pays for it until they search. */
-    Alpine.data('siteSearch', (indexUrl, sectionLabels) => ({
+    Alpine.data('siteSearch', (indexUrl) => ({
       mobileOpen: false,
       unitsOpen: false,
       searchOpen: false,
@@ -205,9 +200,6 @@
       mobileSearch() {
         this.open();
         this.$nextTick(() => this.$refs.mobileSearchInput?.focus());
-      },
-      label(section) {
-        return sectionLabels[section] || '';
       },
       get results() {
         const q = fold(this.searchQuery.trim());

@@ -9,8 +9,12 @@
      cannot drift from what the site serves: a page that exists is in here, a
      page that does not cannot be. Nothing to maintain by hand.
 
+     Each entry carries its own section LABEL rather than a code the header
+     would have to look up: the index is built per language, so the label is
+     already translated by the time it reaches the browser.
+
      Keys are single letters because they repeat once per page: t title,
-     d description, u url, s section, g tags. */ -}}
+     d description, u url, l section label, g tags. */ -}}
 {{- $entries := slice -}}
 {{- range site.RegularPages -}}
   {{- $tags := slice -}}
@@ -19,7 +23,7 @@
       "t" .Title
       "d" (.Params.description | default "" | truncate 160 | htmlUnescape)
       "u" .RelPermalink
-      "s" .Section
+      "l" (T .Section | default (.Section | humanize))
       "g" $tags) -}}
 {{- end -}}
 {{- range site.Sections -}}
@@ -28,7 +32,7 @@
         "t" .Title
         "d" (.Params.description | default "")
         "u" .RelPermalink
-        "s" ""
+        "l" ""
         "g" slice) -}}
   {{- end -}}
 {{- end -}}
