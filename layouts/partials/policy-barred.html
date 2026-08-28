@@ -1,0 +1,24 @@
+{{- /* The models a stage's deny rules exclude, worked out from the data.
+
+       The deny list is written as provider globs, which is right for enforcement
+       and useless to a reader: "anthropic/*" only means something if you already
+       know which models that covers. Resolving it against the model list turns
+       the rule into something checkable - and shows what it costs, because the
+       models it excludes are ones this same file marks approved.
+
+       Takes a dict of `stage` and `policy`; returns a slice of model entries. */ -}}
+{{- $stage := .stage -}}
+{{- $policy := .policy -}}
+{{- $barred := slice -}}
+{{- range $policy.models -}}
+  {{- $model := . -}}
+  {{- $state := "" -}}
+  {{- with index $policy.watermarking $model.provider }}{{ $state = .state }}{{ end -}}
+  {{- range $stage.deny -}}
+    {{- if or (eq . (printf "%s/*" $model.provider))
+              (and (eq . "*:unknown-watermarking") (eq $state "unknown")) -}}
+      {{- if not (in $barred $model) }}{{ $barred = $barred | append $model }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $barred -}}

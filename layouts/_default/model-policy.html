@@ -31,9 +31,21 @@
       {{ range $policy.stages }}
         {{ if and .reader_facing .rationale }}
           {{ if eq .id "assemble" }}
+            {{ $barred := partial "policy-barred.html" (dict "stage" . "policy" $policy) }}
             <div class="mb-10 rounded-lg border-l-2 border-primary bg-surface-alt p-5">
               <p class="section-label mb-2">The rule that shapes the rest</p>
               <p class="text-on-surface">{{ partial "policy-prose.html" .rationale }}</p>
+              {{ with $barred }}
+                {{/* Named, not implied. "It excludes the models we rate highest"
+                     is a claim a reader cannot check; the list, with each model's
+                     own status beside it, is the same statement as evidence. */}}
+                <p class="mt-4 font-ui text-xs uppercase tracking-wider text-on-surface-muted">Which excludes, from writing this page</p>
+                <div class="-ml-3 mt-2 flex flex-wrap items-baseline gap-1.5">
+                  {{ range . }}
+                    <span class="tag tag-copper">{{ .id }} &middot; {{ .status }}</span>
+                  {{ end }}
+                </div>
+              {{ end }}
             </div>
           {{ end }}
         {{ end }}
@@ -73,11 +85,17 @@
 
               {{ if ne .uses_model false }}
                 <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Refuses</dt>
-                <dd class="-ml-3 flex flex-wrap gap-1.5">
+                <dd class="-ml-3 flex flex-wrap items-baseline gap-1.5">
                   {{ range .deny }}
                     <span class="tag tag-neutral font-mono">{{ . }}</span>
                   {{ else }}
                     <span class="ml-3 text-sm text-on-surface-muted">Nothing beyond the models listed above.</span>
+                  {{ end }}
+                  {{ with partial "policy-barred.html" (dict "stage" . "policy" $policy) }}
+                    <span class="ml-1 text-xs text-on-surface-muted">
+                      which here means
+                      {{ range $i, $m := . }}{{ if $i }}, {{ end }}{{ $m.id }}{{ end }}
+                    </span>
                   {{ end }}
                 </dd>
               {{ end }}
@@ -103,6 +121,15 @@
         the same as clean: a provider nobody has checked has not passed a check.
       </p>
 
+      {{ with $policy.watermarking_meanings }}
+        <dl class="mb-6 grid gap-2 rounded-lg border border-border bg-surface-alt p-4 sm:grid-cols-[7rem_1fr]">
+          {{ range $state, $meaning := . }}
+            <dt class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">{{ $state }}</dt>
+            <dd class="text-sm text-on-surface-secondary">{{ $meaning }}</dd>
+          {{ end }}
+        </dl>
+      {{ end }}
+
       <div class="space-y-4">
         {{ range $provider, $entry := $policy.watermarking }}
           <div class="rounded-lg border border-border bg-surface-raised p-4">
@@ -110,7 +137,7 @@
               <h3 class="font-ui text-sm font-semibold text-on-surface">{{ $provider }}</h3>
               {{/* The restrictive state is the one worth seeing first, so it
                    carries the accent rather than the permissive one. */}}
-              <span class="tag {{ if eq $entry.state "clean" }}tag-teal{{ else if eq $entry.state "watermarks" }}tag-copper{{ else }}tag-neutral{{ end }}">{{ $entry.state }}</span>
+              <span class="tag {{ if eq $entry.state "clean" }}tag-teal{{ else if eq $entry.state "watermarks" }}tag-copper{{ else }}tag-outline{{ end }}">{{ $entry.state }}</span>
               {{ with $entry.since }}
                 <span class="text-xs text-on-surface-muted">since {{ . }}</span>
               {{ end }}
@@ -121,6 +148,22 @@
           </div>
         {{ end }}
       </div>
+
+      {{ with $policy.deny }}
+        {{/* ---- Refused everywhere ---- */}}
+        <h2 class="mb-1 mt-14 font-ui text-xl font-semibold">Refused everywhere</h2>
+        <p class="mb-6 text-sm text-on-surface-secondary">
+          Refused at every stage, so a new stage cannot admit them by omission.
+        </p>
+        <div class="space-y-4">
+          {{ range . }}
+            <div class="rounded-lg border border-border bg-surface-raised p-4">
+              <span class="tag tag-copper font-mono">{{ .pattern }}</span>
+              <p class="mt-2.5 text-sm leading-relaxed text-on-surface-secondary">{{ partial "policy-prose.html" .reason }}</p>
+            </div>
+          {{ end }}
+        </div>
+      {{ end }}
 
       {{/* ---- Models ---- */}}
       <h2 class="mb-1 mt-14 font-ui text-xl font-semibold">Models</h2>
@@ -152,7 +195,7 @@
           <article class="rounded-lg border border-border bg-surface-raised p-5">
             <div class="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h3 class="font-ui text-base font-semibold text-on-surface">{{ .id }}</h3>
-              <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-neutral{{ end }}">{{ .status }}</span>
+              <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ .status }}</span>
               <span class="text-xs text-on-surface-muted">{{ .provider }}</span>
             </div>
 

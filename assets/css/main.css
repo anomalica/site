@@ -429,6 +429,15 @@ main {
   color: var(--color-slate);
 }
 
+/* Outlined rather than filled: for a state that is neither approved nor
+   refused - "unknown", "candidate" - where a filled chip would read as a
+   verdict and the neutral chip disappears against a dark surface. */
+.tag-outline {
+  background: transparent;
+  color: var(--color-on-surface-secondary);
+  box-shadow: inset 0 0 0 1px var(--color-border-strong);
+}
+
 .dark .tag-neutral {
   background: var(--color-surface-raised);
   color: var(--color-on-surface-secondary);
