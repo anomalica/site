@@ -29,25 +29,6 @@
 
       {{ partial "article-references.html" . }}
 
-      {{/* Facts breakdown lives in the workbench now: the public record page links
-           out to the workbench record view instead of rendering the per-claim QA
-           breakdown inline. Origin is site.Params.workbenchUrl (pointed at the
-           deployed workbench at launch); record_hash comes from the assembler.
-           Fallback derives the record view from a claim's workbench_url for any
-           record still in the pre-drop format that carries facts. */}}
-      {{/* The workbench SPA deep-link matches the 56-char public_hash, not the
-           64-char content_hash. Strip any sha256: prefix, then take the first 56
-           hex (public_hash = content_hash[:56]) - robust whether the assembler
-           emits the bare 56-char, the 64-char, or a sha256:-prefixed form. */}}
-      {{ $wbRecord := "" }}
-      {{ with .Params.record_hash }}{{ $wbRecord = printf "%s/%s" site.Params.workbenchUrl (substr (strings.TrimPrefix "sha256:" .) 0 56) }}{{ end }}
-      {{ if not $wbRecord }}{{ with .Params.facts }}{{ with (index . 0).workbench_url }}{{ $wbRecord = index (split . "#") 0 }}{{ end }}{{ end }}{{ end }}
-      {{ with $wbRecord }}
-        <div class="mt-12 border-t border-border pt-8">
-          <a href="{{ . }}" target="_blank" rel="noopener" class="font-ui text-sm text-primary hover:underline">View the facts breakdown in the workbench &rarr;</a>
-          <p class="mt-2 text-sm text-on-surface-muted">Every claim and entity extracted from this record, each citing the original wording, in the review workbench.</p>
-        </div>
-      {{ end }}
     </div>
   </article>
 {{ end }}

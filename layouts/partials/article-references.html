@@ -4,9 +4,16 @@
      <sup>N</sup> citations 1-indexed into references. Shared by the entity
      single template and the record digest template. */}}
 {{ with .Params.references }}
-  <details id="references" class="mt-10">
-    <summary class="section-label mb-3 cursor-pointer select-none">
-      References <span class="text-on-surface-muted">({{ len . }})</span>
+  {{/* Open by default. Closed, this was one faint grey line at the end of the
+       article, and every per-reference link to the claim in the workbench sat
+       behind it - so the page-level workbench button, which is now gone, read
+       as the only way to check anything. On a site whose argument is that every
+       sentence traces to a source, the sources should not be a disclosure the
+       reader has to think to open. It still folds away for anyone who wants it
+       out of the way. */}}
+  <details id="references" class="mt-12 border-t border-border pt-6" open>
+    <summary class="mb-4 cursor-pointer select-none font-ui text-base font-semibold text-on-surface">
+      References <span class="font-normal text-on-surface-muted">({{ len . }}) &middot; each links to the claim it came from</span>
     </summary>
     <ol class="list-decimal space-y-3 pl-4 text-sm mt-3">
       {{ range $i, $r := . }}
@@ -41,10 +48,18 @@
                  the path here (the fragment is preserved). */}}
             {{ with .inspection_url }}
               {{ $p := split . "#" }}
-              {{ $href := relLangURL (index $p 0) }}{{ if gt (len $p) 1 }}{{ $href = printf "%s#%s" $href (index $p 1) }}{{ end }}
-              <a href="{{ $href }}" class="text-primary hover:underline ml-auto" title="Inspect the source record">
-                View the source record &rarr;
-              </a>
+              {{ $href := relLangURL (index $p 0) }}
+              {{/* On a record page every claim comes from that record, so this
+                   link pointed at the page the reader is already on - 93 of them
+                   saying "view the source record" about the source record. */}}
+              {{/* The assembler emits a bare path with no trailing slash;
+                   RelPermalink has one. Compare them trimmed. */}}
+              {{ if ne (strings.TrimSuffix "/" $href) (strings.TrimSuffix "/" $.RelPermalink) }}
+                {{ if gt (len $p) 1 }}{{ $href = printf "%s#%s" $href (index $p 1) }}{{ end }}
+                <a href="{{ $href }}" class="text-primary hover:underline ml-auto" title="Inspect the source record">
+                  View the source record &rarr;
+                </a>
+              {{ end }}
             {{ end }}
             {{/* A record page is a summary and carries only some of the claims
                  drawn from its source, so for most references the workbench is
