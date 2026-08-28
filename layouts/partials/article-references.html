@@ -12,6 +12,16 @@
       {{ range $i, $r := . }}
         {{ $n := add $i 1 }}
         <li id="ref-{{ $n }}">
+          {{/* A claim uuid names the same claim on every page that cites it,
+               where reference NUMBERING is per page - reference 7 here and
+               reference 7 on another article are different claims. So the uuid
+               is what an inspection_url can point at, and without this anchor
+               those links land at the top of the page and leave the reader to
+               hunt. Its own element rather than a second id on the li: ref-N is
+               what the in-flow citations address. */}}
+          {{ with .claim_id }}
+            <span id="claim-{{ . }}" class="block scroll-mt-24" aria-hidden="true"></span>
+          {{ end }}
           <div>{{ .text }}</div>
           {{ with .quote }}
             <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-muted">
@@ -72,12 +82,11 @@
 
       const detailsEl = document.getElementById('references');
 
-      function revealRef(n, updateHash) {
-        const target = document.getElementById('ref-' + n);
+      function revealTarget(target, hash) {
         if (!target) return;
         if (detailsEl && !detailsEl.open) detailsEl.open = true;
-        if (updateHash && history.replaceState) {
-          history.replaceState(null, '', '#ref-' + n);
+        if (hash && history.replaceState) {
+          history.replaceState(null, '', hash);
         }
         // Persistent highlight: clear any previously-marked reference
         // and mark this one. Stays until another citation is clicked
@@ -99,9 +108,24 @@
         });
       }
 
+      function revealRef(n, updateHash) {
+        revealTarget(document.getElementById('ref-' + n), updateHash ? '#ref-' + n : null);
+      }
+
       function revealFromHash() {
-        const m = (location.hash || '').match(/^#ref-(\d+)$/);
-        if (m) revealRef(parseInt(m[1], 10), false);
+        const hash = location.hash || '';
+        const numbered = hash.match(/^#ref-(\d+)$/);
+        if (numbered) {
+          revealRef(parseInt(numbered[1], 10), false);
+          return;
+        }
+        /* A claim anchor sits inside the collapsed references list, so the
+           browser's own scroll misses it exactly as it does for #ref-N.
+           Reveal the list item that contains it instead. */
+        if (/^#claim-[0-9a-fA-F-]+$/.test(hash)) {
+          const anchor = document.getElementById(hash.slice(1));
+          if (anchor) revealTarget(anchor.closest('li'), null);
+        }
       }
       window.addEventListener('hashchange', revealFromHash);
       // Defer initial reveal so the browser's own hash scroll
