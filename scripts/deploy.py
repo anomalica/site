@@ -36,6 +36,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import tempfile
 import urllib.error
 import urllib.parse
@@ -490,16 +491,41 @@ def purge(api_key: str) -> None:
     log(f"  purged pull zone {zone_id}")
 
 
-def verify_live(paths: list[str]) -> None:
+def verify_live(
+    build_dir: Path, paths: list[str], attempts: int = 6, wait: int = 5
+) -> None:
+    """Assert the live page IS the page just built, not merely that it answers.
+
+    A status code cannot tell "deployed and propagated" from "deployed, not yet
+    visible": a purge takes a few seconds to reach every edge, and a check that
+    runs immediately reads the old page and calls it a success - or, if it looks
+    for new content, calls a working deploy a failure. Comparing the body hash
+    against the built file answers exactly, and retrying covers the window.
+    """
     for path in paths:
         url = f"{LIVE_ORIGIN}{path}"
-        try:
-            with urllib.request.urlopen(url, timeout=30) as response:
-                log(f"  {response.status}  {url}")
-                if response.status != 200:
-                    raise DeployError(f"{url} served {response.status}")
-        except urllib.error.HTTPError as exc:
-            raise DeployError(f"{url} served {exc.code}") from exc
+        local = build_dir / path.strip("/") / "index.html"
+        expected = (
+            hashlib.sha256(local.read_bytes()).hexdigest() if local.is_file() else None
+        )
+        for attempt in range(1, attempts + 1):
+            try:
+                with urllib.request.urlopen(url, timeout=30) as response:
+                    status = response.status
+                    served = hashlib.sha256(response.read()).hexdigest()
+            except urllib.error.HTTPError as exc:
+                raise DeployError(f"{url} served {exc.code}") from exc
+            if status != 200:
+                raise DeployError(f"{url} served {status}")
+            if expected is None or served == expected:
+                log(f"  {status}  {url}")
+                break
+            if attempt == attempts:
+                raise DeployError(
+                    f"{url} answers but does not match the build after "
+                    f"{attempts * wait}s - the purge did not take"
+                )
+            time.sleep(wait)
 
 
 # --- entry point -------------------------------------------------------------
@@ -561,7 +587,7 @@ def main() -> int:
                 if name.endswith("/index.html")
             ][:3]
             log("Verifying live")
-            verify_live(checks)
+            verify_live(build_dir, checks)
         else:
             log("Nothing to publish; the zone already matches the build")
         return 0

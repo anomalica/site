@@ -92,6 +92,63 @@
     </div>
   </section>
 
+  {{/* ---- Who checks it ---- */}}
+  {{/* The checking stage is found by what it REFUSES: the one stage that denies
+       the provider doing the writing. That is the relationship worth showing -
+       a model does not mark its own homework - and finding it this way means it
+       survives the stage being renamed, and stops being claimed if the denial
+       is ever dropped. */}}
+  {{ $writer := false }}
+  {{ $checker := false }}
+  {{ range $policy.stages }}
+    {{ if and .reader_facing .priority }}{{ if not $writer }}{{ $writer = . }}{{ end }}{{ end }}
+  {{ end }}
+  {{ with $writer }}
+    {{ $writerModel := index .priority 0 }}
+    {{ $writerProvider := "" }}
+    {{ range $policy.models }}{{ if eq .id $writerModel }}{{ $writerProvider = .provider }}{{ end }}{{ end }}
+    {{ range $policy.stages }}
+      {{ $stage := . }}
+      {{ range .deny }}
+        {{ if eq . (printf "%s/*" $writerProvider) }}{{ if not $checker }}{{ $checker = $stage }}{{ end }}{{ end }}
+      {{ end }}
+    {{ end }}
+    {{ with $checker }}
+      {{ $checkerModel := index .priority 0 }}
+      {{ $checkerProvider := "" }}
+      {{ range $policy.models }}{{ if eq .id $checkerModel }}{{ $checkerProvider = .provider }}{{ end }}{{ end }}
+      <section class="bg-surface py-12">
+        <div class="mx-auto max-w-3xl px-6">
+          <h2 class="mb-6 font-ui text-xl font-semibold">Who checks it</h2>
+
+          <div class="mb-6 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-lg border border-border bg-surface-raised p-4">
+              {{/* "Currently set to", not "written by": the section above this
+                    one counts what actually wrote the pages, and the two do not
+                    match. Labelling configuration as history is the exact error
+                    that put a false headline on this page once already. */}}
+              <p class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Currently set to write</p>
+              <p class="mt-1 font-ui text-sm font-semibold text-on-surface">{{ $writerModel }}</p>
+              <p class="mt-0.5 text-sm text-on-surface-secondary">{{ $writerProvider }}</p>
+            </div>
+            <div class="rounded-lg border border-border bg-surface-raised p-4">
+              <p class="font-ui text-xs uppercase tracking-wider text-on-surface-muted">Currently set to check</p>
+              <p class="mt-1 font-ui text-sm font-semibold text-on-surface">{{ $checkerModel }}</p>
+              <p class="mt-0.5 text-sm text-on-surface-secondary">{{ $checkerProvider }}</p>
+            </div>
+          </div>
+
+          {{ if ne $writerProvider $checkerProvider }}
+            <p class="mb-4 text-on-surface">Two different companies.</p>
+          {{ end }}
+          <p class="max-w-2xl text-sm leading-relaxed text-on-surface-secondary">
+            {{ partial "policy-prose.html" $checker.rationale }}
+          </p>
+        </div>
+      </section>
+    {{ end }}
+  {{ end }}
+
   {{/* ---- The catalogue ---- */}}
   <section class="bg-surface py-12">
     <div class="mx-auto max-w-3xl px-6">
