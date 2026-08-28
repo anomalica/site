@@ -1,4 +1,9 @@
-<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="{ mobileOpen: false, unitsOpen: false, searchOpen: false, searchQuery: '' }" @click.outside="unitsOpen = false">
+{{/* Labels for the section chip on a search hit. Built from the same i18n keys
+     the browse menu uses, so a renamed type is renamed in one place. */}}
+{{ $sectionLabels := dict }}
+{{ range site.Sections }}{{ $sectionLabels = merge $sectionLabels (dict .Section (T .Section | default (.Section | humanize))) }}{{ end }}
+{{ $sectionLabels = $sectionLabels | jsonify }}
+<header class="sticky top-0 z-30 bg-chrome backdrop-blur-sm" x-data="siteSearch('{{ "index.json" | relLangURL }}', {{ $sectionLabels }})" @click.outside="unitsOpen = false">
   <nav class="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2">
     <!-- Logo -->
     <a href="{{ site.Home.RelPermalink }}" class="flex-none">
@@ -8,10 +13,10 @@
     </a>
 
     <!-- Search bar (desktop) -->
-    <div class="hidden lg:block flex-1 max-w-md mx-auto relative" @click.outside="searchOpen = false" @keydown.escape.window="searchOpen = false">
-      <div class="relative w-full cursor-pointer" @click="searchOpen = true; $nextTick(() => $refs.searchInput.focus())">
+    <div class="hidden lg:block flex-1 max-w-md mx-auto relative" @click.outside="searchOpen = false" @keydown.escape.window="searchOpen = false; searchQuery = ''">
+      <div class="relative w-full cursor-pointer" @click="open(); $nextTick(() => $refs.searchInput.focus())">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-on-chrome-secondary pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
-        <input x-ref="searchInput" type="search" placeholder="{{ T "search_placeholder" }}" x-model="searchQuery" class="w-full rounded bg-on-chrome/10 py-1.5 pl-9 pr-8 text-sm font-ui text-on-chrome-active placeholder:text-on-chrome-secondary/50 outline-none transition-colors focus:bg-on-chrome/15 cursor-pointer focus:cursor-text" @focus="searchOpen = true">
+        <input x-ref="searchInput" type="search" placeholder="{{ T "search_placeholder" }}" x-model="searchQuery" @focus="open()" @keydown.arrow-down.prevent="move(1)" @keydown.arrow-up.prevent="move(-1)" @keydown.enter.prevent="go()" role="combobox" aria-expanded="searchOpen" aria-controls="search-results" autocomplete="off" class="w-full rounded bg-on-chrome/10 py-1.5 pl-9 pr-8 text-sm font-ui text-on-chrome-active placeholder:text-on-chrome-secondary/50 outline-none transition-colors focus:bg-on-chrome/15 cursor-pointer focus:cursor-text">
         <svg class="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-on-chrome-secondary/50 pointer-events-none transition-transform" :class="searchOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
       </div>
 
@@ -51,9 +56,28 @@
           </div>
         </div>
 
-        <!-- Search results placeholder (shown when typing) -->
-        <div x-show="searchQuery.length > 0" class="p-4">
-          <p class="text-sm text-on-surface-muted font-ui">{{ T "search_not_available" }}</p>
+        <!-- Results -->
+        <div x-show="searchQuery.length > 0" id="search-results" role="listbox" class="max-h-[70vh] overflow-y-auto">
+          <template x-if="loading">
+            <p class="px-4 py-3 font-ui text-sm text-on-surface-muted">{{ T "search_loading" }}</p>
+          </template>
+          <template x-for="(hit, i) in results" :key="hit.u">
+            <a :href="hit.u"
+               role="option"
+               :aria-selected="i === selected"
+               @mouseenter="selected = i"
+               class="flex items-baseline justify-between gap-3 border-b border-border/60 px-4 py-2.5 last:border-0 transition-colors"
+               :class="i === selected ? 'bg-primary/10' : 'hover:bg-on-chrome/5'">
+              <span class="min-w-0">
+                <span class="block truncate font-ui text-sm font-medium text-on-surface" x-text="hit.t"></span>
+                <span class="mt-0.5 block truncate text-xs text-on-surface-muted" x-text="hit.d"></span>
+              </span>
+              <span class="flex-none font-ui text-[0.65rem] uppercase tracking-wider text-on-surface-muted" x-text="label(hit.s)"></span>
+            </a>
+          </template>
+          <template x-if="!loading && results.length === 0">
+            <p class="px-4 py-3 font-ui text-sm text-on-surface-muted">{{ T "search_no_results" }}</p>
+          </template>
         </div>
       </div>
     </div>
@@ -61,7 +85,7 @@
     <!-- Right controls -->
     <div class="flex items-center gap-1 flex-none">
       <!-- Mobile search icon -->
-      <button class="lg:hidden rounded p-2 text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer" aria-label="Search" disabled title="Search coming soon">
+      <button @click="mobileSearch()" class="lg:hidden rounded p-2 text-on-chrome hover:text-on-chrome-active transition-colors cursor-pointer" aria-label="{{ T "search_placeholder" }}">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
       </button>
 
@@ -99,6 +123,27 @@
     </div>
   </nav>
 
+  <!-- Search panel (mobile) -->
+  <div x-show="searchOpen" x-cloak class="lg:hidden border-t border-on-chrome/10 bg-chrome px-6 pb-4 pt-2" @keydown.escape.window="searchOpen = false">
+    <input x-ref="mobileSearchInput" type="search" placeholder="{{ T "search_placeholder" }}" x-model="searchQuery" @keydown.arrow-down.prevent="move(1)" @keydown.arrow-up.prevent="move(-1)" @keydown.enter.prevent="go()" autocomplete="off"
+           class="w-full rounded bg-on-chrome/10 px-3 py-2 text-sm font-ui text-on-chrome-active placeholder:text-on-chrome-secondary/50 outline-none">
+    <div x-show="searchQuery.length > 0" class="mt-2 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-surface-raised">
+      <template x-for="(hit, i) in results" :key="hit.u">
+        <a :href="hit.u" class="flex items-baseline justify-between gap-3 border-b border-border/60 px-3 py-2.5 last:border-0"
+           :class="i === selected ? 'bg-primary/10' : ''">
+          <span class="min-w-0">
+            <span class="block truncate font-ui text-sm font-medium text-on-surface" x-text="hit.t"></span>
+            <span class="mt-0.5 block truncate text-xs text-on-surface-muted" x-text="hit.d"></span>
+          </span>
+          <span class="flex-none font-ui text-[0.65rem] uppercase tracking-wider text-on-surface-muted" x-text="label(hit.s)"></span>
+        </a>
+      </template>
+      <template x-if="!loading && results.length === 0">
+        <p class="px-3 py-2.5 font-ui text-sm text-on-surface-muted">{{ T "search_no_results" }}</p>
+      </template>
+    </div>
+  </div>
+
   <!-- Mobile menu -->
   <div x-show="mobileOpen" x-transition class="lg:hidden border-t border-border px-6 py-4">
     <ul class="space-y-3 font-ui text-sm">
@@ -110,3 +155,92 @@
     </ul>
   </div>
 </header>
+
+<script>
+  /* Accent-insensitive comparison: the corpus is full of names a reader will
+     type without their diacritics. */
+  const fold = (s) =>
+    s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+  document.addEventListener('alpine:init', () => {
+    /* Site-wide search. The index is one JSON file generated by Hugo from
+       site.RegularPages at build time, so it is correct on every deploy and
+       needs no maintenance - a page that exists is in it, a page that does not
+       cannot be. It is fetched on the first interaction rather than on page
+       load: nobody pays for it until they search. */
+    Alpine.data('siteSearch', (indexUrl, sectionLabels) => ({
+      mobileOpen: false,
+      unitsOpen: false,
+      searchOpen: false,
+      searchQuery: '',
+      entries: null,
+      loading: false,
+      selected: 0,
+      async open() {
+        this.searchOpen = true;
+        if (this.entries || this.loading) return;
+        this.loading = true;
+        try {
+          const response = await fetch(indexUrl);
+          const data = response.ok ? await response.json() : [];
+          /* Fold accents once, here, rather than per keystroke: a reader
+             typing "vallee" is looking for Jacques Vallee. The leading
+             article is stripped too, so "pentagon" finds "The Pentagon". */
+          this.entries = data.map((e) => ({
+            ...e,
+            f: fold(e.t),
+            fs: fold(e.t).replace(/^(the|a|an) /, ''),
+            fd: fold(e.d || ''),
+            fg: (e.g || []).map(fold),
+          }));
+        } catch (e) {
+          this.entries = [];
+        } finally {
+          this.loading = false;
+        }
+      },
+      mobileSearch() {
+        this.open();
+        this.$nextTick(() => this.$refs.mobileSearchInput?.focus());
+      },
+      label(section) {
+        return sectionLabels[section] || '';
+      },
+      get results() {
+        const q = fold(this.searchQuery.trim());
+        if (!q || !this.entries) return [];
+        /* Rank by where the match landed: a name that starts with what you
+           typed is what you meant, a word inside the name is next, and a
+           description match is a last resort. Shorter titles win a tie -
+           "The Pentagon" is a better answer than a record whose headline
+           happens to mention it. */
+        const hits = [];
+        for (const e of this.entries) {
+          let rank = -1;
+          if (e.fs.startsWith(q) || e.f.startsWith(q)) rank = 0;
+          else if (e.f.includes(' ' + q)) rank = 1;
+          else if (e.f.includes(q)) rank = 2;
+          else if (e.fg.some((tag) => tag.includes(q))) rank = 3;
+          else if (e.fd.includes(q)) rank = 4;
+          if (rank >= 0) hits.push({ e, rank });
+        }
+        hits.sort(
+          (a, b) => a.rank - b.rank || a.e.t.length - b.e.t.length || a.e.t.localeCompare(b.e.t)
+        );
+        return hits.slice(0, 8).map((h) => h.e);
+      },
+      move(step) {
+        const n = this.results.length;
+        if (!n) return;
+        this.selected = (this.selected + step + n) % n;
+      },
+      go() {
+        const hit = this.results[this.selected];
+        if (hit) window.location.href = hit.u;
+      },
+    }));
+  });
+</script>

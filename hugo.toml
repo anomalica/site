@@ -240,7 +240,8 @@ source = "../anomalica/reference/architecture.yaml"
 target = "data/architecture.yaml"
 
 [outputs]
-home = ["HTML", "RSS"]
+# JSON on the home page is the site-wide search index (layouts/index.json).
+home = ["HTML", "RSS", "JSON"]
 
 [server]
 [[server.redirects]]

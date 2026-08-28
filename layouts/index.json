@@ -1,0 +1,35 @@
+{{- /* Site-wide search index, generated from the content at build time.
+
+     The per-section listings each filter their own rows, so searching People
+     could never find an organisation - and with 322 pages and rising, a reader
+     who does not know which type a name belongs to has nowhere to start. This
+     is the one index that covers everything.
+
+     It is built from site.RegularPages, so it is correct on every build and
+     cannot drift from what the site serves: a page that exists is in here, a
+     page that does not cannot be. Nothing to maintain by hand.
+
+     Keys are single letters because they repeat once per page: t title,
+     d description, u url, s section, g tags. */ -}}
+{{- $entries := slice -}}
+{{- range site.RegularPages -}}
+  {{- $tags := slice -}}
+  {{- range .Params.tags }}{{ $tags = $tags | append . }}{{ end -}}
+  {{- $entries = $entries | append (dict
+      "t" .Title
+      "d" (.Params.description | default "" | truncate 160 | htmlUnescape)
+      "u" .RelPermalink
+      "s" .Section
+      "g" $tags) -}}
+{{- end -}}
+{{- range site.Sections -}}
+  {{- if .Pages -}}
+    {{- $entries = $entries | append (dict
+        "t" .Title
+        "d" (.Params.description | default "")
+        "u" .RelPermalink
+        "s" ""
+        "g" slice) -}}
+  {{- end -}}
+{{- end -}}
+{{- $entries | jsonify -}}
