@@ -1,10 +1,14 @@
-{{- /* The models a stage's deny rules exclude, worked out from the data.
+{{- /* The models a stage refuses, worked out from the data rather than listed.
 
-       The deny list is written as provider globs, which is right for enforcement
-       and useless to a reader: "anthropic/*" only means something if you already
-       know which models that covers. Resolving it against the model list turns
-       the rule into something checkable - and shows what it costs, because the
-       models it excludes are ones this same file marks approved.
+       A reader-facing stage bans watermarking STATES (`deny_watermarking`),
+       not provider names: the set of banned providers is computed from the
+       watermarking table every time, so adding a provider to that table with a
+       banned state IS banning it. A typed-out provider list would go stale the
+       first time a provider was added and nobody remembered - and a model can
+       move between states as evidence arrives, which a name list would not
+       follow.
+
+       `deny` provider globs are still honoured for anything listed that way.
 
        Takes a dict of `stage` and `policy`; returns a slice of model entries. */ -}}
 {{- $stage := .stage -}}
@@ -14,11 +18,11 @@
   {{- $model := . -}}
   {{- $state := "" -}}
   {{- with index $policy.watermarking $model.provider }}{{ $state = .state }}{{ end -}}
+  {{- $refused := false -}}
+  {{- if and $state (in $stage.deny_watermarking $state) }}{{ $refused = true }}{{ end -}}
   {{- range $stage.deny -}}
-    {{- if or (eq . (printf "%s/*" $model.provider))
-              (and (eq . "*:unknown-watermarking") (eq $state "unknown")) -}}
-      {{- if not (in $barred $model) }}{{ $barred = $barred | append $model }}{{ end -}}
-    {{- end -}}
+    {{- if eq . (printf "%s/*" $model.provider) }}{{ $refused = true }}{{ end -}}
   {{- end -}}
+  {{- if $refused }}{{ $barred = $barred | append $model }}{{ end -}}
 {{- end -}}
 {{- return $barred -}}

@@ -45,13 +45,32 @@
         </h1>
       {{ end }}
 
-      {{ with $barred }}
+      {{/* Only the APPROVED ones belong in this sentence. The rule also refuses
+           models we have never approved, which costs us nothing and would pad
+           the count with names that prove nothing. */}}
+      {{ $barredApproved := where $barred "status" "approved" }}
+      {{ with $barredApproved }}
         <p class="mb-3 text-lg text-on-surface-secondary">
           {{ len . }} models we have approved for other work are not allowed to write them:
         </p>
         <div class="mb-8 flex flex-wrap gap-2">
           {{ range . }}<span class="tag tag-copper">{{ .id }}</span>{{ end }}
         </div>
+      {{ end }}
+
+      {{ with $writingStage }}
+        {{ $providers := partial "policy-banned-providers.html" (dict "stage" . "policy" $policy) }}
+        {{ with $providers }}
+          {{/* The rule is not a list of names, it is a test applied to the table
+               below - so show the test and what it currently resolves to, which
+               a reader can check for themselves. */}}
+          <p class="mb-8 text-sm text-on-surface-secondary">
+            The rule is not a list of names. Any provider whose watermarking state is
+            {{ range $i, $state := $writingStage.deny_watermarking }}{{ if $i }} or {{ end }}<span class="font-medium text-on-surface">{{ $state }}</span>{{ end }}
+            is refused, which today means
+            {{ range $i, $p := . }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}.
+          </p>
+        {{ end }}
       {{ end }}
 
       {{ with $writingStage }}
@@ -130,10 +149,16 @@
                     {{ range $i, $model := .priority }}
                       <span class="tag {{ if $i }}tag-outline{{ else }}tag-teal{{ end }}">{{ if $i }}or {{ end }}{{ $model }}</span>
                     {{ end }}
-                    {{ with partial "policy-barred.html" (dict "stage" . "policy" $policy) }}
+                    {{ with partial "policy-banned-providers.html" (dict "stage" . "policy" $policy) }}
                       <span class="text-xs text-on-surface-muted">
-                        not {{ range $i, $m := . }}{{ if $i }}, {{ end }}{{ $m.id }}{{ end }}
+                        never {{ range $i, $p := . }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}
                       </span>
+                    {{ else }}
+                      {{ with partial "policy-barred.html" (dict "stage" . "policy" $policy) }}
+                        <span class="text-xs text-on-surface-muted">
+                          not {{ range $i, $m := . }}{{ if $i }}, {{ end }}{{ $m.id }}{{ end }}
+                        </span>
+                      {{ end }}
                     {{ end }}
                   {{ end }}
                 </div>
