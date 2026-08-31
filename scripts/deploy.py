@@ -43,6 +43,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import yaml
+
 REPO = Path(__file__).resolve().parent.parent
 ZONE = "anomalica-site"
 STORAGE_API = "https://storage.bunnycdn.com"
@@ -56,6 +58,7 @@ AGE_KEY = Path.home() / ".config/sops/age/keys.txt"
 UPLOAD_WORKERS = 8
 
 CONTENT_REPO = REPO.parent / "content"
+REDIRECTS = REPO / "data/redirects.yaml"
 CONTENT_ROOTS = (REPO / "content/english", CONTENT_REPO / "pages")
 # One level of nesting, so a role description keeps its brackets: [[redacted]](/x).
 MARKDOWN_LINK = re.compile(r"\[((?:[^\[\]]|\[[^\]]*\])*)\]\((/[^)\s]*)\)")
@@ -215,6 +218,44 @@ def build(destination: Path, content_source: Path) -> None:
     finally:
         if committed is not None:
             stylesheet.write_bytes(committed)
+
+
+def apply_redirects(build_dir: Path) -> None:
+    """Write a redirect for every retired URL that no longer has a page.
+
+    Hugo's own aliases live in the destination page's front matter, which the
+    assembler regenerates on every write - so they can only carry a slug that
+    entity itself once had. A page merged INTO a different entity leaves a URL
+    no front matter will ever claim, and hand-adding one there has been undone
+    by a rebuild before. These live in this repo instead.
+
+    Skipped while a real page still occupies the path: an entry can be added
+    before the page is removed, and starts working by itself when it goes.
+    """
+    if not REDIRECTS.is_file():
+        return
+    entries = (yaml.safe_load(REDIRECTS.read_text()) or {}).get("redirects") or []
+    written = skipped = 0
+    for entry in entries:
+        source = entry["from"].strip("/")
+        target = entry["to"]
+        page = build_dir / source / "index.html"
+        if page.exists():
+            log(f"  redirect skipped, a page still serves /{source}/")
+            skipped += 1
+            continue
+        page.parent.mkdir(parents=True, exist_ok=True)
+        page.write_text(
+            '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            f"<title>{LIVE_ORIGIN}{target}</title>"
+            f'<link rel="canonical" href="{LIVE_ORIGIN}{target}">'
+            '<meta name="robots" content="noindex">'
+            f'<meta http-equiv="refresh" content="0; url={target}">'
+            f'</head><body><a href="{target}">{LIVE_ORIGIN}{target}</a></body></html>'
+        )
+        written += 1
+    if written or skipped:
+        log(f"  {written} retired URL(s) redirected, {skipped} still served by a page")
 
 
 def verify_assets_fingerprinted(build_dir: Path) -> None:
@@ -544,6 +585,7 @@ def main() -> int:
     try:
         content_source = snapshot_content(workspace / "content")
         build(build_dir, content_source)
+        apply_redirects(build_dir)
         log("Verifying the build")
         verify_assets_fingerprinted(build_dir)
         verify_no_dead_links(build_dir)

@@ -1,0 +1,24 @@
+# Retired URLs, kept working.
+#
+# A page that is merged away or renamed leaves its URL behind: links from other
+# sites, search results and anyone's bookmarks still point at it. The assembler
+# generates aliases from an entity's own naming history, which is the right
+# mechanism and covers renames - but it cannot cover a page that was merged into
+# a DIFFERENT entity, because the surviving node never carried that slug.
+#
+# This file is that gap, and it lives here rather than in content front matter
+# because front matter is regenerated on every write: hand-added aliases have
+# been destroyed by a rebuild before.
+#
+# Applied at deploy time, after the build. A redirect is SKIPPED while a real
+# page still occupies its path, so an entry can be added before the page is
+# removed and takes effect on its own once the page goes.
+#
+# `note` records why, so a later reader can tell a merge from a typo.
+
+redirects:
+  - from: /en/events/roswell-uap-crash/
+    to: /en/events/roswell-incident-1947/
+    note: >-
+      Merged 2026-09-01. Both pages served the 1947 Roswell event; this one was built from a 4-claim fragment, the survivor
+      holds 149 claims.
