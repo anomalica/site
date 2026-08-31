@@ -21,4 +21,9 @@ redirects:
     to: /en/events/roswell-incident-1947/
     note: >-
       Merged 2026-09-01. Both pages served the 1947 Roswell event; this one was built from a 4-claim fragment, the survivor
-      holds 149 claims.
+      holds 149 claims. #magic___^_^___line
+  - from: /en/topics/anomalous-aerial-vehicle-anomalous-aerial-vehicle-aav/
+    to: /en/topics/anomalous-aerial-vehicle-aav/
+    note: >-
+      Merged 2026-09-01. The slug carried the name with its acronym expanded twice; both pages served the same topic under
+      the same title.

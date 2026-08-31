@@ -506,6 +506,36 @@ def delete(key: str, relative: str) -> None:
         raise DeployError(f"delete {relative}: {status} {payload[:200]!r}")
 
 
+def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
+    """Refuse to turn a live page into a 404 without saying so out loud.
+
+    Deleting what the build no longer produces is right for a renamed asset and
+    wrong for a page: the URL is in search results and in other people's links.
+    A page that was merged away should leave a redirect behind, which means the
+    entry has to exist BEFORE the page is pruned - and the reverse order fails
+    silently, because a 404 nobody visits is a 404 nobody reports. This makes
+    the order impossible to get wrong by accident rather than asking people to
+    remember it.
+
+    A page that is genuinely retired with nowhere to send its readers is a real
+    case, so it passes with --accept-404s.
+    """
+    pages = [name for name in orphaned if name.endswith("index.html")]
+    if not pages:
+        return
+    log(f"  {len(pages)} live page(s) would stop existing:")
+    for name in pages:
+        log(f"    /{name[: -len('index.html')]}")
+    if accept:
+        log("  proceeding (--accept-404s)")
+        return
+    raise DeployError(
+        f"{len(pages)} page(s) would start returning 404. Add each to "
+        "data/redirects.yaml pointing at whatever replaced it, or pass "
+        "--accept-404s if the page is retired with nowhere to send readers."
+    )
+
+
 def in_parallel(action, items) -> None:
     with concurrent.futures.ThreadPoolExecutor(max_workers=UPLOAD_WORKERS) as pool:
         for future in concurrent.futures.as_completed(
@@ -578,6 +608,11 @@ def main() -> int:
     parser.add_argument(
         "--keep-build", action="store_true", help="do not remove the build directory"
     )
+    parser.add_argument(
+        "--accept-404s",
+        action="store_true",
+        help="allow removed pages to 404 rather than redirect",
+    )
     args = parser.parse_args()
 
     workspace = Path(tempfile.mkdtemp(prefix="anomalica-site-"))
@@ -606,6 +641,8 @@ def main() -> int:
             f"{len(local)} files built; {len(changed)} new or changed, "
             f"{len(orphaned)} to remove"
         )
+
+        check_removals(orphaned, build_dir, args.accept_404s)
 
         if args.dry_run:
             for name in sorted(changed)[:40]:
