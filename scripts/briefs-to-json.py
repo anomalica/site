@@ -15,6 +15,7 @@ after the first run.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import pathlib
 import sys
@@ -37,20 +38,32 @@ def main() -> int:
         return 1
     TARGET.mkdir(exist_ok=True)
 
+    # Keyed on CONTENT, not mtime: the deploy converts a fresh git snapshot
+    # whose files carry the commit's timestamps, so an mtime comparison would
+    # call an older-looking snapshot up to date and publish whatever happened
+    # to be converted last.
+    index_file = TARGET / ".source-hashes.json"
+    index = json.loads(index_file.read_text()) if index_file.is_file() else {}
+
     seen = set()
     converted = 0
     for brief in sorted(source.glob("*.yaml")):
         out = TARGET / f"{brief.stem}.json"
         seen.add(out.name)
-        if out.exists() and out.stat().st_mtime >= brief.stat().st_mtime:
+        digest = hashlib.sha256(brief.read_bytes()).hexdigest()
+        if out.exists() and index.get(brief.name) == digest:
             continue
         data = yaml.safe_load(brief.read_text(errors="replace"))
         out.write_text(json.dumps(data, default=str, ensure_ascii=False))
+        index[brief.name] = digest
         converted += 1
+    index_file.write_text(json.dumps(index, indent=0, sort_keys=True))
 
     # A brief that has been deleted must not linger as a page.
     removed = 0
     for stale in TARGET.glob("*.json"):
+        if stale.name == index_file.name:
+            continue
         if stale.name not in seen:
             stale.unlink()
             removed += 1
