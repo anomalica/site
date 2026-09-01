@@ -6,9 +6,10 @@
   "private": true,
   "scripts": {
     "vendor": "bash scripts/fetch-vendor.sh",
-    "predev": "npm run vendor",
+    "briefs": "python3 scripts/briefs-to-json.py",
+    "predev": "npm run vendor && npm run briefs",
     "dev": "concurrently \"npx @tailwindcss/cli -i assets/css/main.css -o assets/css/compiled.css --watch\" \"hugo server\"",
-    "prebuild": "npm run vendor",
+    "prebuild": "npm run vendor && npm run briefs",
     "build": "npx @tailwindcss/cli -i assets/css/main.css -o assets/css/compiled.css --minify && hugo --gc --minify -e production"
   },
   "devDependencies": {

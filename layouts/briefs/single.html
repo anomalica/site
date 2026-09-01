@@ -44,8 +44,8 @@
           <div class="flex flex-wrap items-baseline justify-between gap-x-4 py-3">
             <span class="font-ui text-sm text-on-surface">Claims</span>
             <span class="font-ui text-sm text-on-surface-secondary">
-              {{ if lt $page.claim_count $page.claim_count_total }}
-                {{ $page.claim_count }} of {{ $page.claim_count_total }} &mdash; this brief is cut short
+              {{ with $brief.truncated }}
+                {{ .kept }} of {{ .available }}
               {{ else }}
                 {{ $page.claim_count }}
               {{ end }}
@@ -62,11 +62,14 @@
           {{ end }}
         </div>
 
-        {{ if lt $page.claim_count $page.claim_count_total }}
+        {{ with $brief.truncated }}
+          {{/* Say WHY it is short in the brief's own words. A brief cut because
+               the subject is too large and one cut because we chose to narrate
+               from the closest sources are different facts, and a generic "cut
+               short" would collapse them. */}}
           <p class="mb-8 rounded-lg border-l-2 border-accent bg-surface-alt p-4 text-sm text-on-surface">
-            This brief holds {{ $page.claim_count }} of the {{ $page.claim_count_total }} claims on
-            this subject. The rest were not passed to the writer, so the article was written
-            from what is listed here and not from everything known.
+            This brief holds {{ .kept }} of the {{ .available }} claims on this subject:
+            {{ .why }}. The article was written from what is listed here.
           </p>
         {{ end }}
 

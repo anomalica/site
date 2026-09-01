@@ -22,3 +22,4 @@ yarn.lock
 assets/js/*.min.js
 __pycache__
 .deploy-link-state.json
+.briefs-json

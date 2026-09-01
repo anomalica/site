@@ -177,6 +177,17 @@ def module_override(content_source: Path, path: Path) -> Path:
 def build(destination: Path, content_source: Path) -> None:
     log(f"Building into {destination}")
     subprocess.run(["npm", "run", "vendor", "--silent"], cwd=REPO, check=True)
+    # Briefs are converted from the SNAPSHOT, not the working tree: the tree
+    # holds briefs the assembler is still writing.
+    subprocess.run(
+        [
+            sys.executable,
+            str(REPO / "scripts/briefs-to-json.py"),
+            str(content_source / "briefs"),
+        ],
+        cwd=REPO,
+        check=True,
+    )
     # The committed compiled.css is the readable build the dev server watches.
     # Minifying writes over it in place, so it is put back afterwards: a deploy
     # must not leave the working tree dirty.
