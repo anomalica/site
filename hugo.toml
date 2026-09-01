@@ -235,6 +235,12 @@ target = "data/format_specs.yaml"
 source = "../anomalica/reference/architecture.yaml"
 target = "data/architecture.yaml"
 
+# One brief per article: the claims the writer was given. Mounted rather than
+# copied, and read by the content adapter that creates a page for each.
+[[module.mounts]]
+source = "../content/briefs"
+target = "data/briefs"
+
 # The model policy is the source of truth for what the pipeline may dispatch,
 # and the public page is generated from it so the two cannot disagree.
 [[module.mounts]]

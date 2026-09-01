@@ -1,0 +1,21 @@
+{{- /* One page per brief.
+
+     A brief is the list of claims the writer was given for an article - the
+     step between the sources and the prose, which was previously invisible.
+     The files live in the content repo and are mounted as data; this creates a
+     page for each so a reader can be linked to one.
+
+     Only the slug and title go into page params: the brief itself is looked up
+     from site.Data.briefs in the layout, so 52MB of claims is not copied into
+     every page's parameters. */ -}}
+{{ range $slug, $brief := site.Data.briefs }}
+  {{ with $brief.page }}
+    {{/* "path" is relative to this section - "briefs/x" would nest a second one. */}}
+    {{ $.AddPage (dict
+      "path" $slug
+      "kind" "page"
+      "title" .title
+      "params" (dict "slug" $slug "node_type" .node_type)
+    ) }}
+  {{ end }}
+{{ end }}

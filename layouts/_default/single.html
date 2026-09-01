@@ -32,6 +32,24 @@
       </div>
 
       {{ partial "article-references.html" . }}
+
+      {{/* The brief is the list of claims this article was written from - the
+           step between the sources and the prose. A quiet line rather than a
+           call to action: it is for the reader who wants to know how the page
+           came about, and invisible to everyone else. Shown even when there is
+           no brief, because a missing one is a true fact about the article. */}}
+      {{/* The brief is keyed by the page's slug. Taken from the URL rather than
+           the filename, which carries the language code ("edward-ruppelt.en"). */}}
+      {{ $slug := path.Base .RelPermalink }}
+      {{ $brief := index site.Data.briefs $slug }}
+      <p class="mt-10 text-sm text-on-surface-muted">
+        {{ if $brief }}
+          Written from a brief of {{ $brief.page.claim_count }} claims &mdash;
+          <a href="{{ printf "/briefs/%s/" $slug | relLangURL }}" class="text-primary hover:underline">see how this article was generated</a>.
+        {{ else }}
+          The brief this article was written from has not been published.
+        {{ end }}
+      </p>
     </div>
   </article>
 {{ end }}

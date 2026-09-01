@@ -1,0 +1,102 @@
+{{- /* One brief: the claims an article was written from.
+
+     The brief is the step between the sources and the prose. Everything else on
+     the site shows the output; this shows the input, so the chain a reader can
+     follow runs article -> citation -> claim -> the whole set the writer had.
+
+     It is an audit artefact, so it is rendered and not interpreted. The claims
+     appear in the order the writer received them, with the wording they were
+     given and the record each came from. Nothing is summarised, ranked or
+     hidden. The one liberty taken is translating the review vocabulary -
+     "suspect_excluded" is not a phrase a reader should have to decode. */ -}}
+{{ define "main" }}
+  {{ $brief := index site.Data.briefs .Params.slug }}
+  {{ $sections := dict "person" "people" "organisation" "organisations" "event" "events" "project" "projects" "object" "objects" "place" "places" "topic" "topics" "document" "documents" }}
+  {{ $article := "" }}
+  {{ with index $sections .Params.node_type }}{{ $article = printf "/%s/%s/" . $.Params.slug }}{{ end }}
+
+  <article class="bg-surface pt-14 pb-16">
+    <div class="mx-auto max-w-3xl px-6">
+      <p class="section-label mb-2">Brief</p>
+      <h1 class="mb-3 text-3xl font-semibold">{{ .Title }}</h1>
+
+      {{ if not $brief }}
+        {{/* A missing brief is a true fact about an article, not an error to hide. */}}
+        <p class="text-on-surface-secondary">
+          The brief for this article has not been published.
+        </p>
+      {{ else }}
+        {{ $page := $brief.page }}
+        <p class="mb-8 max-w-2xl text-lg text-on-surface-secondary">
+          The claims the writer was given for
+          {{ with $article }}<a href="{{ . | relLangURL }}" class="text-primary hover:underline">{{ $.Title }}</a>{{ else }}{{ $.Title }}{{ end }},
+          in the order they were given.
+        </p>
+
+        <div class="mb-8 divide-y divide-border border-y border-border">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-4 py-3">
+            <span class="font-ui text-sm text-on-surface">Claims</span>
+            <span class="font-ui text-sm text-on-surface-secondary">
+              {{ if lt $page.claim_count $page.claim_count_total }}
+                {{ $page.claim_count }} of {{ $page.claim_count_total }} &mdash; this brief is cut short
+              {{ else }}
+                {{ $page.claim_count }}
+              {{ end }}
+            </span>
+          </div>
+          {{ with $brief.belonging }}
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 py-3">
+              <span class="font-ui text-sm text-on-surface">Checked by a person</span>
+              <span class="font-ui text-sm text-on-surface-secondary">
+                {{ .verified }} confirmed as belonging here, {{ .unreviewed }} not yet read
+                {{ with .suspect_excluded }}, {{ . }} read and judged not to belong{{ end }}
+              </span>
+            </div>
+          {{ end }}
+        </div>
+
+        {{ if lt $page.claim_count $page.claim_count_total }}
+          <p class="mb-8 rounded-lg border-l-2 border-accent bg-surface-alt p-4 text-sm text-on-surface">
+            This brief holds {{ $page.claim_count }} of the {{ $page.claim_count_total }} claims on
+            this subject. The rest were not passed to the writer, so the article was written
+            from what is listed here and not from everything known.
+          </p>
+        {{ end }}
+
+        <ol class="divide-y divide-border border-t border-border">
+          {{ range $i, $claim := $brief.claims }}
+            <li id="claim-{{ .claim_id }}" class="scroll-mt-24 py-5">
+              <p class="mb-1 font-ui text-xs text-on-surface-muted">{{ add $i 1 }}</p>
+              <p class="text-on-surface">{{ .content }}</p>
+
+              {{ with .original_excerpt }}
+                <blockquote class="mt-2 border-l-2 border-border pl-3 text-sm italic text-on-surface-secondary">
+                  &ldquo;{{ . }}&rdquo;
+                </blockquote>
+              {{ end }}
+
+              <p class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-on-surface-muted">
+                {{ with .provenance }}
+                  {{ with .record_title }}<span class="text-on-surface-secondary">{{ . }}</span>{{ end }}
+                  {{ with .record_date }}<span>{{ . }}</span>{{ end }}
+                {{ end }}
+                {{ with .location_in_record }}<span>{{ . }}</span>{{ end }}
+                {{ with .claim_type }}<span>{{ . }}</span>{{ end }}
+                {{ with .attestation }}<span>{{ . | replaceRE "_" " " }}</span>{{ end }}
+                {{/* Same deep link the article's references use: the claim in the
+                     review app, against the record it came from. */}}
+                {{ with .provenance }}
+                  {{ with .content_hash }}
+                    <a href="{{ printf "%s/%s#claim-%s" site.Params.workbenchUrl (substr (strings.TrimPrefix "sha256:" .) 0 56) $claim.claim_id }}"
+                       target="_blank" rel="noopener"
+                       class="ml-auto text-primary hover:underline">View this claim &rarr;</a>
+                  {{ end }}
+                {{ end }}
+              </p>
+            </li>
+          {{ end }}
+        </ol>
+      {{ end }}
+    </div>
+  </article>
+{{ end }}
