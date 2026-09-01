@@ -17,6 +17,7 @@
      d description, u url, l section label, g tags. */ -}}
 {{- $entries := slice -}}
 {{- range site.RegularPages -}}
+  {{- if eq .Section "briefs" }}{{ continue }}{{ end -}}
   {{- $tags := slice -}}
   {{- range .Params.tags }}{{ $tags = $tags | append . }}{{ end -}}
   {{- $entries = $entries | append (dict
@@ -27,6 +28,7 @@
       "g" $tags) -}}
 {{- end -}}
 {{- range site.Sections -}}
+  {{- if eq .Section "briefs" }}{{ continue }}{{ end -}}
   {{- if .Pages -}}
     {{- $entries = $entries | append (dict
         "t" .Title

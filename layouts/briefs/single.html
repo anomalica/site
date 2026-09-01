@@ -12,8 +12,15 @@
 {{ define "main" }}
   {{ $brief := index site.Data.briefs .Params.slug }}
   {{ $sections := dict "person" "people" "organisation" "organisations" "event" "events" "project" "projects" "object" "objects" "place" "places" "topic" "topics" "document" "documents" }}
+  {{/* A brief exists for every entity in the graph; an article does not. Link
+       back only when the article is actually built, the same existence gate the
+       rest of the site uses - otherwise a brief for an unwritten article points
+       at nothing. */}}
   {{ $article := "" }}
-  {{ with index $sections .Params.node_type }}{{ $article = printf "/%s/%s/" . $.Params.slug }}{{ end }}
+  {{ with index $sections .Params.node_type }}
+    {{ $path := printf "/%s/%s/" . $.Params.slug }}
+    {{ if site.GetPage $path }}{{ $article = $path }}{{ end }}
+  {{ end }}
 
   <article class="bg-surface pt-14 pb-16">
     <div class="mx-auto max-w-3xl px-6">
