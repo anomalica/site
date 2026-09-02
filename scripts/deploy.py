@@ -59,6 +59,8 @@ UPLOAD_WORKERS = 8
 
 CONTENT_REPO = REPO.parent / "content"
 REDIRECTS = REPO / "data/redirects.yaml"
+DIAGRAM_SOURCE = REPO.parent / "anomalica/reference/pipeline.mmd"
+DIAGRAM_SVG = REPO / "assets/architecture/pipeline.svg"
 CONTENT_ROOTS = (REPO / "content/english", CONTENT_REPO / "pages")
 # One level of nesting, so a role description keeps its brackets: [[redacted]](/x).
 MARKDOWN_LINK = re.compile(r"\[((?:[^\[\]]|\[[^\]]*\])*)\]\((/[^)\s]*)\)")
@@ -101,6 +103,74 @@ def secret(key: str) -> str:
             f"could not read {key} from the Safe: {result.stderr.strip()}"
         )
     return result.stdout.strip()
+
+
+def check_diagram_current() -> None:
+    """Refuse to publish an architecture diagram that has drifted from its source.
+
+    The diagram is authored in the meta-repo as mermaid and pre-rendered to SVG
+    here, because rendering it needs a browser and the site must load no runtime
+    mermaid. Nothing connects the two: a change to the source is only reflected
+    when someone remembers to re-render, and one went unnoticed for seven weeks -
+    the public page was missing a whole node of the pipeline.
+
+    Compares node ids AND their labels. Ids alone would have passed the drift
+    that prompted this, which was a label change with no node change.
+
+    It reports; it does not re-render. Rendering needs a browser with the right
+    font loaded, and a silent re-render at deploy time is how a clipped diagram
+    ships without anyone looking at it.
+    """
+    if not DIAGRAM_SOURCE.is_file() or not DIAGRAM_SVG.is_file():
+        log("  diagram check skipped: source or rendered copy missing")
+        return
+
+    source = dict(
+        re.findall(
+            r'^\s*(\w+)@\{\s*shape:\s*[\w-]+,\s*label:\s*"([^"]*)"',
+            DIAGRAM_SOURCE.read_text(),
+            re.M,
+        )
+    )
+
+    svg = DIAGRAM_SVG.read_text()
+    # Node ids carry a render-order suffix that changes whenever the diagram
+    # gains a node, so they are matched by name - as the page's own script does.
+    starts = [
+        (m.start(), m.group(1))
+        for m in re.finditer(r'id="al-flowchart-(.+?)-\d+"', svg)
+    ]
+    rendered: dict[str, str] = {}
+    for index, (position, node) in enumerate(starts):
+        end = starts[index + 1][0] if index + 1 < len(starts) else len(svg)
+        label = re.search(
+            r'class="nodeLabel[^"]*"[^>]*>(.*?)</span>', svg[position:end], re.S
+        )
+        if label:
+            text = re.sub(r"<[^>]+>", " ", label.group(1))
+            rendered[node] = " ".join(text.split())
+
+    missing = sorted(set(source) - set(rendered))
+    extra = sorted(set(rendered) - set(source))
+    changed = sorted(
+        f"{node}: rendered {rendered[node]!r}, source {source[node]!r}"
+        for node in set(source) & set(rendered)
+        if " ".join(source[node].split()) != rendered[node]
+    )
+    if not (missing or extra or changed):
+        log(f"  diagram matches its source ({len(source)} nodes)")
+        return
+
+    for node in missing:
+        log(f"    in the source, not rendered: {node}")
+    for node in extra:
+        log(f"    rendered, not in the source: {node}")
+    for line in changed:
+        log(f"    label differs, {line}")
+    raise DeployError(
+        "the architecture diagram has drifted from anomalica/reference/pipeline.mmd. "
+        "Re-render it per assets/architecture/README.md, look at the result, then deploy."
+    )
 
 
 # --- the content repo -------------------------------------------------------
@@ -629,6 +699,7 @@ def main() -> int:
     workspace = Path(tempfile.mkdtemp(prefix="anomalica-site-"))
     build_dir = workspace / "site"
     try:
+        check_diagram_current()
         content_source = snapshot_content(workspace / "content")
         build(build_dir, content_source)
         apply_redirects(build_dir)
