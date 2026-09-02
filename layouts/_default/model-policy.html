@@ -178,9 +178,24 @@
               <span class="font-ui text-xs text-on-surface-muted">
                 {{ .provider }}
                 {{ with .context }}
-                  &middot; {{ if ge . 1000000 }}{{ lang.FormatNumber 0 (div (float .) 1000000) }}M{{ else }}{{ lang.FormatNumber 0 (div (float .) 1000) }}k{{ end }} context
+                  &middot;
+                  {{ if ge . 1000000 }}{{ lang.FormatNumber 0 (div (float .) 1000000) }}M
+                  {{ else if ge . 1000 }}{{ lang.FormatNumber 0 (div (float .) 1000) }}k
+                  {{ else }}{{ . }}
+                  {{ end }}
+                  context
                 {{ end }}
-                {{ with .price }}&middot; ${{ .input }} / ${{ .output }} per million tokens{{ end }}
+                {{/* A zero price is not a cheap model, it is a model no provider
+                     bills us for - printing "$0 / $0 per million tokens" reads
+                     as a suspiciously good deal rather than as what it is. */}}
+                {{ with .price }}
+                  &middot;
+                  {{ if and (eq (float .input) 0.0) (eq (float .output) 0.0) }}
+                    no per-token cost
+                  {{ else }}
+                    ${{ .input }} / ${{ .output }} per million tokens
+                  {{ end }}
+                {{ end }}
               </span>
             </div>
 
@@ -188,9 +203,16 @@
               <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ .status }}</span>
               {{ $state := "" }}
               {{ with index $policy.watermarking .provider }}{{ $state = .state }}{{ end }}
-              {{ if $mayWrite }}
+              {{/* "May write articles" earns its place only on a model that
+                   actually does: a 512-token classifier is permitted in the
+                   sense that its provider is clean, and saying so about a
+                   model that cannot write a sentence makes the chip mean less
+                   where it matters. Being BARRED is always worth saying. */}}
+              {{ $writesForReaders := false }}
+              {{ range $uses }}{{ if .reader_facing }}{{ $writesForReaders = true }}{{ end }}{{ end }}
+              {{ if and $mayWrite $writesForReaders }}
                 <span class="tag tag-teal">may write articles</span>
-              {{ else }}
+              {{ else if not $mayWrite }}
                 {{/* Name the state that bars it: "not for articles" alone invites
                      the reader to assume the provider watermarks, and for one of
                      them that is not what the evidence says. */}}
