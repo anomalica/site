@@ -32,3 +32,8 @@ redirects:
   - from: /en/briefs/artificial-intelligence/
     to: /en/briefs/artificial-intelligence-ai/
     note: "Renamed 2026-09-02. Same subject; the slug gained its acronym when the node was canonicalised."
+  - from: /en/organisations/australian-department-of-defence/
+    gone: true
+    note: "Retired 2026-09-02. The node holds no claims and its four citations died when a bad alias was stripped, so nothing
+      can rebuild it. Not redirected to the US Department of Defense page: the article was about the Australian department,
+      and a wrong destination is worse than a gone one."

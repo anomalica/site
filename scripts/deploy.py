@@ -318,6 +318,11 @@ def apply_redirects(build_dir: Path) -> None:
     entries = (yaml.safe_load(REDIRECTS.read_text()) or {}).get("redirects") or []
     written = skipped = 0
     for entry in entries:
+        # A retired URL with nowhere to send readers is recorded here too, so
+        # the removal is a decision on the record rather than a flag someone
+        # remembers to pass. It gets no redirect file: the page simply goes.
+        if entry.get("gone"):
+            continue
         source = entry["from"].strip("/")
         target = entry["to"]
         page = build_dir / source / "index.html"
@@ -587,6 +592,14 @@ def delete(key: str, relative: str) -> None:
         raise DeployError(f"delete {relative}: {status} {payload[:200]!r}")
 
 
+def retired_urls() -> set[str]:
+    """URLs recorded as intentionally gone, with no replacement."""
+    if not REDIRECTS.is_file():
+        return set()
+    entries = (yaml.safe_load(REDIRECTS.read_text()) or {}).get("redirects") or []
+    return {e["from"].strip("/") + "/index.html" for e in entries if e.get("gone")}
+
+
 def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
     """Refuse to turn a live page into a 404 without saying so out loud.
 
@@ -601,7 +614,15 @@ def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
     A page that is genuinely retired with nowhere to send its readers is a real
     case, so it passes with --accept-404s.
     """
-    pages = [name for name in orphaned if name.endswith("index.html")]
+    retired = retired_urls()
+    pages = [
+        name for name in orphaned if name.endswith("index.html") and name not in retired
+    ]
+    acknowledged = [name for name in orphaned if name in retired]
+    for name in acknowledged:
+        log(
+            f"  retiring /{name[: -len('index.html')]} as recorded in data/redirects.yaml"
+        )
     if not pages:
         return
     log(f"  {len(pages)} live page(s) would stop existing:")
@@ -612,8 +633,9 @@ def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
         return
     raise DeployError(
         f"{len(pages)} page(s) would start returning 404. Add each to "
-        "data/redirects.yaml pointing at whatever replaced it, or pass "
-        "--accept-404s if the page is retired with nowhere to send readers."
+        "data/redirects.yaml - with a target if something replaced it, or "
+        "gone: true and a note if nothing did - or pass --accept-404s for a "
+        "one-off."
     )
 
 
