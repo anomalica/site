@@ -98,10 +98,17 @@
        a model does not mark its own homework - and finding it this way means it
        survives the stage being renamed, and stops being claimed if the denial
        is ever dropped. */}}
+  {{/* The stage that writes ARTICLES, by id. "reader-facing" used to identify
+       it on its own and no longer does: ingest became reader-facing too, and
+       taking the first such stage named the ingestion model as the writer of
+       the site. Fails loudly rather than quietly naming the wrong model. */}}
   {{ $writer := false }}
   {{ $checker := false }}
   {{ range $policy.stages }}
-    {{ if and .reader_facing .priority }}{{ if not $writer }}{{ $writer = . }}{{ end }}{{ end }}
+    {{ if eq .id "assemble" }}{{ $writer = . }}{{ end }}
+  {{ end }}
+  {{ if not $writer }}
+    {{ errorf "no stage with id \"assemble\" in the model policy: the page cannot say what writes the articles." }}
   {{ end }}
   {{ with $writer }}
     {{ $writerModel := index .priority 0 }}
