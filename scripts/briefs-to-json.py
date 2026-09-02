@@ -17,6 +17,14 @@ The output mirrors the page's own two halves - .briefs-json/<section>/<slug>
 both be called "Apollo 14". The source is moving to the same shape; until it
 does, the section is taken from the brief's own node type, so both layouts
 convert to the same output and the move changes nothing here.
+
+The brief's stored page title is replaced with the article's own, because the
+stored one is a snapshot of the name the article had when the brief was
+written. Rename an article and the brief goes on heading itself, and labelling
+its own link to the article, with a name the article no longer uses. Hugo
+cannot do this substitution itself: the pages do not exist yet while the
+content adapter that creates the brief pages is running. A brief whose article
+was never assembled keeps its stored title, which is all there is.
 """
 
 from __future__ import annotations
@@ -32,6 +40,27 @@ DEFAULT_SOURCE = (
     pathlib.Path(__file__).resolve().parent.parent.parent / "content/briefs"
 )
 TARGET = pathlib.Path(__file__).resolve().parent.parent / ".briefs-json"
+
+
+def article_title(pages: pathlib.Path, section: str, slug: str) -> str | None:
+    """The name the article gives itself, or None if it was never assembled."""
+    article = pages / section / f"{slug}.en.md"
+    try:
+        text = article.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    if not text.startswith("---\n"):
+        return None
+    end = text.find("\n---", 4)
+    if end == -1:
+        return None
+    try:
+        front = yaml.safe_load(text[4:end])
+    except yaml.YAMLError:
+        return None
+    title = (front or {}).get("title")
+    return title if isinstance(title, str) and title else None
+
 
 # A node type names a thing; a section names where its pages live.
 SECTION_OF = {
@@ -54,6 +83,10 @@ def main() -> int:
     if not source.is_dir():
         print(f"no briefs at {source}", file=sys.stderr)
         return 1
+    # The articles sit beside the briefs in the same repo, and in the deploy's
+    # case in the same snapshot, so the pages a brief is named after are always
+    # the ones this conversion is being run against.
+    pages = source.parent / "pages"
     TARGET.mkdir(exist_ok=True)
 
     # Keyed on CONTENT, not mtime: the deploy converts a fresh git snapshot
@@ -74,7 +107,6 @@ def main() -> int:
             raw = brief.read_bytes()
         except FileNotFoundError:
             continue
-        digest = hashlib.sha256(raw).hexdigest()
         cached = index.get(str(brief.relative_to(source)))
         section = brief.parent.name if brief.parent != source else None
         data = None
@@ -84,12 +116,20 @@ def main() -> int:
             if section is None:
                 unplaced.append(brief.name)
                 continue
+        # The article's name is part of what this converts, so a rename has to
+        # invalidate the cache the same way an edit to the brief itself does.
+        title = article_title(pages, section, brief.stem)
+        digest = hashlib.sha256(raw + b"\0" + (title or "").encode()).hexdigest()
         out = TARGET / section / f"{brief.stem}.json"
         seen.add(f"{section}/{out.name}")
         if out.exists() and cached == digest:
             continue
         if data is None:
             data = yaml.safe_load(raw.decode(errors="replace"))
+        if title:
+            page = (data or {}).get("page")
+            if isinstance(page, dict):
+                page["title"] = title
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(data, default=str, ensure_ascii=False))
         index[str(brief.relative_to(source))] = digest
