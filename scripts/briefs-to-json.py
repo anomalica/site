@@ -11,6 +11,12 @@ reads, not the format the pipeline writes.
 Converting here rather than asking for a second emission keeps one source of
 truth in the content repo. Unchanged files are skipped, so this costs nothing
 after the first run.
+
+The output mirrors the page's own two halves - .briefs-json/<section>/<slug>
+- because a slug is only unique WITHIN a section: an event and a project can
+both be called "Apollo 14". The source is moving to the same shape; until it
+does, the section is taken from the brief's own node type, so both layouts
+convert to the same output and the move changes nothing here.
 """
 
 from __future__ import annotations
@@ -26,6 +32,18 @@ DEFAULT_SOURCE = (
     pathlib.Path(__file__).resolve().parent.parent.parent / "content/briefs"
 )
 TARGET = pathlib.Path(__file__).resolve().parent.parent / ".briefs-json"
+
+# A node type names a thing; a section names where its pages live.
+SECTION_OF = {
+    "person": "people",
+    "organisation": "organisations",
+    "event": "events",
+    "project": "projects",
+    "object": "objects",
+    "place": "places",
+    "topic": "topics",
+    "document": "documents",
+}
 
 
 def main() -> int:
@@ -47,29 +65,56 @@ def main() -> int:
 
     seen = set()
     converted = 0
-    for brief in sorted(source.glob("*.yaml")):
-        out = TARGET / f"{brief.stem}.json"
-        seen.add(out.name)
-        digest = hashlib.sha256(brief.read_bytes()).hexdigest()
-        if out.exists() and index.get(brief.name) == digest:
+    unplaced = []
+    # Both layouts: <slug>.yaml today, <section>/<slug>.yaml after the move.
+    for brief in sorted([*source.glob("*.yaml"), *source.glob("*/*.yaml")]):
+        # The pipeline writes into this directory while we read it, so a file
+        # listed a moment ago can be gone by the time we open it.
+        try:
+            raw = brief.read_bytes()
+        except FileNotFoundError:
             continue
-        data = yaml.safe_load(brief.read_text(errors="replace"))
+        digest = hashlib.sha256(raw).hexdigest()
+        cached = index.get(str(brief.relative_to(source)))
+        section = brief.parent.name if brief.parent != source else None
+        data = None
+        if section is None:
+            data = yaml.safe_load(raw.decode(errors="replace"))
+            section = SECTION_OF.get(((data or {}).get("page") or {}).get("node_type"))
+            if section is None:
+                unplaced.append(brief.name)
+                continue
+        out = TARGET / section / f"{brief.stem}.json"
+        seen.add(f"{section}/{out.name}")
+        if out.exists() and cached == digest:
+            continue
+        if data is None:
+            data = yaml.safe_load(raw.decode(errors="replace"))
+        out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(data, default=str, ensure_ascii=False))
-        index[brief.name] = digest
+        index[str(brief.relative_to(source))] = digest
         converted += 1
     index_file.write_text(json.dumps(index, indent=0, sort_keys=True))
 
     # A brief that has been deleted must not linger as a page.
     removed = 0
-    for stale in TARGET.glob("*.json"):
-        if stale.name == index_file.name:
-            continue
-        if stale.name not in seen:
+    for stale in TARGET.glob("*/*.json"):
+        if f"{stale.parent.name}/{stale.name}" not in seen:
             stale.unlink()
             removed += 1
+    for orphan in TARGET.glob("*.json"):
+        # Left by the flat layout this script used to write.
+        if orphan.name != index_file.name:
+            orphan.unlink()
+            removed += 1
 
+    if unplaced:
+        print(
+            f"WARNING: {len(unplaced)} brief(s) with no known node type: {unplaced[:5]}",
+            file=sys.stderr,
+        )
     print(f"briefs: {converted} converted, {removed} removed, {len(seen)} total")
-    return 0
+    return 1 if unplaced else 0
 
 
 if __name__ == "__main__":

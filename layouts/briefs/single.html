@@ -10,17 +10,15 @@
      hidden. The one liberty taken is translating the review vocabulary -
      "suspect_excluded" is not a phrase a reader should have to decode. */ -}}
 {{ define "main" }}
-  {{ $brief := index site.Data.briefs .Params.slug }}
-  {{ $sections := dict "person" "people" "organisation" "organisations" "event" "events" "project" "projects" "object" "objects" "place" "places" "topic" "topics" "document" "documents" }}
+  {{ $brief := index site.Data.briefs .Params.section .Params.slug }}
   {{/* A brief exists for every entity in the graph; an article does not. Link
        back only when the article is actually built, the same existence gate the
        rest of the site uses - otherwise a brief for an unwritten article points
-       at nothing. */}}
+       at nothing. The brief's section IS the article's section, so no node-type
+       mapping is needed here any more. */}}
   {{ $article := "" }}
-  {{ with index $sections .Params.node_type }}
-    {{ $path := printf "/%s/%s/" . $.Params.slug }}
-    {{ if site.GetPage $path }}{{ $article = $path }}{{ end }}
-  {{ end }}
+  {{ $path := printf "/%s/%s/" .Params.section .Params.slug }}
+  {{ if site.GetPage $path }}{{ $article = $path }}{{ end }}
 
   <article class="bg-surface pt-14 pb-16">
     <div class="mx-auto max-w-3xl px-6">

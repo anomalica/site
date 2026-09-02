@@ -37,7 +37,7 @@
            even when there is no brief: a missing one is a true fact about the
            article. */}}
       {{ $slug := path.Base .RelPermalink }}
-      {{ $brief := index site.Data.briefs $slug }}
+      {{ $brief := index site.Data.briefs .Section $slug }}
       <p class="mt-10 text-sm text-on-surface-muted">
         {{ if $brief }}
           This article was generated from
