@@ -615,8 +615,24 @@ def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
     case, so it passes with --accept-404s.
     """
     retired = retired_urls()
+    # Brief pages are exempt, and only brief pages. They are generated per graph
+    # node, so they appear and vanish as the graph is merged and pruned - 42 in
+    # one deploy - and blocking on each would train whoever runs this to pass
+    # --accept-404s by reflex, which is the guard's own failure mode. They are
+    # safe to lose: nothing links to one except its article, and that link is
+    # existence-gated, so it degrades to "the brief has not been published"
+    # rather than a dead link. An ARTICLE url is the thing a reader keeps.
+    briefs = {
+        name
+        for name in orphaned
+        if name.startswith("en/briefs/") and name.endswith("index.html")
+    }
+    if briefs:
+        log(f"  {len(briefs)} brief page(s) removed with their graph nodes")
     pages = [
-        name for name in orphaned if name.endswith("index.html") and name not in retired
+        name
+        for name in orphaned
+        if name.endswith("index.html") and name not in retired and name not in briefs
     ]
     acknowledged = [name for name in orphaned if name in retired]
     for name in acknowledged:
