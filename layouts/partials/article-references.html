@@ -4,16 +4,13 @@
      <sup>N</sup> citations 1-indexed into references. Shared by the entity
      single template and the record digest template. */}}
 {{ with .Params.references }}
-  {{/* Open by default. Closed, this was one faint grey line at the end of the
-       article, and every per-reference link to the claim in the workbench sat
-       behind it - so the page-level workbench button, which is now gone, read
-       as the only way to check anything. On a site whose argument is that every
-       sentence traces to a source, the sources should not be a disclosure the
-       reader has to think to open. It still folds away for anyone who wants it
-       out of the way. */}}
-  <details id="references" class="mt-12 border-t border-border pt-6" open>
+  {{/* Closed by default: an article of 40 references opened to a wall of source
+       text the reader had not asked for, pushing everything else off the page.
+       A reader who follows a citation never has to open this by hand - clicking
+       one expands the list and scrolls to the reference it belongs to. */}}
+  <details id="references" class="mt-12 border-t border-border pt-6">
     <summary class="mb-4 cursor-pointer select-none font-ui text-base font-semibold text-on-surface">
-      References <span class="font-normal text-on-surface-muted">({{ len . }}) &middot; each links to the claim it came from</span>
+      References <span class="font-normal text-on-surface-muted">({{ len . }}) &middot; each quote links to the claim it came from</span>
     </summary>
     <ol class="list-decimal space-y-3 pl-4 text-sm mt-3">
       {{ range $i, $r := . }}
@@ -30,10 +27,28 @@
             <span id="claim-{{ . }}" class="block scroll-mt-24" aria-hidden="true"></span>
           {{ end }}
           <div>{{ .text }}</div>
+          {{/* The quote IS the link. A record page carries only some of the
+               claims drawn from its source, so for most references the review
+               app is the only place the cited claim can be read against the
+               document it came from. The claim TEXT above is our own paraphrase
+               and public for every record; the verbatim quote and the source
+               body stay behind the possession gate, which the review app
+               applies when it builds its snapshot rather than relying on this
+               link being hidden. The reader is following a citation, not being
+               asked to review. */}}
           {{ with .quote }}
-            <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-muted">
-              &ldquo;{{ . }}&rdquo;
-            </blockquote>
+            {{ $quote := . }}
+            {{ with $r.workbench_url }}
+              <a href="{{ . }}" target="_blank" rel="noopener" class="mt-1 block" title="See this claim against its source">
+                <blockquote class="pl-3 border-l-2 border-border text-xs italic text-on-surface-secondary transition-colors hover:border-primary hover:text-on-surface">
+                  &ldquo;{{ $quote }}&rdquo;
+                </blockquote>
+              </a>
+            {{ else }}
+              <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-muted">
+                &ldquo;{{ $quote }}&rdquo;
+              </blockquote>
+            {{ end }}
           {{ end }}
           <div class="mt-1 text-xs flex flex-wrap items-center gap-x-2">
             {{ with .source }}
@@ -60,20 +75,6 @@
                   View the source record &rarr;
                 </a>
               {{ end }}
-            {{ end }}
-            {{/* A record page is a summary and carries only some of the claims
-                 drawn from its source, so for most references the workbench is
-                 the ONLY place the cited claim can be read - with the gate that
-                 used to hide this link, 8,268 of them had nowhere to go. The
-                 claim TEXT is our own paraphrase and public for every record;
-                 the verbatim quote and the source body stay behind the
-                 possession gate, which the workbench applies when it builds its
-                 snapshot rather than relying on this link being hidden.
-                 The reader is following a citation, not being asked to review. */}}
-            {{ with .workbench_url }}
-              <a href="{{ . }}" target="_blank" rel="noopener" class="text-primary hover:underline" title="See this claim against its source">
-                View this claim &rarr;
-              </a>
             {{ end }}
           </div>
         </li>

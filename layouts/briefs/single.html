@@ -77,10 +77,29 @@
               <p class="mb-1 font-ui text-xs text-on-surface-muted">{{ add $i 1 }}</p>
               <p class="text-on-surface">{{ .content }}</p>
 
+              {{/* Same deep link the article's references use: the claim in the
+                   review app, against the record it came from. The quote itself
+                   carries it - the excerpt is the thing a reader wants to check,
+                   so it is the thing that opens the source. */}}
+              {{ $wb := "" }}
+              {{ with .provenance }}
+                {{ with .content_hash }}
+                  {{ $wb = printf "%s/%s#claim-%s" site.Params.workbenchUrl (substr (strings.TrimPrefix "sha256:" .) 0 56) $claim.claim_id }}
+                {{ end }}
+              {{ end }}
               {{ with .original_excerpt }}
-                <blockquote class="mt-2 border-l-2 border-border pl-3 text-sm italic text-on-surface-secondary">
-                  &ldquo;{{ . }}&rdquo;
-                </blockquote>
+                {{ $excerpt := . }}
+                {{ with $wb }}
+                  <a href="{{ . }}" target="_blank" rel="noopener" class="mt-2 block" title="See this claim against its source">
+                    <blockquote class="border-l-2 border-border pl-3 text-sm italic text-on-surface-secondary transition-colors hover:border-primary hover:text-on-surface">
+                      &ldquo;{{ $excerpt }}&rdquo;
+                    </blockquote>
+                  </a>
+                {{ else }}
+                  <blockquote class="mt-2 border-l-2 border-border pl-3 text-sm italic text-on-surface-secondary">
+                    &ldquo;{{ $excerpt }}&rdquo;
+                  </blockquote>
+                {{ end }}
               {{ end }}
 
               <p class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-on-surface-muted">
@@ -91,15 +110,6 @@
                 {{ with .location_in_record }}<span>{{ . }}</span>{{ end }}
                 {{ with .claim_type }}<span>{{ . }}</span>{{ end }}
                 {{ with .attestation }}<span>{{ . | replaceRE "_" " " }}</span>{{ end }}
-                {{/* Same deep link the article's references use: the claim in the
-                     review app, against the record it came from. */}}
-                {{ with .provenance }}
-                  {{ with .content_hash }}
-                    <a href="{{ printf "%s/%s#claim-%s" site.Params.workbenchUrl (substr (strings.TrimPrefix "sha256:" .) 0 56) $claim.claim_id }}"
-                       target="_blank" rel="noopener"
-                       class="ml-auto text-primary hover:underline">View this claim &rarr;</a>
-                  {{ end }}
-                {{ end }}
               </p>
             </li>
           {{ end }}
