@@ -343,6 +343,52 @@ def apply_redirects(build_dir: Path) -> None:
     if written or skipped:
         log(f"  {written} retired URL(s) redirected, {skipped} still served by a page")
 
+    redirect_flat_briefs(build_dir)
+
+
+def redirect_flat_briefs(build_dir: Path) -> None:
+    """Point the old flat brief URLs at their sectioned ones.
+
+    Brief URLs gained their section when AARO turned up as both an organisation
+    and a project, so a flat URL served one and silently dropped the other. The
+    old URLs are derived rather than listed - one per brief, 800 of them, and a
+    hand-written list would be a lie the moment a brief is added.
+
+    A slug that appears in more than one section gets NO redirect: it is exactly
+    the ambiguity that forced the move, and guessing which one a reader wanted
+    is the wrong kind of helpful.
+    """
+    briefs = build_dir / "en/briefs"
+    if not briefs.is_dir():
+        return
+    sections: dict[str, list[str]] = {}
+    for page in briefs.glob("*/*/index.html"):
+        sections.setdefault(page.parent.name, []).append(page.parent.parent.name)
+
+    written = ambiguous = 0
+    for slug, found in sections.items():
+        flat = briefs / slug / "index.html"
+        if len(found) > 1:
+            ambiguous += 1
+            continue
+        if flat.exists():
+            continue
+        target = f"/en/briefs/{found[0]}/{slug}/"
+        flat.parent.mkdir(parents=True, exist_ok=True)
+        flat.write_text(
+            '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            f"<title>{LIVE_ORIGIN}{target}</title>"
+            f'<link rel="canonical" href="{LIVE_ORIGIN}{target}">'
+            '<meta name="robots" content="noindex">'
+            f'<meta http-equiv="refresh" content="0; url={target}">'
+            f'</head><body><a href="{target}">{LIVE_ORIGIN}{target}</a></body></html>'
+        )
+        written += 1
+    log(
+        f"  {written} flat brief URL(s) redirected to their section"
+        + (f", {ambiguous} ambiguous and left to 404" if ambiguous else "")
+    )
+
 
 def verify_assets_fingerprinted(build_dir: Path) -> None:
     """Assert the build carries production asset paths, not a dev server's."""

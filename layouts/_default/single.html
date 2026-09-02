@@ -41,7 +41,7 @@
       <p class="mt-10 text-sm text-on-surface-muted">
         {{ if $brief }}
           This article was generated from
-          <a href="{{ printf "/briefs/%s/" $slug | relLangURL }}" class="text-primary hover:underline">this brief</a>.
+          <a href="{{ printf "/briefs/%s/%s/" .Section $slug | relLangURL }}" class="text-primary hover:underline">this brief</a>.
         {{ else }}
           The brief this article was generated from has not been published.
         {{ end }}

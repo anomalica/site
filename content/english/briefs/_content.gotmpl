@@ -5,28 +5,22 @@
      The files live in the content repo and are mounted as data; this creates a
      page for each so a reader can be linked to one.
 
-     The data is keyed by SECTION then slug, mirroring the pipeline's own
-     layout, because a slug is only guaranteed unique within a section: an event
-     and a project could both be called "Apollo 14". The URL stays flat while
-     the slugs are in fact unique - 813 of 813 today - and this refuses to build
-     if that ever stops being true, rather than silently serving one brief and
-     dropping the other. That is the point at which the URL should gain its
-     section, deliberately and with redirects, not by accident.
+     The URL carries the section because the slug alone is not unique: AARO
+     exists as both an organisation and a project, and a flat URL served one of
+     them and silently dropped the other. This is the deliberate move the
+     tripwire that caught it asked for - the deploy redirects every old flat
+     brief URL to its sectioned one, except where the slug is ambiguous, which
+     is the one case a redirect cannot answer honestly.
 
      Only the keys go into page params: the brief itself is looked up from
      site.Data.briefs in the layout, so 60MB of claims is not copied into every
      page's parameters. */ -}}
-{{ $seen := dict }}
 {{ range $section, $briefs := site.Data.briefs }}
   {{ range $slug, $brief := $briefs }}
-    {{ with index $seen $slug }}
-      {{ errorf "two briefs share the slug %q (%s and %s). Brief URLs are flat, so one would overwrite the other: give the URL its section before publishing this." $slug . $section }}
-    {{ end }}
-    {{ $seen = merge $seen (dict $slug $section) }}
     {{ with $brief.page }}
-      {{/* "path" is relative to this section - "briefs/x" would nest a second one. */}}
+      {{/* "path" is relative to this section. */}}
       {{ $.AddPage (dict
-        "path" $slug
+        "path" (printf "%s/%s" $section $slug)
         "kind" "page"
         "title" .title
         "params" (dict "slug" $slug "section" $section "node_type" .node_type)
