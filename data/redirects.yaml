@@ -29,3 +29,6 @@ redirects:
     to: /en/topics/anomalous-aerial-vehicle-aav/
     note: "Merged 2026-09-01. The slug carried the name with its acronym expanded twice; both pages served the same topic
       under the same title."
+  - from: /en/briefs/artificial-intelligence/
+    to: /en/briefs/artificial-intelligence-ai/
+    note: "Renamed 2026-09-02. Same subject; the slug gained its acronym when the node was canonicalised."
