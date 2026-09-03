@@ -98,3 +98,9 @@ redirects:
     gone: true
     note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
       2 claim(s) of 5, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/organisations/blink-182/
+    to: /en/people/tom-delonge/
+    note: "Retired 2026-09-03 on a workbench veto (bc281c67-08a3-4337-8592-c06ff407196b). The page was a Tom DeLonge stub
+      filed under the band's name: none of its nine cited claims is about the band, and his page was the only one linking
+      in, so the coverage belongs there. Destination established from the page's own cited claims and its sole inbound link,
+      not from the veto - the veto carries no reason, and the ground for retiring it was supplied by anomalica/master."
