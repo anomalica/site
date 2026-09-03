@@ -358,11 +358,20 @@ def apply_redirects(build_dir: Path) -> None:
         return
     entries = (yaml.safe_load(REDIRECTS.read_text()) or {}).get("redirects") or []
     written = skipped = 0
+    resurrected = []
     for entry in entries:
         # A retired URL with nowhere to send readers is recorded here too, so
         # the removal is a decision on the record rather than a flag someone
-        # remembers to pass. It gets no redirect file: the page simply goes.
+        # remembers to pass. It gets no redirect file: the page simply goes -
+        # unless the build has produced it again, which is the one case worth
+        # stopping for. A page is retired by deleting its source, and the brief
+        # it was written from stays on disk, so any later run that does not
+        # know about the retirement rebuilds it. That undoes a decision someone
+        # recorded here, and it does it silently: the page simply reappears,
+        # looking exactly like a page that was never retired.
         if entry.get("gone"):
+            if (build_dir / entry["from"].strip("/") / "index.html").exists():
+                resurrected.append(entry["from"])
             continue
         source = entry["from"].strip("/")
         target = entry["to"]
@@ -381,6 +390,16 @@ def apply_redirects(build_dir: Path) -> None:
             f'</head><body><a href="{target}">{LIVE_ORIGIN}{target}</a></body></html>'
         )
         written += 1
+    if resurrected:
+        for url in resurrected:
+            log(f"    recorded as retired, but the build produces it again: {url}")
+        raise DeployError(
+            f"{len(resurrected)} page(s) recorded as retired in data/redirects.yaml "
+            "have been built again. Publishing them would undo a recorded decision "
+            "without anyone saying so. Either find out what rebuilt them, or - if "
+            "they are meant to be back - remove their entries, which makes the "
+            "un-retirement a decision on the record too."
+        )
     if written or skipped:
         log(f"  {written} retired URL(s) redirected, {skipped} still served by a page")
 
