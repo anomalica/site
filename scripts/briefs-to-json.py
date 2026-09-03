@@ -62,6 +62,22 @@ def article_title(pages: pathlib.Path, section: str, slug: str) -> str | None:
     return title if isinstance(title, str) and title else None
 
 
+def node_type_of(page: dict) -> str | None:
+    """The node type a flat-layout brief is placed by.
+
+    A brief page can cover more than one graph node - the schema carries them
+    as a `nodes` list, and older files carry a single `node_type` beside the
+    other page fields. Both are read, newest first, so a file written either
+    way places correctly. The first node decides: a brief spanning nodes of
+    different types is placed with its principal one, and the nested layout
+    (which is what the content repo uses) never consults this at all.
+    """
+    for node in page.get("nodes") or []:
+        if isinstance(node, dict) and node.get("node_type"):
+            return node["node_type"]
+    return page.get("node_type")
+
+
 # A node type names a thing; a section names where its pages live.
 SECTION_OF = {
     "person": "people",
@@ -112,7 +128,7 @@ def main() -> int:
         data = None
         if section is None:
             data = yaml.safe_load(raw.decode(errors="replace"))
-            section = SECTION_OF.get(((data or {}).get("page") or {}).get("node_type"))
+            section = SECTION_OF.get(node_type_of((data or {}).get("page") or {}))
             if section is None:
                 unplaced.append(brief.name)
                 continue
