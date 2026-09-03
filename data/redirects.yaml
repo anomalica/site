@@ -104,3 +104,13 @@ redirects:
       filed under the band's name: none of its nine cited claims is about the band, and his page was the only one linking
       in, so the coverage belongs there. Destination established from the page's own cited claims and its sole inbound link,
       not from the veto - the veto carries no reason, and the ground for retiring it was supplied by anomalica/master."
+  - from: /en/topics/unidentified-flying-object-ufo/
+    gone: true
+    note: "Retired 2026-09-03. Composed into 'UFOs / UAPs' at /en/topics/ufos-uaps/, which covers this node and the Unidentified
+      Anomalous Phenomena (UAP) node together. Not redirected, on Mark's instruction. Reversible: decomposing the page restores
+      this one, and the article is in git history."
+  - from: /en/topics/unidentified-anomalous-phenomena-uap/
+    gone: true
+    note: "Retired 2026-09-03. Composed into 'UFOs / UAPs' at /en/topics/ufos-uaps/, which covers this node and the Unidentified
+      Flying Object (UFO) node together. Not redirected, on Mark's instruction. Reversible: decomposing the page restores
+      this one, and the article is in git history."
