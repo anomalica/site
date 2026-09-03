@@ -26,3 +26,10 @@ wrong and labels clip. Settings:
 - render id (svg prefix): `al`
 
 The `.arch` widget is always light-themed, so only one (light) SVG is needed.
+
+The deploy refuses to publish a diagram that has drifted from the source: it
+compares node ids, node labels and edge labels, so re-rendering after a source
+change is not optional and forgetting it fails the deploy rather than shipping
+quietly. It reports only - rendering needs a browser with the font loaded, and a
+silent re-render at deploy time is how a clipped diagram ships without anyone
+looking at it. Look at the result before you deploy.

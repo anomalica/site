@@ -30,6 +30,7 @@ import argparse
 import concurrent.futures
 import tarfile
 import hashlib
+import html
 import json
 import os
 import re
@@ -105,6 +106,17 @@ def secret(key: str) -> str:
     return result.stdout.strip()
 
 
+def flatten(markup: str) -> str:
+    """One line of plain text from a rendered label's markup.
+
+    Mermaid draws labels as HTML inside foreignObject, so the text arrives
+    wrapped in tags and with its entities escaped - a source label written
+    "one -> many" renders as "one -&gt; many" and would otherwise read as a
+    difference every time.
+    """
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", markup)).split())
+
+
 def check_diagram_current() -> None:
     """Refuse to publish an architecture diagram that has drifted from its source.
 
@@ -114,8 +126,13 @@ def check_diagram_current() -> None:
     when someone remembers to re-render, and one went unnoticed for seven weeks -
     the public page was missing a whole node of the pipeline.
 
-    Compares node ids AND their labels. Ids alone would have passed the drift
-    that prompted this, which was a label change with no node change.
+    Compares node ids, node labels AND edge labels. Ids alone would have passed
+    the drift that prompted this, which was a label change with no node change;
+    nodes alone would have passed the next one, which changed two edge labels
+    and no node at all. What a reader learns from this diagram is mostly in the
+    edges - they are where the pipeline says what it hands on and under what
+    terms - so an unchecked edge is the same seven-week silence in a smaller
+    place.
 
     It reports; it does not re-render. Rendering needs a browser with the right
     font loaded, and a silent re-render at deploy time is how a clipped diagram
@@ -125,12 +142,18 @@ def check_diagram_current() -> None:
         log("  diagram check skipped: source or rendered copy missing")
         return
 
+    mermaid = DIAGRAM_SOURCE.read_text()
     source = dict(
         re.findall(
             r'^\s*(\w+)@\{\s*shape:\s*[\w-]+,\s*label:\s*"([^"]*)"',
-            DIAGRAM_SOURCE.read_text(),
+            mermaid,
             re.M,
         )
+    )
+    # An edge label is the quoted text between the arrow and its target, in any
+    # of the arrow forms this diagram uses (-->, -.->, ==>, <-->).
+    source_edges = sorted(
+        " ".join(label.split()) for label in re.findall(r'\|\s*"([^"]*)"\s*\|', mermaid)
     )
 
     svg = DIAGRAM_SVG.read_text()
@@ -147,8 +170,16 @@ def check_diagram_current() -> None:
             r'class="nodeLabel[^"]*"[^>]*>(.*?)</span>', svg[position:end], re.S
         )
         if label:
-            text = re.sub(r"<[^>]+>", " ", label.group(1))
-            rendered[node] = " ".join(text.split())
+            rendered[node] = flatten(label.group(1))
+
+    rendered_edges = sorted(
+        text
+        for text in (
+            flatten(m.group(1))
+            for m in re.finditer(r'class="edgeLabel"[^>]*>(.*?)</span>', svg, re.S)
+        )
+        if text
+    )
 
     missing = sorted(set(source) - set(rendered))
     extra = sorted(set(rendered) - set(source))
@@ -157,8 +188,14 @@ def check_diagram_current() -> None:
         for node in set(source) & set(rendered)
         if " ".join(source[node].split()) != rendered[node]
     )
-    if not (missing or extra or changed):
-        log(f"  diagram matches its source ({len(source)} nodes)")
+    edges_lost = [label for label in source_edges if label not in rendered_edges]
+    edges_stale = [label for label in rendered_edges if label not in source_edges]
+
+    if not (missing or extra or changed or edges_lost or edges_stale):
+        log(
+            f"  diagram matches its source "
+            f"({len(source)} nodes, {len(source_edges)} edge labels)"
+        )
         return
 
     for node in missing:
@@ -167,6 +204,10 @@ def check_diagram_current() -> None:
         log(f"    rendered, not in the source: {node}")
     for line in changed:
         log(f"    label differs, {line}")
+    for label in edges_lost:
+        log(f"    edge label in the source, not rendered: {label!r}")
+    for label in edges_stale:
+        log(f"    edge label rendered, not in the source: {label!r}")
     raise DeployError(
         "the architecture diagram has drifted from anomalica/reference/pipeline.mmd. "
         "Re-render it per assets/architecture/README.md, look at the result, then deploy."
