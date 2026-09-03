@@ -45,3 +45,56 @@ redirects:
     to: /en/briefs/documents/unidentified-anomalous-phenomena-disclosure-act-of-2023/
     note: "Renamed 2026-09-03, with the article above. Brief pages are exempt from the removal guard because they come and
       go with their graph node, but this one is a rename of a node that stays, so its URL is worth keeping."
+  - from: /en/people/uap-gerb/
+    to: /en/people/unidentified-aerial-phenomena-uap-gerb/
+    note: "Merged 2026-09-03. The claims live on the survivor node (58 claims, 3 records); this slug belonged to its claimless
+      twin, so no front-matter alias can ever cover it. The article moves to the survivor and reads as stale against its newer
+      brief until a rebuild is cleared."
+  - from: /en/briefs/people/uap-gerb/
+    to: /en/briefs/people/unidentified-aerial-phenomena-uap-gerb/
+    note: "Merged 2026-09-03, with the article above. The survivor's brief is already published at the target slug."
+  - from: /en/people/chris/
+    gone: true
+    note: "Retired 2026-09-03. A person known only as Chris - 42 claims, all from one book, a first-name-only figure in that
+      text. The closest candidate pairing scores 0.30 and nothing ties the figure to any named person, so there is nobody
+      to send a reader to. If a reviewer later names them, a page can follow and a redirect with it."
+  - from: /en/people/chad/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      0 claim(s) of 3, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/william-cohen/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      0 claim(s) of 5, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/elon-musk/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      1 claim(s) of 6, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/dana-white/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      1 claim(s) of 5, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/william-lynn-iii/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      1 claim(s) of 5, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/edward-teller/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      1 claim(s) of 4, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/franklin-d-roosevelt/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      1 claim(s) of 12, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/ralph-blumenthal/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      2 claim(s) of 12, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/patrick-hughes/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      2 claim(s) of 9, the rest naming them inside claims about others. Reversible: the article is in git history."
+  - from: /en/people/paul-kaminski/
+    gone: true
+    note: "Retired 2026-09-03 under the rule that a page is not written for a person who is only mentioned: the subject of
+      2 claim(s) of 5, the rest naming them inside claims about others. Reversible: the article is in git history."
