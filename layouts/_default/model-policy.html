@@ -161,7 +161,11 @@
     <div class="mx-auto max-w-3xl px-6">
       <h2 class="mb-2 font-ui text-xl font-semibold">The models</h2>
       <p class="mb-8 max-w-2xl text-on-surface-secondary">
-        A model that is not on this list cannot be used for anything.
+        A model that is not on this list cannot be used for anything. Each one
+        says how it is paid for: <em>subscription</em> and <em>flat-rate</em> run
+        on plans we already pay for, <em>metered</em> is billed per token and has
+        to clear a spend gate first, and <em>local</em> runs on our own machine
+        with no provider involved.
       </p>
 
       <div class="divide-y divide-border border-y border-border">
@@ -185,13 +189,19 @@
                   {{ end }}
                   context
                 {{ end }}
-                {{/* A zero price is not a cheap model, it is a model no provider
-                     bills us for - printing "$0 / $0 per million tokens" reads
-                     as a suspiciously good deal rather than as what it is. */}}
+                {{/* The route is what makes the price legible, so it goes in
+                     front of it. Two prices lie without it: a zero is not a
+                     cheap model but one nobody bills us per token for, and a
+                     subscription model's price is what it WOULD cost rather
+                     than anything we pay - printing "$5 / $25" beside a model
+                     covered by a plan reads as a bill we are paying. */}}
+                {{ with .route }}&middot; {{ . }}{{ end }}
                 {{ with .price }}
                   &middot;
                   {{ if and (eq (float .input) 0.0) (eq (float .output) 0.0) }}
-                    no per-token cost
+                    no per-token bill
+                  {{ else if eq $model.route "subscription" }}
+                    list ${{ .input }} / ${{ .output }} per million tokens
                   {{ else }}
                     ${{ .input }} / ${{ .output }} per million tokens
                   {{ end }}
@@ -200,7 +210,11 @@
             </div>
 
             <div class="mb-4 flex flex-wrap gap-1.5">
-              <span class="tag {{ if eq .status "approved" }}tag-teal{{ else if eq .status "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ .status }}</span>
+              {{/* Only when there is one to show. The policy dropped the field
+                   and this went on drawing an empty pill on every model. */}}
+              {{ with .status }}
+                <span class="tag {{ if eq . "approved" }}tag-teal{{ else if eq . "blacklisted" }}tag-copper{{ else }}tag-outline{{ end }}">{{ . }}</span>
+              {{ end }}
               {{ $state := "" }}
               {{ with index $policy.watermarking .provider }}{{ $state = .state }}{{ end }}
               {{/* "May write articles" earns its place only on a model that
@@ -216,7 +230,16 @@
                 {{/* Name the state that bars it: "not for articles" alone invites
                      the reader to assume the provider watermarks, and for one of
                      them that is not what the evidence says. */}}
-                <span class="tag tag-copper">not for articles &mdash; {{ .provider }} is {{ $state }}</span>
+                {{/* The state is a one-word key, so it cannot be dropped into a
+                     sentence as it stands: "anthropic is watermarks" is what
+                     that produced. Say what the state MEANS about the provider. */}}
+                <span class="tag tag-copper">
+                  not for articles &mdash;
+                  {{ if eq $state "watermarks" }}{{ .provider }} watermarks its output
+                  {{ else if eq $state "unknown" }}we cannot tell whether {{ .provider }} watermarks
+                  {{ else }}{{ .provider }} is not cleared for reader-facing text
+                  {{ end }}
+                </span>
               {{ end }}
               {{ if gt $wrote 0 }}
                 <span class="tag tag-outline">wrote {{ $wrote }} of the pages here</span>
