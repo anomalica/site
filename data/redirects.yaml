@@ -235,3 +235,12 @@ redirects:
   - from: /places/ile-de-france-paris-france/
     gone: true
     note: "Retired 2026-09-08, the language-prefixless twin of the entry above, for the same reason."
+  - from: /en/places/california-san-diego-usa/
+    gone: true
+    note: "Retired 2026-09-08. Not a page about San Diego: four of its paragraphs retell the 2004 Nimitz encounter, which
+      has its own page and which the page's own text places about 160 kilometres from the city, and the rest belongs to a
+      pilot and to a reincarnation case that share nothing with the city but its name. Not redirected to the Nimitz page:
+      that would assert a city is an encounter, which is the error being retired. Reversible: the article is in git history."
+  - from: /places/california-san-diego-usa/
+    gone: true
+    note: "Retired 2026-09-08, the language-prefixless twin of the entry above."
