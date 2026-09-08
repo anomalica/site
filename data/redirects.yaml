@@ -193,3 +193,29 @@ redirects:
       occupied 1-10 October 1938, after the Munich Agreement of 29-30 September; March 1938 was the Anschluss. Not redirected:
       there is nowhere honest to send someone who followed a link about the Second World War. Reversible: the article is in
       git history."
+  - from: /en/briefs/people/james-macdonald/
+    to: /en/briefs/people/james-e-mcdonald/
+    note: "Renamed 2026-09-08 when the node took the man's own spelling. The node survives and only its slug moved, which
+      is the case a brief URL is worth keeping for. No article page exists either way."
+  - from: /en/places/new-south-wales-sydney-australia/
+    gone: true
+    note: "Retired 2026-09-08. Not a page about Sydney: it opens by calling the city the setting for one abduction case and
+      then gives that person's biography, including when his family migrated and how old he was. The subject is a person who
+      has his own page. Not redirected: a reader who followed a link about Sydney is not looking for him. Reversible: the
+      article is in git history."
+  - from: /en/places/california-san-francisco-usa/
+    gone: true
+    note: "Retired 2026-09-08. Not a page about San Francisco: it records that a writer composed a preface there and attended
+      a meeting. The city is the location of events belonging to other subjects, not a subject itself. Reversible: the article
+      is in git history."
+  - from: /en/places/paris-france/
+    gone: true
+    note: "Retired 2026-09-08. Not a page about Paris: it opens with a claim about France as a whole and a lunch. Reversible:
+      the article is in git history."
+  - from: /en/places/france/
+    gone: true
+    note: "Retired 2026-09-08. A bare country, which the extraction rules forbid as a place. Worth recording WHY rather than
+      only that: the page is not empty of subject - it is about French official UFO research pursued independently of, and
+      at times sceptically towards, American conclusions. That is a real subject with no node of its own, so its claims attached
+      to the nearest place available, which was a country. This is evidence of a missing node rather than of surplus content,
+      and if that node is ever created the material is in git history."
