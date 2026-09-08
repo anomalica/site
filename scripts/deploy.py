@@ -719,6 +719,28 @@ def check_resurrected(local: dict, remote: dict) -> None:
     )
 
 
+def currently_serves(path: str) -> str:
+    """What the live site answers with at this path, for a refusal message.
+
+    A removal is never one URL: it is the page's own path, every alias the page
+    carried, and both language forms of each. The orphan list names them all,
+    but names alone do not say WHICH is which - and an alias of a page already
+    recorded needs a line of its own while looking identical to a page nobody
+    has considered. Asking the live site closes that gap, because an alias
+    answers with a redirect naming its target and a real page does not.
+
+    Best effort. A failed lookup returns "" and the refusal reads as it did
+    before, because this is here to explain a refusal rather than to cause one.
+    """
+    try:
+        with urllib.request.urlopen(f"{LIVE_ORIGIN}/{path}", timeout=10) as response:
+            body = response.read(2048).decode("utf-8", "replace")
+    except Exception:
+        return ""
+    match = re.search(r'http-equiv="?refresh"?[^>]*url=([^"\'>\s]+)', body, re.I)
+    return f"redirects to {match.group(1)}" if match else "a page in its own right"
+
+
 def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
     """Refuse to turn a live page into a 404 without saying so out loud.
 
@@ -761,8 +783,15 @@ def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
     if not pages:
         return
     log(f"  {len(pages)} live page(s) would stop existing:")
-    for name in pages:
-        log(f"    /{name[: -len('index.html')]}")
+    # Say what each one answers with today. The names alone cannot distinguish
+    # an alias of a page already recorded from a page nobody has considered,
+    # and recording one and not the other costs a whole deploy cycle.
+    for name in pages[:25]:
+        path = name[: -len("index.html")]
+        serving = currently_serves(path)
+        log(f"    /{path}{f'   ({serving})' if serving else ''}")
+    if len(pages) > 25:
+        log(f"    ... {len(pages) - 25} more")
     if accept:
         log("  proceeding (--accept-404s)")
         return
