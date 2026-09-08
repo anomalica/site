@@ -228,3 +228,10 @@ redirects:
     gone: true
     note: "Retired 2026-09-08 with /en/places/paris-france/, whose other name it was. Same reason as the page, and recorded
       separately because an alias is a URL a reader can hold whether or not anyone remembers it exists."
+  - from: /places/california-oak-knoll-naval-hospital-san-francisco-usa/
+    gone: true
+    note: "Retired 2026-09-08, the language-prefixless twin of the entry above. An alias is written in both forms and each
+      is served, so each needs its own line - a canonical page emits only under /en/, an alias emits under both."
+  - from: /places/ile-de-france-paris-france/
+    gone: true
+    note: "Retired 2026-09-08, the language-prefixless twin of the entry above, for the same reason."
