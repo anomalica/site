@@ -184,3 +184,12 @@ redirects:
     to: /en/briefs/records/unidentified-anomalous-phenomena-disclosure-act-of-2023/
     note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
       is worth keeping for."
+  - from: /en/events/world-war-ii/
+    gone: true
+    note: "Retired 2026-09-08. The page has no subject the corpus can support: 36 claims from exactly two sources, one on
+      Marian prophecy and one on postwar Nazi technology evacuation, and we hold no source about the Second World War. It
+      also opened with a falsehood in our own voice - that Germany annexed the Sudetenland in March 1938, beginning the war
+      - which its own next sentence contradicts by correctly dating the Austrian crossing to 1938-03-12. The Sudetenland was
+      occupied 1-10 October 1938, after the Munich Agreement of 29-30 September; March 1938 was the Anschluss. Not redirected:
+      there is nowhere honest to send someone who followed a link about the Second World War. Reversible: the article is in
+      git history."
