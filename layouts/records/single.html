@@ -22,6 +22,12 @@
         </p>
       {{ end }}
 
+      {{/* The source sits between the summary and the long form: a reader who
+           came here to check where something came from can reach the original
+           without reading the article first, and one who came to read is not
+           made to scroll past a player to start. */}}
+      {{ partial "record-source.html" . }}
+
       {{/* The assembler-generated narrative article, with in-flow citations. */}}
       <div class="content" id="article-content">
         {{ .Content }}

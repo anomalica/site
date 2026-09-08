@@ -1,0 +1,28 @@
+{{/* A length in seconds as a reader would say it.
+
+     Records carry duration two ways: metadata.duration is already a string a
+     human wrote ("1:00"), while source.duration is the machine's float in
+     seconds (1982.25). This takes the seconds. Pass a string and it comes back
+     untouched, so either can be handed to it safely.
+
+     Under an hour reads "33 min", over it reads "3 h 58 min". Seconds are
+     dropped above a minute because nobody choosing whether to watch something
+     cares about the last twelve seconds of it. */}}
+
+{{- $d := . -}}
+{{- if eq (printf "%T" $d) "string" -}}
+  {{- $d -}}
+{{- else -}}
+  {{- $total := int (math.Round (float $d)) -}}
+  {{- if lt $total 60 -}}
+    {{- printf "%d sec" $total -}}
+  {{- else -}}
+    {{- $mins := div $total 60 -}}
+    {{- $hours := div $mins 60 -}}
+    {{- if lt $hours 1 -}}
+      {{- printf "%d min" $mins -}}
+    {{- else -}}
+      {{- printf "%d h %d min" $hours (mod $mins 60) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
