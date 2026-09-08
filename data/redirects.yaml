@@ -116,3 +116,71 @@ redirects:
       Object (UFO) node together. Recorded as a move rather than gone: the composed page inherits this slug in its naming
       history, so the build already serves the redirect and suppressing it would be work to produce a worse answer. Reversible:
       decomposing the page restores this one, and the article is in git history."
+  - from: /en/documents/communion/
+    to: /en/records/communion/
+    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
+      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+  - from: /en/documents/condon-report/
+    to: /en/records/condon-report/
+    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
+      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+  - from: /en/documents/gimbal-video/
+    to: /en/records/gimbal-video/
+    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
+      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+  - from: /en/documents/go-fast-video/
+    to: /en/records/go-fast-video/
+    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
+      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+  - from: /en/documents/unidentified-anomalous-phenomena-disclosure-act-of-2023/
+    to: /en/records/unidentified-anomalous-phenomena-disclosure-act-of-2023/
+    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
+      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+  - from: /en/briefs/documents/book-of-revelation-apocalypse/
+    to: /en/briefs/records/book-of-revelation-apocalypse/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/breakthrough/
+    to: /en/briefs/records/breakthrough/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/close-encounters-of-the-third-kind-1977-film/
+    to: /en/briefs/records/close-encounters-of-the-third-kind-1977-film/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/communion/
+    to: /en/briefs/records/communion/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/condon-report/
+    to: /en/briefs/records/condon-report/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/espionage-act/
+    to: /en/briefs/records/espionage-act/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/gimbal-video/
+    to: /en/briefs/records/gimbal-video/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/go-fast-video/
+    to: /en/briefs/records/go-fast-video/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/national-defense-authorization-act-for-fiscal-year-2023-fy2023-ndaa/
+    to: /en/briefs/records/national-defense-authorization-act-for-fiscal-year-2023-fy2023-ndaa/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/preliminary-assessment-unidentified-aerial-phenomena-2021-06/
+    to: /en/briefs/records/preliminary-assessment-unidentified-aerial-phenomena-2021-06/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/the-war-of-the-worlds/
+    to: /en/briefs/records/the-war-of-the-worlds/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
+  - from: /en/briefs/documents/unidentified-anomalous-phenomena-disclosure-act-of-2023/
+    to: /en/briefs/records/unidentified-anomalous-phenomena-disclosure-act-of-2023/
+    note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
+      is worth keeping for."
