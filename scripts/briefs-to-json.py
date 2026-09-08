@@ -36,6 +36,13 @@ import sys
 
 import yaml
 
+# The node-type-to-section map is the shared library's, not a copy. A second
+# copy is how the two drift, and a brief placed in a section the pipeline no
+# longer writes to becomes a page nothing links to. Installed as an editable
+# package from anomalica-common; if this import fails the site build cannot
+# place briefs and should stop rather than guess.
+from anomalica_common.slug import section_for
+
 DEFAULT_SOURCE = (
     pathlib.Path(__file__).resolve().parent.parent.parent / "content/briefs"
 )
@@ -78,19 +85,6 @@ def node_type_of(page: dict) -> str | None:
     return page.get("node_type")
 
 
-# A node type names a thing; a section names where its pages live.
-SECTION_OF = {
-    "person": "people",
-    "organisation": "organisations",
-    "event": "events",
-    "project": "projects",
-    "object": "objects",
-    "place": "places",
-    "topic": "topics",
-    "document": "documents",
-}
-
-
 def main() -> int:
     # The deploy builds from a snapshot of the content repo at HEAD, so it
     # passes that path: converting the working tree there would publish briefs
@@ -128,7 +122,11 @@ def main() -> int:
         data = None
         if section is None:
             data = yaml.safe_load(raw.decode(errors="replace"))
-            section = SECTION_OF.get(node_type_of((data or {}).get("page") or {}))
+            # section_for gives a naive plural for anything it does not know and
+            # "s" for nothing at all, so it is asked only when there IS a type.
+            # An untyped brief stays unplaced and loud rather than landing in /s/.
+            node_type = node_type_of((data or {}).get("page") or {})
+            section = section_for(node_type) if node_type else None
             if section is None:
                 unplaced.append(brief.name)
                 continue
