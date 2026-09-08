@@ -88,9 +88,13 @@
             </div>
           </div>
 
+          {{/* The separator belongs to whatever precedes it. Eight records
+               carry a url with neither a publisher nor a date, and the line
+               opened on a dot with nothing to its left. */}}
+          {{ $meta := or .publisher .date_published }}
           <p class="mt-2 font-ui text-xs text-on-surface-muted">
             {{ with .publisher }}Published by {{ . }}{{ end }}{{ with .date_published }}{{ if $.Params.source.publisher }} &middot; {{ end }}{{ . }}{{ end }}
-            &middot; <a href="{{ $url }}" target="_blank" rel="noopener" class="underline decoration-border underline-offset-2 hover:decoration-primary">watch it at the original</a>
+            {{ if $meta }}&middot; {{ end }}<a href="{{ $url }}" target="_blank" rel="noopener" class="underline decoration-border underline-offset-2 hover:decoration-primary">watch it at the original</a>
           </p>
 
         {{ else }}
