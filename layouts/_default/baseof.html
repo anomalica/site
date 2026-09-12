@@ -6,8 +6,15 @@
   <title>{{ if not .IsHome }}{{ .Title }} - {{ end }}{{ site.Title }}</title>
   <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}Encyclopaedia of Anomalous Phenomena{{ end }}">
 
-  {{/* Records are an extraction-QA surface: keep them out of search indexes. */}}
-  {{ if or .Params.noindex (eq .Section "records") }}
+  {{/* Publication eligibility is decided upstream and carried by the page.
+       Legacy/malformed Records and the retired Documents surface remain
+       noindex until their files disappear. */}}
+  {{ $invalidRecord := and
+    .IsPage
+    (eq .Section "records")
+    (or (ne .Params.schema "anomalica/public-record/1") (ne .Params.content_kind "record"))
+  }}
+  {{ if or .Params.noindex (eq .Section "documents") $invalidRecord }}
     <meta name="robots" content="noindex, nofollow">
   {{ end }}
 

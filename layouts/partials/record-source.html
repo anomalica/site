@@ -21,6 +21,9 @@
 
      Expects the page as context; reads .Params.source. */}}
 
+{{ if eq .Params.schema "anomalica/public-record/1" }}
+  {{ partial "record-source-v1.html" . }}
+{{ else }}
 {{ with .Params.source }}
   {{ $type := .type | default "" }}
   {{ $display := .display | default "" }}
@@ -30,7 +33,7 @@
   {{/* A mode that needs somewhere to send the reader, with nowhere to send
        them, must render nothing rather than a dead control. Eleven "text"
        records and one "link" record carry no url. */}}
-  {{ $actionable := and (ne $display "none") (ne $url "") }}
+  {{ $actionable := and (in (slice "embed" "link" "text") $display) (ne $url "") }}
 
   {{ if or $actionable (eq $display "none") }}
     <section class="mb-10 mt-8" aria-labelledby="source-heading">
@@ -154,4 +157,5 @@
       {{ end }}
     </section>
   {{ end }}
+{{ end }}
 {{ end }}

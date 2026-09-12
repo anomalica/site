@@ -1,0 +1,121 @@
+{{/* Strict renderer for anomalica/public-record/1. Rights decisions happen
+     upstream; this final boundary validates each independent capability and
+     renders only its allow-listed payload. Unknown or inconsistent data is
+     ignored rather than guessed from source type, host or record hash. */}}
+{{ with .Params.source }}
+  {{ $caps := .capabilities | default dict }}
+  {{ $body := $caps.source_body | default dict }}
+  {{ $original := $caps.archived_original | default dict }}
+  {{ $media := $caps.media | default dict }}
+  {{ $embed := $caps.provider_embed | default dict }}
+  {{ $link := $caps.external_link | default dict }}
+
+  {{ $bodyResource := $body.resource | default "" }}
+  {{ $bodyAllowed := and
+    (eq $body.mode "display")
+    (eq $body.reason "allowed")
+    (gt (len (findRE `^/[^/]` $bodyResource)) 0)
+  }}
+
+  {{ $originalURL := $original.url | default "" }}
+  {{ $originalAllowed := and
+    (eq $original.mode "public")
+    (eq $original.reason "allowed")
+    (gt (len (findRE `^(https://|/[^/])` $originalURL)) 0)
+  }}
+
+  {{ $embedURL := $embed.url | default "" }}
+  {{ $ytid := "" }}
+  {{ if and (eq $embed.mode "embed") (eq $embed.reason "allowed") (gt (len (findRE `^https://` $embedURL)) 0) }}
+    {{ if findRE `^https://(?:www\.)?youtube\.com/watch\?(?:[^#]*&)?v=[A-Za-z0-9_-]{6,}` $embedURL }}
+      {{ $ytid = replaceRE `^https://(?:www\.)?youtube\.com/watch\?(?:[^#]*&)?v=([A-Za-z0-9_-]{6,}).*$` "$1" $embedURL }}
+    {{ else if findRE `^https://youtu\.be/[A-Za-z0-9_-]{6,}` $embedURL }}
+      {{ $ytid = replaceRE `^https://youtu\.be/([A-Za-z0-9_-]{6,}).*$` "$1" $embedURL }}
+    {{ end }}
+  {{ end }}
+  {{ $embedAllowed := ne $ytid "" }}
+
+  {{ $linkURL := $link.url | default "" }}
+  {{ $linkAllowed := and
+    (eq $link.mode "link")
+    (eq $link.reason "allowed")
+    (gt (len (findRE `^https?://` $linkURL)) 0)
+  }}
+
+  {{ $mediaItems := slice }}
+  {{ if and (eq $media.mode "display") (eq $media.reason "allowed") }}
+    {{ range $media.items }}
+      {{ $url := .url | default "" }}
+      {{ $type := .media_type | default "" }}
+      {{ if and
+        (gt (len (findRE `^/[^/]` $url)) 0)
+        (or (hasPrefix $type "image/") (hasPrefix $type "audio/") (hasPrefix $type "video/"))
+      }}
+        {{ $mediaItems = $mediaItems | append (dict "url" $url "type" $type) }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{ $hasSource := or $bodyAllowed $originalAllowed $embedAllowed $linkAllowed (gt (len $mediaItems) 0) }}
+  <section class="mb-10 mt-8" aria-labelledby="source-heading">
+    <h2 id="source-heading" class="section-label mb-3">The source</h2>
+
+    {{ if $embedAllowed }}
+      <div class="overflow-hidden rounded-lg border border-border bg-surface-raised" x-data="{ playing: false }">
+        <div class="relative aspect-video w-full">
+          <template x-if="!playing">
+            <button type="button" @click="playing = true" class="group absolute inset-0 flex w-full flex-col items-center justify-center gap-3 bg-surface-raised transition-colors hover:bg-surface" aria-label="Play this source from {{ .publisher | default "the original publisher" }}">
+              <span class="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface transition-colors group-hover:border-primary">
+                <svg viewBox="0 0 24 24" class="ml-1 h-6 w-6 fill-current text-on-surface-secondary transition-colors group-hover:text-primary" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+              <span class="px-6 text-center font-ui text-sm text-on-surface-muted">Play here<span class="mt-1 block text-xs">Nothing loads from YouTube until you press play</span></span>
+            </button>
+          </template>
+          <template x-if="playing">
+            <iframe class="absolute inset-0 h-full w-full" src="https://www.youtube-nocookie.com/embed/{{ $ytid }}?autoplay=1" title="{{ $.Title }}" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </template>
+        </div>
+      </div>
+    {{ end }}
+
+    {{ with $mediaItems }}
+      <div class="space-y-4{{ if $embedAllowed }} mt-4{{ end }}">
+        {{ range . }}
+          {{ if hasPrefix .type "image/" }}
+            <img src="{{ .url }}" alt="Source media from {{ $.Title }}" loading="lazy" class="w-full rounded-lg border border-border">
+          {{ else if hasPrefix .type "audio/" }}
+            <audio controls preload="none" class="w-full"><source src="{{ .url }}" type="{{ .type }}"></audio>
+          {{ else if hasPrefix .type "video/" }}
+            <video controls preload="metadata" class="w-full rounded-lg border border-border"><source src="{{ .url }}" type="{{ .type }}"></video>
+          {{ end }}
+        {{ end }}
+      </div>
+    {{ end }}
+
+    {{ if $bodyAllowed }}
+      <iframe src="{{ $bodyResource }}" title="Source text for {{ $.Title }}" loading="lazy" sandbox class="mt-4 w-full rounded-lg border border-border bg-surface-raised" style="min-height: 32rem"></iframe>
+      <p class="mt-2 font-ui text-xs text-on-surface-muted"><a href="{{ $bodyResource }}" class="underline decoration-border underline-offset-2 hover:decoration-primary">Open the source text on its own</a></p>
+    {{ end }}
+
+    {{ if or $originalAllowed $linkAllowed }}
+      <div class="mt-4 flex flex-wrap gap-3 rounded-lg border border-border bg-surface-raised px-5 py-4">
+        {{ if $originalAllowed }}
+          <a href="{{ $originalURL }}" target="_blank" rel="noopener" class="font-ui text-sm font-medium text-on-surface underline decoration-border underline-offset-4 transition-colors hover:text-primary hover:decoration-primary">Open Anomalica's public copy</a>
+        {{ end }}
+        {{ if $linkAllowed }}
+          <a href="{{ $linkURL }}" target="_blank" rel="noopener" class="font-ui text-sm font-medium text-on-surface underline decoration-border underline-offset-4 transition-colors hover:text-primary hover:decoration-primary">Open the original source</a>
+        {{ end }}
+      </div>
+    {{ end }}
+
+    {{ if not $hasSource }}
+      <div class="rounded-lg border border-border border-dashed px-5 py-4">
+        <p class="font-ui text-sm text-on-surface-secondary">The source itself cannot be shown here. The summary, explanation and supporting quotations below are Anomalica's public account of it.</p>
+      </div>
+    {{ end }}
+
+    {{ if or .publisher .published_date }}
+      <p class="mt-2 font-ui text-xs text-on-surface-muted">{{ with .publisher }}{{ . }}{{ end }}{{ with .published_date }}{{ if $.Params.source.publisher }} &middot; {{ end }}{{ . }}{{ end }}</p>
+    {{ end }}
+  </section>
+{{ end }}

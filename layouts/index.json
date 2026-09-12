@@ -18,6 +18,8 @@
 {{- $entries := slice -}}
 {{- range site.RegularPages -}}
   {{- if eq .Section "briefs" }}{{ continue }}{{ end -}}
+  {{- if eq .Section "documents" }}{{ continue }}{{ end -}}
+  {{- if and (eq .Section "records") (or (ne .Params.schema "anomalica/public-record/1") (ne .Params.content_kind "record")) }}{{ continue }}{{ end -}}
   {{- $tags := slice -}}
   {{- range .Params.tags }}{{ $tags = $tags | append . }}{{ end -}}
   {{- $entries = $entries | append (dict
@@ -29,6 +31,7 @@
 {{- end -}}
 {{- range site.Sections -}}
   {{- if eq .Section "briefs" }}{{ continue }}{{ end -}}
+  {{- if eq .Section "documents" }}{{ continue }}{{ end -}}
   {{- if .Pages -}}
     {{- $entries = $entries | append (dict
         "t" .Title

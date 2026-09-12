@@ -10,7 +10,7 @@
        one expands the list and scrolls to the reference it belongs to. */}}
   <details id="references" class="mt-12 border-t border-border pt-6">
     <summary class="mb-4 cursor-pointer select-none font-ui text-base font-semibold text-on-surface">
-      References <span class="font-normal text-on-surface-muted">({{ len . }}) &middot; each quote links to the claim it came from</span>
+      References <span class="font-normal text-on-surface-muted">({{ len . }}){{ if ne $.Params.schema "anomalica/public-record/1" }} &middot; each quote links to the claim it came from{{ end }}</span>
     </summary>
     <ol class="list-decimal space-y-3 pl-4 text-sm mt-3">
       {{ range $i, $r := . }}

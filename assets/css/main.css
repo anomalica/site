@@ -581,11 +581,14 @@ sup.cite .cite-tip-loc {
   font-feature-settings: "tnum";
 }
 
-/* On very narrow screens, fall back to a wider tooltip pinned to the viewport. */
+/* On very narrow screens, show the tooltip as a viewport-pinned bottom sheet. */
 @media (max-width: 480px) {
   sup.cite .cite-tip {
-    width: calc(100vw - 32px);
+    position: fixed;
     left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
     transform: none;
   }
   sup.cite .cite-tip::after {

@@ -1,5 +1,78 @@
 {{ define "main" }}
+  {{ $isPeople := eq .Section "people" }}
+  {{ $isRecords := eq .Section "records" }}
   {{ $pages := .Pages.ByTitle }}
+
+  {{/* Records are conditional public projections. Legacy inspection pages and
+       malformed output remain absent from the catalogue even if their files
+       have not yet been reconciled upstream. */}}
+  {{ if $isRecords }}
+    {{ $pages = where $pages "Params.schema" "anomalica/public-record/1" }}
+    {{ $pages = where $pages "Params.content_kind" "record" }}
+  {{ end }}
+
+  {{ $nameOrder := dict }}
+  {{ range $i, $p := $pages.ByTitle }}
+    {{ $nameOrder = merge $nameOrder (dict $p.RelPermalink $i) }}
+  {{ end }}
+
+  {{/* People rank by current corpus frequency stored in the published brief,
+       not by article front matter. Invalid or absent tuples are deliberately
+       unranked and follow valid entries alphabetically. Stable sorts are
+       applied from the final tie-breaker to the primary key. */}}
+  {{ if $isPeople }}
+    {{ $ranked := slice }}
+    {{ $unranked := slice }}
+    {{ range $pages }}
+      {{ $listing := dict }}
+      {{ with index site.Data.briefs.people .File.ContentBaseName }}
+        {{ with .page.listing }}{{ $listing = . }}{{ end }}
+      {{ end }}
+      {{ $numberTypes := slice "int" "int8" "int16" "int32" "int64" "uint" "uint8" "uint16" "uint32" "uint64" "float32" "float64" }}
+      {{ $workType := printf "%T" $listing.work_count }}
+      {{ $subjectType := printf "%T" $listing.subject_claim_count }}
+      {{ $claimType := printf "%T" $listing.claim_count }}
+      {{ $valid := and
+        (in $numberTypes $workType)
+        (in $numberTypes $subjectType)
+        (in $numberTypes $claimType)
+        (gt (len (findRE `^[0-9]+$` (printf "%v" $listing.work_count))) 0)
+        (gt (len (findRE `^[0-9]+$` (printf "%v" $listing.subject_claim_count))) 0)
+        (gt (len (findRE `^[0-9]+$` (printf "%v" $listing.claim_count))) 0)
+      }}
+      {{ $workCount := 0 }}
+      {{ $subjectClaimCount := 0 }}
+      {{ $claimCount := 0 }}
+      {{ if $valid }}
+        {{ $workCount = int $listing.work_count }}
+        {{ $subjectClaimCount = int $listing.subject_claim_count }}
+        {{ $claimCount = int $listing.claim_count }}
+      {{ end }}
+      {{ $row := dict
+        "page" .
+        "title" .Title
+        "url" .RelPermalink
+        "work_count" $workCount
+        "subject_claim_count" $subjectClaimCount
+        "claim_count" $claimCount
+      }}
+      {{ if $valid }}
+        {{ $ranked = $ranked | append $row }}
+      {{ else }}
+        {{ $unranked = $unranked | append $row }}
+      {{ end }}
+    {{ end }}
+    {{ $ranked = sort $ranked "url" "asc" }}
+    {{ $ranked = sort $ranked "title" "asc" }}
+    {{ $ranked = sort $ranked "claim_count" "desc" }}
+    {{ $ranked = sort $ranked "subject_claim_count" "desc" }}
+    {{ $ranked = sort $ranked "work_count" "desc" }}
+    {{ $unranked = sort $unranked "url" "asc" }}
+    {{ $unranked = sort $unranked "title" "asc" }}
+    {{ $pages = slice }}
+    {{ range $ranked }}{{ $pages = $pages | append .page }}{{ end }}
+    {{ range $unranked }}{{ $pages = $pages | append .page }}{{ end }}
+  {{ end }}
 
   {{/* Tag frequency across this section, most common first. Drives the
        "filter by tags" row. Computed server-side so it works without JS. */}}
@@ -28,17 +101,22 @@
     {{ $search := lower (printf "%s %s %s" .Title (.Params.description | default "") $tagStr) }}
     {{ $initial := upper (substr .Title 0 1) }}
     {{ if lt $initial "A" }}{{ $initial = "#" }}{{ else if gt $initial "Z" }}{{ $initial = "#" }}{{ end }}
-    {{ $entries = $entries | append (dict "search" $search "tags" $tags "letter" $initial) }}
+    {{ $entries = $entries | append (dict
+      "search" $search
+      "tags" $tags
+      "letter" $initial
+      "nameOrder" (index $nameOrder .RelPermalink)
+    ) }}
     {{ $letters = $letters | append $initial }}
   {{ end }}
 
   {{/* An alphabet is worth the room once a section is too long to scan: at 144
        people a reader who knows the name still has to scroll for it. Below that
        it is chrome around a list you can already see all of. */}}
-  {{ $indexed := ge (len $pages) 40 }}
+  {{ $indexed := and (not $isPeople) (ge (len $pages) 40) }}
   {{ $present := uniq $letters }}
 
-  <section class="bg-surface py-16" x-data='entityList({{ $entries | jsonify }})'>
+  <section class="bg-surface py-16" x-data='entityList({{ $entries | jsonify }}, {{ if $isPeople }}true{{ else }}false{{ end }})'>
     <div class="mx-auto max-w-3xl px-6">
       <p class="section-label mb-2">{{ .Section | humanize }}</p>
       <h1 class="mb-2 text-3xl font-semibold lg:text-4xl">
@@ -46,6 +124,14 @@
       </h1>
       {{ with .Params.description }}
         <p class="mb-8 text-lg text-on-surface-secondary">{{ . }}</p>
+      {{ end }}
+
+      {{ if $isPeople }}
+        <div class="mb-6 flex items-center gap-2" aria-label="Sort people">
+          <span class="mr-1 font-ui text-xs font-medium uppercase tracking-wider text-on-surface-muted">Sort</span>
+          <button type="button" @click="sortMode = 'relevance'" :aria-pressed="sortMode === 'relevance'" class="tag cursor-pointer transition-colors" :class="sortMode === 'relevance' ? 'tag-teal' : 'tag-neutral'">Relevance (frequency)</button>
+          <button type="button" @click="sortMode = 'name'" :aria-pressed="sortMode === 'name'" class="tag cursor-pointer transition-colors" :class="sortMode === 'name' ? 'tag-teal' : 'tag-neutral'">Name</button>
+        </div>
       {{ end }}
 
       {{ if $pages }}
@@ -111,7 +197,7 @@
         {{/* Spacing is per row rather than space-y on the container: a letter
              heading needs to sit closer to the group it opens than to the one
              it ends, and a uniform gap makes it belong to neither. */}}
-        <div>
+        <div{{ if $isPeople }} class="flex flex-col gap-8"{{ end }}>
           {{ $shown := "" }}
           {{ range $i, $p := $pages }}
             {{ $letter := (index $entries $i).letter }}
@@ -131,7 +217,8 @@
             {{ end }}
             <a href="{{ .RelPermalink }}"
                x-show="show(entries[{{ $i }}])"
-               class="group block transition-colors{{ if $opensGroup }} mt-6{{ else if $i }} mt-9{{ end }}">
+               {{ if $isPeople }}:style="{ order: sortMode === 'name' ? entries[{{ $i }}].nameOrder : {{ $i }} }"{{ end }}
+               class="group block transition-colors{{ if not $isPeople }}{{ if $opensGroup }} mt-6{{ else if $i }} mt-9{{ end }}{{ end }}">
               <h3 class="font-ui text-base font-semibold text-on-surface transition-colors group-hover:text-primary">
                 {{ .Title }}
               </h3>
@@ -160,10 +247,12 @@
 
   <script>
     document.addEventListener('alpine:init', () => {
-      Alpine.data('entityList', (entries) => ({
+      Alpine.data('entityList', (entries, people = false) => ({
         query: '',
         active: [],
         entries: entries,
+        people: people,
+        sortMode: 'relevance',
         init() {
           const t = new URLSearchParams(location.search).get('tag');
           if (t) this.active = [t.toLowerCase()];

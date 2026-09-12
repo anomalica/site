@@ -117,25 +117,25 @@ redirects:
       history, so the build already serves the redirect and suppressing it would be work to produce a worse answer. Reversible:
       decomposing the page restores this one, and the article is in git history."
   - from: /en/documents/communion/
-    to: /en/records/communion/
-    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
-      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+    gone: true
+    note: "Retired 2026-09-12. Public Records now represent reviewed ingests, not document graph nodes. The related Communion
+      ingest does not currently pass the publication gate, so there is no honest destination. Reversible from content history."
   - from: /en/documents/condon-report/
-    to: /en/records/condon-report/
-    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
-      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+    gone: true
+    note: "Retired 2026-09-12. Public Records now represent reviewed ingests, not document graph nodes, and no eligible record
+      page represents this work. A dead end is more accurate than forwarding to a page that does not exist."
   - from: /en/documents/gimbal-video/
-    to: /en/records/gimbal-video/
-    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
-      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+    gone: true
+    note: "Retired 2026-09-12. Public Records now represent reviewed ingests, not document graph nodes, and no eligible record
+      page represents this work. A dead end is more accurate than forwarding to a page that does not exist."
   - from: /en/documents/go-fast-video/
-    to: /en/records/go-fast-video/
-    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
-      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+    gone: true
+    note: "Retired 2026-09-12. Public Records now represent reviewed ingests, not document graph nodes, and no eligible record
+      page represents this work. A dead end is more accurate than forwarding to a page that does not exist."
   - from: /en/documents/unidentified-anomalous-phenomena-disclosure-act-of-2023/
-    to: /en/records/unidentified-anomalous-phenomena-disclosure-act-of-2023/
-    note: "Moved 2026-09-08 with the documents section into records: a page is placed by what its node IS, not by whether
-      we hold the source, so the URL cannot move again the day we ingest it. Same page, same slug, same claims."
+    gone: true
+    note: "Retired 2026-09-12. Public Records now represent reviewed ingests, not document graph nodes, and no eligible record
+      page represents this work. A dead end is more accurate than forwarding to a page that does not exist."
   - from: /en/briefs/documents/book-of-revelation-apocalypse/
     to: /en/briefs/records/book-of-revelation-apocalypse/
     note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL

@@ -14,10 +14,13 @@
       {{ with .Params.metadata }}
         <p class="mb-8 font-ui text-sm text-on-surface-muted">
           {{ $parts := slice }}
-          {{ with .medium }}{{ $parts = $parts | append (title .) }}{{ end }}
+          {{ with .source_type }}{{ $parts = $parts | append (title .) }}{{ else }}{{ with .medium }}{{ $parts = $parts | append (title .) }}{{ end }}{{ end }}
+          {{ with .document_type }}{{ $parts = $parts | append (title .) }}{{ end }}
+          {{ with .creators }}{{ $parts = $parts | append (delimit . ", ") }}{{ end }}
           {{ with .publisher }}{{ $parts = $parts | append . }}{{ end }}
-          {{ with .date }}{{ $parts = $parts | append . }}{{ end }}
-          {{ with .duration }}{{ $parts = $parts | append . }}{{ end }}
+          {{ with .published_date }}{{ $parts = $parts | append . }}{{ else }}{{ with .date }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
+          {{ with .duration }}{{ $parts = $parts | append (partial "fmt-duration.html" .) }}{{ end }}
+          {{ with .pages }}{{ $parts = $parts | append (printf "%v pages" .) }}{{ end }}
           {{ delimit $parts "  ·  " }}
         </p>
       {{ end }}
