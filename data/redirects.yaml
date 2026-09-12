@@ -38,9 +38,9 @@ redirects:
       can rebuild it. Not redirected to the US Department of Defense page: the article was about the Australian department,
       and a wrong destination is worse than a gone one."
   - from: /en/documents/unidentified-aerial-phenomena-uap-disclosure-act/
-    to: /en/documents/unidentified-anomalous-phenomena-disclosure-act-of-2023/
-    note: "Renamed 2026-09-03. The Act is the Unidentified Anomalous Phenomena Disclosure Act of 2023; the old slug said Aerial
-      and dropped the year. Same node, same 18 claims, so the page moves rather than retires."
+    gone: true
+    note: "Retired 2026-09-12 with its former target. Public Records now represent reviewed ingests rather than document graph
+      nodes, and no eligible Record represents this work."
   - from: /en/briefs/documents/unidentified-aerial-phenomena-uap-disclosure-act/
     to: /en/briefs/documents/unidentified-anomalous-phenomena-disclosure-act-of-2023/
     note: "Renamed 2026-09-03, with the article above. Brief pages are exempt from the removal guard because they come and

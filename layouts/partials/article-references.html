@@ -57,19 +57,25 @@
             {{ with .location }}
               <span class="text-on-surface-muted">{{ . }}</span>
             {{ end }}
-            {{/* Public claim -> source: links to the per-record inspection page.
-                 inspection_url is a bare /records/<slug>#claim-<uuid> path from the
-                 assembler, emitted only when that record page exists; language-prefix
-                 the path here (the fragment is preserved). */}}
+            {{/* Public claim -> source: links to an eligible public Record.
+                 Entity-page reference snapshots can outlive a Record's publication,
+                 so existence and schema are checked again at this final boundary. */}}
             {{ with .inspection_url }}
               {{ $p := split . "#" }}
-              {{ $href := relLangURL (index $p 0) }}
+              {{ $path := index $p 0 }}
+              {{ $target := site.GetPage $path }}
+              {{ $eligible := and
+                $target
+                (eq $target.Params.schema "anomalica/public-record/1")
+                (eq $target.Params.content_kind "record")
+              }}
+              {{ $href := relLangURL $path }}
               {{/* On a record page every claim comes from that record, so this
-                   link pointed at the page the reader is already on - 93 of them
-                   saying "view the source record" about the source record. */}}
+                    link pointed at the page the reader is already on - 93 of them
+                    saying "view the source record" about the source record. */}}
               {{/* The assembler emits a bare path with no trailing slash;
-                   RelPermalink has one. Compare them trimmed. */}}
-              {{ if ne (strings.TrimSuffix "/" $href) (strings.TrimSuffix "/" $.RelPermalink) }}
+                    RelPermalink has one. Compare them trimmed. */}}
+              {{ if and $eligible (ne (strings.TrimSuffix "/" $href) (strings.TrimSuffix "/" $.RelPermalink)) }}
                 {{ if gt (len $p) 1 }}{{ $href = printf "%s#%s" $href (index $p 1) }}{{ end }}
                 <a href="{{ $href }}" class="text-primary hover:underline ml-auto" title="Inspect the source record">
                   View the source record &rarr;
