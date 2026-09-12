@@ -136,6 +136,284 @@ redirects:
     gone: true
     note: "Retired 2026-09-12. Public Records now represent reviewed ingests, not document graph nodes, and no eligible record
       page represents this work. A dead end is more accurate than forwarding to a page that does not exist."
+  - from: /en/documents/
+    gone: true
+    note: "Retired 2026-09-12. The Documents catalogue was replaced by reviewed-ingest Records; there is no equivalent Documents
+      catalogue to redirect to."
+  - from: /documents/2017-pentagon-unidentified-aerial-phenomena-uap-videos/
+    gone: true
+    note: "Retired 2026-09-12. This was an alias of a retired Document page and no eligible public Record is its exact replacement."
+  - from: /en/documents/2017-pentagon-unidentified-aerial-phenomena-uap-videos/
+    gone: true
+    note: "Retired 2026-09-12. This was an alias of a retired Document page and no eligible public Record is its exact replacement."
+  - from: /documents/go-fast-us-military-unidentified-aerial-phenomena-uap-video/
+    gone: true
+    note: "Retired 2026-09-12. This was an alias of a retired Document page and no eligible public Record is its exact replacement."
+  - from: /en/documents/go-fast-us-military-unidentified-aerial-phenomena-uap-video/
+    gone: true
+    note: "Retired 2026-09-12. This was an alias of a retired Document page and no eligible public Record is its exact replacement."
+  - from: /documents/the-condon-report/
+    gone: true
+    note: "Retired 2026-09-12. This was an alias of a retired Document page and no eligible public Record is its exact replacement."
+  - from: /en/documents/the-condon-report/
+    gone: true
+    note: "Retired 2026-09-12. This was an alias of a retired Document page and no eligible public Record is its exact replacement."
+  - from: /en/records/0101-01-01-ebook-messengers-of-deception-ufo-contacts-and-cults/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/1975-pdf-the-recognition-of-extraterrestrial-intelligence/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2000-11-28-ebook-the-fatima-secret/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2001-02-27-web-clarke-s-believe-it-or-not/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2005-11-14-ebook-hair-of-the-alien-dna-and-other-forensic-evidence-for-alien/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2007-06-20-web-project-serpo/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2010-07-22-ebook-dark-mission/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2012-05-pdf-conference-report-cultural-and-linguistic-advancement-for/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2013-03-22-ebook-remote-viewing-secrets/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2013-06-16-ebook-communion/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2014-09-27-ebook-the-invisible-college-what-a-group-of-scientists-has/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2014-11-11-ebook-journeys-out-of-the-body/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2015-03-05-web-re-leslie-kean-book-comment/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2017-03-07-ebook-surviving-death/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2017-12-16-web-glowing-auras-and-black-money-the-pentagon-s-mysterious-u-f/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2019-06-01-web-the-media-loves-this-ufo-expert-who-says-he-worked-for-an/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2019-06-14-web-pentagon-reinforces-mr-luis-elizondo-had-no/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2020-04-27-web-statement-by-the-department-of-defense-on-the-release-of/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2020-05-14-pdf-range-fouler-debrief-form/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2020-08-08-pdf-misrep-4592219/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2020-09-04-pdf-range-fouler-reporting-form/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2020-09-08-video-david-fravor-ufos-aliens-fighter-jets-and-aerospace/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2021-05-17-video-navy-pilots-describe-encounters-with-ufos/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2021-09-06-video-the-ufo-phenomenon-full-documentary-2021-7news-spotlight/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2023-06-05-web-intelligence-officials-say-u-s-has-retrieved-craft-of-non/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2023-06-09-web-claims-that-ufo-information-was-inappropriately-withheld/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2023-07-26-pdf-unidentified-anomalous-phenomena-implications-on-national-security-public-safety/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2023-08-02-video-how-the-cia-spent-millions-on-psychic-spies-project/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2023-11-17-ebook-in-plain-sight/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-07-12-video-out-of-body-the-gateway-experience-trailer/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-08-19-ebook-imminent-inside-the-pentagon-s-hunt-for-ufos/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-08-24-video-i-left-my-body-the-gateway-experience-part-3/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-09-05-video-uap-caught-on-drone-in-4k-debriefed-ep-5/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-09-13-video-the-clearest-video-of-a-tic-tac-uap-debriefed-ep-6/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-10-02-video-horseshoe-uap-video-surfaces-debriefed-ep-08/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-10-05-video-what-the-aliens-look-like-disturbing-research-by-budd/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-10-18-video-journalist-leaked-uap-program-immaculate-constellation/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2024-11-24-video-uaps-in-washington-i-wasn-t-supposed-to-be-there/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2025-01-15-ebook-the-fourth-mind/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2025-03-27-web-rep-burlison-welcomes-former-u-s-air-force-officer-david/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2025-04-11-video-aliens-and-albert-einstein-the-secret-document-debriefed-ep/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2025-10-17-video-ufo-witness-reveals-chilling-daytime-alien-encounter-peter/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2025-12-08-video-sergeant-karl-wolfe-details-an-alien-base-discovered-on-the/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-03-04-video-tom-delonge-s-sekret-machines-full-documentary-ufo-uap/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-04-24-video-skinny-bob-is-real-lifelong-abductee-reveals-everything/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-05-08-video-bob-lazar-just-revealed-his-biggest-secret-debriefed-ep-87/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-06-12-video-revealing-the-nordic-alien-prophecies-michael-horn/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-06-30-video-episode-73-science-vs-secrecy/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d003a-gemini-7-audio-excerpt-1965/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d008-apollo-12-medical-debriefing-tape-12-1969/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d009-apollo-17-audio-excerpt-december-7-1972/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d010-mercury-atlas-9-audio-excerpt-may-15-1963/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d011-mercury-atlas-9-audio-excerpt-may-15-1963/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d012-mercury-atlas-8-audio-excerpt-october-3-1962/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d013-mercury-atlas-7-may-24-1962/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d023-interview-excerpt-with-astronaut-gordon/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d027-apollo-14-debriefing-continued-1971/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-11-audio-nasa-uap-d029-apollo-17-crew-medical-debriefing-continued/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-14-video-the-ufo-cover-up-leads-to-one-secret-society-and-one-final/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-07-21-video-dr-phil-read-the-uap-files-before-the-public-here-s-what-he/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-08-11-web-ic-watchdog-responds-to-alleged-uap-whistleblower-leak/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-08-14-video-non-human-intelligence-gate-program-and-psi-ability-with-dr/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-08-14-video-whitley-strieber-reveals-what-40-years-of-encounters-taught/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
+  - from: /en/records/2026-08-19-web-pressure-mounts-on-president-trump-as-uap-disclosure/
+    gone: true
+    note: "Retired 2026-09-12. The ingest no longer meets the reviewed public-Record eligibility gate; no exact replacement
+      exists."
   - from: /en/briefs/documents/book-of-revelation-apocalypse/
     to: /en/briefs/records/book-of-revelation-apocalypse/
     note: "Moved 2026-09-08 with its article. The node survives and only its section changes, which is the case a brief URL
