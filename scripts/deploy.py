@@ -438,20 +438,23 @@ def build(
     # Minifying writes over it in place, so it is put back afterwards: a deploy
     # must not leave the working tree dirty.
     stylesheet = site_source / "assets/css/compiled.css"
-    subprocess.run(
-        [
-            str(REPO / "node_modules/.bin/tailwindcss"),
-            "-i",
-            "assets/css/main.css",
-            "-o",
-            "assets/css/compiled.css",
-            "--minify",
-        ],
-        cwd=site_source,
-        check=True,
-        capture_output=True,
-    )
+    dependencies = site_source / "node_modules"
+    linked_dependencies = not dependencies.exists()
+    if linked_dependencies:
+        dependencies.symlink_to(REPO / "node_modules", target_is_directory=True)
     try:
+        subprocess.run(
+            [
+                str(REPO / "node_modules/.bin/tailwindcss"),
+                "-i",
+                "assets/css/main.css",
+                "-o",
+                "assets/css/compiled.css",
+                "--minify",
+            ],
+            cwd=site_source,
+            check=True,
+        )
         # -e production is load-bearing: without it hugo.IsProduction is false in
         # this environment and templates render their development branch.
         override = module_override(
@@ -477,6 +480,8 @@ def build(
         )
     finally:
         stylesheet.unlink(missing_ok=True)
+        if linked_dependencies:
+            dependencies.unlink(missing_ok=True)
 
 
 def apply_redirects(build_dir: Path, redirects: Path = REDIRECTS) -> None:
