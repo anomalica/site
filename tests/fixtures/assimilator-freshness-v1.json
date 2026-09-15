@@ -1,0 +1,27 @@
+{
+  "schema": "anomalica-freshness/v1",
+  "generated_at": "2026-09-14T00:00:00Z",
+  "source_queue_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "groups": [
+    {
+      "boundary": "brief-selection",
+      "artifact": "people/example-person",
+      "local_status": "stale",
+      "local_reasons": [
+        "payload_hash_mismatch"
+      ],
+      "inherited": [],
+      "consequence": "finish"
+    },
+    {
+      "boundary": "graph-import",
+      "artifact": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "local_status": "stale",
+      "local_reasons": [
+        "digest_hash_mismatch"
+      ],
+      "inherited": [],
+      "consequence": "finish"
+    }
+  ]
+}

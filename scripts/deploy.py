@@ -46,6 +46,19 @@ from pathlib import Path
 
 import yaml
 
+if __package__:
+    from .deployment_freshness import (
+        deployment_freshness_result,
+        inherited_groups_from_manifest,
+        reason_code_contract,
+    )
+else:
+    from deployment_freshness import (
+        deployment_freshness_result,
+        inherited_groups_from_manifest,
+        reason_code_contract,
+    )
+
 REPO = Path(__file__).resolve().parent.parent
 ZONE = "anomalica-site"
 STORAGE_API = "https://storage.bunnycdn.com"
@@ -59,6 +72,17 @@ AGE_KEY = Path.home() / ".config/sops/age/keys.txt"
 UPLOAD_WORKERS = 8
 
 CONTENT_REPO = REPO.parent / "content"
+META_REPO = REPO.parent / "anomalica"
+MOUNTED_META_INPUTS = (
+    "reference/format-specs.yaml",
+    "reference/architecture.yaml",
+    "architecture/model-policy.yaml",
+)
+META_INPUTS = (
+    *MOUNTED_META_INPUTS,
+    "reference/pipeline.mmd",
+    "architecture/freshness.md",
+)
 REDIRECTS = REPO / "data/redirects.yaml"
 DIAGRAM_SOURCE = REPO.parent / "anomalica/reference/pipeline.mmd"
 DIAGRAM_SVG = REPO / "assets/architecture/pipeline.svg"
@@ -77,6 +101,46 @@ class DeployError(RuntimeError):
 
 def log(message: str) -> None:
     print(message, flush=True)
+
+
+def unique_json_object(pairs: list[tuple[str, object]]) -> dict:
+    """Reject ambiguous JSON objects instead of silently keeping the last key."""
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        value[key] = item
+    return value
+
+
+def guarded_inherited_groups(
+    path: Path,
+    expected_sha256: str,
+    reason_codes: dict[str, set[str]] | None = None,
+) -> list[dict]:
+    """Load an explicit freshness input only when its exact bytes are authorised."""
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha256):
+        raise DeployError("inherited freshness SHA-256 must be 64 hexadecimal digits")
+    payload = path.read_bytes()
+    actual = hashlib.sha256(payload).hexdigest()
+    if actual != expected_sha256.lower():
+        raise DeployError(
+            f"inherited freshness SHA-256 mismatch: expected {expected_sha256.lower()}, "
+            f"got {actual}"
+        )
+    try:
+        manifest = json.loads(payload, object_pairs_hook=unique_json_object)
+        return inherited_groups_from_manifest(manifest, reason_codes)
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise DeployError(f"invalid inherited freshness manifest: {exc}") from exc
+
+
+def emit_deployment_freshness(**observations) -> dict:
+    """Write and return one canonical result without changing failure handling."""
+    result = deployment_freshness_result(**observations)
+    log("Deployment freshness result")
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return result
 
 
 # --- credentials -------------------------------------------------------------
@@ -117,7 +181,7 @@ def flatten(markup: str) -> str:
     return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", markup)).split())
 
 
-def check_diagram_current() -> None:
+def check_diagram_current(diagram_source: Path, diagram_svg: Path) -> None:
     """Refuse to publish an architecture diagram that has drifted from its source.
 
     The diagram is authored in the meta-repo as mermaid and pre-rendered to SVG
@@ -138,11 +202,11 @@ def check_diagram_current() -> None:
     font loaded, and a silent re-render at deploy time is how a clipped diagram
     ships without anyone looking at it.
     """
-    if not DIAGRAM_SOURCE.is_file() or not DIAGRAM_SVG.is_file():
+    if not diagram_source.is_file() or not diagram_svg.is_file():
         log("  diagram check skipped: source or rendered copy missing")
         return
 
-    mermaid = DIAGRAM_SOURCE.read_text()
+    mermaid = diagram_source.read_text()
     source = dict(
         re.findall(
             r'^\s*(\w+)@\{\s*shape:\s*[\w-]+,\s*label:\s*"([^"]*)"',
@@ -156,7 +220,7 @@ def check_diagram_current() -> None:
         " ".join(label.split()) for label in re.findall(r'\|\s*"([^"]*)"\s*\|', mermaid)
     )
 
-    svg = DIAGRAM_SVG.read_text()
+    svg = diagram_svg.read_text()
     # Node ids carry a render-order suffix that changes whenever the diagram
     # gains a node, so they are matched by name - as the page's own script does.
     starts = [
@@ -229,12 +293,74 @@ def content_state() -> tuple[str, str, list[str]]:
         ).stdout.strip()
 
     branch = git("rev-parse", "--abbrev-ref", "HEAD")
-    head = git("rev-parse", "--short", "HEAD")
+    head = git("rev-parse", "HEAD")
     dirty = [line[2:].strip() for line in git("status", "--porcelain").splitlines()]
     return branch, head, dirty
 
 
-def snapshot_content(destination: Path) -> Path:
+def repository_commit(repository: Path) -> str:
+    """Return the exact committed revision used as a build input."""
+    return subprocess.run(
+        ["git", "-C", str(repository), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+
+def snapshot_repository(repository: Path, destination: Path, revision: str) -> Path:
+    """Export one exact committed tree without reading mutable source bytes."""
+    destination.mkdir(parents=True, exist_ok=True)
+    archive = destination.parent / f"{destination.name}.tar"
+    with archive.open("wb") as handle:
+        subprocess.run(
+            ["git", "-C", str(repository), "archive", revision],
+            stdout=handle,
+            check=True,
+        )
+    with tarfile.open(archive) as tar:
+        tar.extractall(destination, filter="data")
+    archive.unlink()
+    return destination
+
+
+def committed_meta_inputs(destination: Path, revision: str) -> dict[str, str]:
+    """Bind every mounted or validation input read from the meta repository."""
+    snapshot_repository(META_REPO, destination, revision)
+    hashes = {}
+    for relative in META_INPUTS:
+        try:
+            committed = subprocess.run(
+                ["git", "-C", str(META_REPO), "show", f"{revision}:{relative}"],
+                capture_output=True,
+                check=True,
+            ).stdout
+        except subprocess.CalledProcessError:
+            raise DeployError(f"committed meta input is missing: {relative}")
+        working = META_REPO / relative
+        if not working.is_file() or working.read_bytes() != committed:
+            raise DeployError(f"meta input differs from {revision}: {relative}")
+        snapshot = destination / relative
+        if not snapshot.is_file() or snapshot.read_bytes() != committed:
+            raise DeployError(f"meta snapshot mismatch: {relative}")
+        hashes[relative] = hashlib.sha256(committed).hexdigest()
+    return hashes
+
+
+def committed_reason_codes(meta_source: Path) -> dict[str, set[str]]:
+    """Read the reason vocabulary from the same immutable meta snapshot."""
+    path = meta_source / "architecture/freshness.md"
+    if not path.is_file():
+        raise DeployError("committed freshness architecture is missing")
+    try:
+        return reason_code_contract(path.read_text())
+    except ValueError as exc:
+        raise DeployError(f"invalid committed freshness architecture: {exc}") from exc
+
+
+def snapshot_content(
+    destination: Path, revision: str | None = None
+) -> tuple[Path, str]:
     """Export the content repo at HEAD, and build against that instead of the tree.
 
     The build MOUNTS this repository, so without this it publishes whatever is on
@@ -244,26 +370,19 @@ def snapshot_content(destination: Path) -> Path:
     and the assembler can keep working while it runs.
     """
     branch, head, dirty = content_state()
-    destination.mkdir(parents=True, exist_ok=True)
-    archive = destination.parent / "content.tar"
-    with archive.open("wb") as handle:
-        subprocess.run(
-            ["git", "-C", str(CONTENT_REPO), "archive", "HEAD"],
-            stdout=handle,
-            check=True,
-        )
-    with tarfile.open(archive) as tar:
-        tar.extractall(destination, filter="data")
-    archive.unlink()
+    revision = revision or head
+    snapshot_repository(CONTENT_REPO, destination, revision)
     uncommitted = f" ({len(dirty)} uncommitted, not published)" if dirty else ""
-    log(f"Content repo {branch} at {head}{uncommitted}")
-    return destination
+    log(f"Content repo {branch} at {revision}{uncommitted}")
+    return destination, revision
 
 
 # --- build -------------------------------------------------------------------
 
 
-def module_override(content_source: Path, path: Path) -> Path:
+def module_override(
+    site_source: Path, content_source: Path, meta_source: Path, path: Path
+) -> Path:
     """A second config that re-points the content mounts at the snapshot.
 
     Generated from the project's own mounts rather than restated, so it keeps
@@ -271,57 +390,76 @@ def module_override(content_source: Path, path: Path) -> Path:
     """
     import tomllib
 
-    config = tomllib.loads((REPO / "hugo.toml").read_text())
+    config = tomllib.loads((site_source / "hugo.toml").read_text())
     lines = ["[module]"]
+    mounted_meta_inputs = set()
     for mount in config.get("module", {}).get("mounts", []):
         source = mount["source"]
         if source.startswith("../content/"):
             source = str(content_source / source[len("../content/") :])
+        elif source.startswith("../anomalica/"):
+            relative = source[len("../anomalica/") :]
+            mounted_meta_inputs.add(relative)
+            source = str(meta_source / relative)
         lines.append("[[module.mounts]]")
         for key, value in mount.items():
             rendered = f'"{source}"' if key == "source" else json.dumps(value)
             lines.append(f"{key} = {rendered}")
+    if mounted_meta_inputs != set(MOUNTED_META_INPUTS):
+        raise DeployError(
+            "direct meta mounts do not match the hash-bound input set: "
+            f"expected {sorted(MOUNTED_META_INPUTS)}, got {sorted(mounted_meta_inputs)}"
+        )
     path.write_text("\n".join(lines) + "\n")
     return path
 
 
-def build(destination: Path, content_source: Path) -> None:
+def build(
+    destination: Path, site_source: Path, content_source: Path, meta_source: Path
+) -> None:
     log(f"Building into {destination}")
-    subprocess.run(["npm", "run", "vendor", "--silent"], cwd=REPO, check=True)
+    subprocess.run(
+        ["bash", str(site_source / "scripts/fetch-vendor.sh")],
+        cwd=site_source,
+        check=True,
+    )
     # Briefs are converted from the SNAPSHOT, not the working tree: the tree
     # holds briefs the assembler is still writing.
     subprocess.run(
         [
             sys.executable,
-            str(REPO / "scripts/briefs-to-json.py"),
+            str(site_source / "scripts/briefs-to-json.py"),
             str(content_source / "briefs"),
         ],
-        cwd=REPO,
+        cwd=site_source,
         check=True,
     )
     # The committed compiled.css is the readable build the dev server watches.
     # Minifying writes over it in place, so it is put back afterwards: a deploy
     # must not leave the working tree dirty.
-    stylesheet = REPO / "assets/css/compiled.css"
-    committed = stylesheet.read_bytes() if stylesheet.exists() else None
+    stylesheet = site_source / "assets/css/compiled.css"
+    subprocess.run(
+        [
+            str(REPO / "node_modules/.bin/tailwindcss"),
+            "-i",
+            "assets/css/main.css",
+            "-o",
+            "assets/css/compiled.css",
+            "--minify",
+        ],
+        cwd=site_source,
+        check=True,
+        capture_output=True,
+    )
     try:
-        subprocess.run(
-            [
-                "npx",
-                "@tailwindcss/cli",
-                "-i",
-                "assets/css/main.css",
-                "-o",
-                "assets/css/compiled.css",
-                "--minify",
-            ],
-            cwd=REPO,
-            check=True,
-            capture_output=True,
-        )
         # -e production is load-bearing: without it hugo.IsProduction is false in
         # this environment and templates render their development branch.
-        override = module_override(content_source, destination.parent / "mounts.toml")
+        override = module_override(
+            site_source,
+            content_source,
+            meta_source,
+            destination.parent / "mounts.toml",
+        )
         subprocess.run(
             [
                 "hugo",
@@ -334,15 +472,14 @@ def build(destination: Path, content_source: Path) -> None:
                 "--config",
                 f"hugo.toml,{override}",
             ],
-            cwd=REPO,
+            cwd=site_source,
             check=True,
         )
     finally:
-        if committed is not None:
-            stylesheet.write_bytes(committed)
+        stylesheet.unlink(missing_ok=True)
 
 
-def apply_redirects(build_dir: Path) -> None:
+def apply_redirects(build_dir: Path, redirects: Path = REDIRECTS) -> None:
     """Write a redirect for every retired URL that no longer has a page.
 
     Hugo's own aliases live in the destination page's front matter, which the
@@ -354,9 +491,9 @@ def apply_redirects(build_dir: Path) -> None:
     Skipped while a real page still occupies the path: an entry can be added
     before the page is removed, and starts working by itself when it goes.
     """
-    if not REDIRECTS.is_file():
+    if not redirects.is_file():
         return
-    entries = (yaml.safe_load(REDIRECTS.read_text()) or {}).get("redirects") or []
+    entries = (yaml.safe_load(redirects.read_text()) or {}).get("redirects") or []
     written = skipped = 0
     for entry in entries:
         # A retired URL with nowhere to send readers is recorded here too, so
@@ -454,7 +591,7 @@ def verify_assets_fingerprinted(build_dir: Path) -> None:
     log(f"  assets fingerprinted ({len(references)} references)")
 
 
-def verify_no_dead_links(build_dir: Path) -> None:
+def verify_no_dead_links(build_dir: Path) -> dict[str, set[str]]:
     """Resolve every internal href against the built output."""
     dead: dict[str, set[str]] = {}
     pages = list(build_dir.rglob("*.html"))
@@ -476,13 +613,23 @@ def verify_no_dead_links(build_dir: Path) -> None:
     if dead:
         for target, sources in sorted(dead.items())[:20]:
             log(f"  DEAD {target}  <- {sorted(sources)[0]}")
-        raise DeployError(
-            f"{len(dead)} dead internal link target(s); refusing to deploy"
-        )
-    log(f"  no dead internal links across {len(pages)} pages")
+    else:
+        log(f"  no dead internal links across {len(pages)} pages")
+    return dead
 
 
-def report_alias_changes(build_dir: Path, persist: bool) -> None:
+def built_aliases(build_dir: Path) -> list[str]:
+    """Return canonical paths for redirects emitted by the production build."""
+    return sorted(
+        "/" + str(page.parent.relative_to(build_dir)) + "/"
+        for page in build_dir.rglob("index.html")
+        if "http-equiv=refresh" in page.read_text(errors="replace")[:600]
+    )
+
+
+def report_alias_changes(
+    build_dir: Path, persist: bool, redirects: Path = REDIRECTS
+) -> list[str]:
     """Name any redirect that has stopped being built.
 
     Aliases live in a page's front matter, so a rebuild of that page silently
@@ -491,13 +638,16 @@ def report_alias_changes(build_dir: Path, persist: bool) -> None:
     has happened once already, to /people/david-grusch/ and /organisations/nasa/.
     Nothing else reports it: the alias is not a page, so no page count changes.
     """
-    current = sorted(
-        "/" + str(page.parent.relative_to(build_dir)) + "/"
-        for page in build_dir.rglob("index.html")
-        if "http-equiv=refresh" in page.read_text(errors="replace")[:600]
-    )
+    current = built_aliases(build_dir)
     previous = read_state().get("aliases", [])
-    dropped = [alias for alias in previous if alias not in current]
+    acknowledged = {
+        "/" + name[: -len("index.html")] for name in retired_urls(redirects)
+    }
+    dropped = [
+        alias
+        for alias in previous
+        if alias not in current and alias not in acknowledged
+    ]
     if dropped:
         log(f"  WARNING: {len(dropped)} redirect(s) no longer built - these will 404:")
         for alias in dropped:
@@ -505,6 +655,7 @@ def report_alias_changes(build_dir: Path, persist: bool) -> None:
     log(f"  {len(current)} redirect(s) in the build")
     if persist:
         write_state("aliases", current)
+    return dropped
 
 
 def resolves(build_dir: Path, path: str) -> bool:
@@ -536,9 +687,10 @@ def write_state(key: str, value) -> None:
 def report_unresolved_links(
     build_dir: Path,
     content_source: Path | None = None,
+    site_source: Path = REPO,
     persist: bool = False,
     limit: int = 15,
-) -> int:
+) -> dict[str, int]:
     """Count internal links the templates had to strip for want of a page.
 
     These never reach the HTML - the markdown link hook renders them as plain
@@ -548,7 +700,7 @@ def report_unresolved_links(
     emitting links to pages nobody is building.
     """
     roots = (
-        (REPO / "content/english", content_source / "pages")
+        (site_source / "content/english", content_source / "pages")
         if content_source
         else CONTENT_ROOTS
     )
@@ -594,7 +746,7 @@ def report_unresolved_links(
             log(f"    +{count:3d}  {target}")
     if persist:
         write_state("targets", counts)
-    return total
+    return counts
 
 
 def resolves_in_language(build_dir: Path, path: str) -> bool:
@@ -682,15 +834,15 @@ def delete(key: str, relative: str) -> None:
         raise DeployError(f"delete {relative}: {status} {payload[:200]!r}")
 
 
-def retired_urls() -> set[str]:
+def retired_urls(redirects: Path = REDIRECTS) -> set[str]:
     """URLs recorded as intentionally gone, with no replacement."""
-    if not REDIRECTS.is_file():
+    if not redirects.is_file():
         return set()
-    entries = (yaml.safe_load(REDIRECTS.read_text()) or {}).get("redirects") or []
+    entries = (yaml.safe_load(redirects.read_text()) or {}).get("redirects") or []
     return {e["from"].strip("/") + "/index.html" for e in entries if e.get("gone")}
 
 
-def check_resurrected(local: dict, remote: dict) -> None:
+def check_resurrected(local: dict, remote: dict, redirects: Path = REDIRECTS) -> None:
     """Refuse to republish a page that was retired on the record.
 
     A page is retired by deleting its source, but the brief it was written from
@@ -705,7 +857,9 @@ def check_resurrected(local: dict, remote: dict) -> None:
     is still on the CDN has not been taken down yet, while one that is gone from
     the CDN and back in the build has returned from the dead.
     """
-    back = sorted(url for url in retired_urls() if url in local and url not in remote)
+    back = sorted(
+        url for url in retired_urls(redirects) if url in local and url not in remote
+    )
     if not back:
         return
     for url in back:
@@ -741,7 +895,12 @@ def currently_serves(path: str) -> str:
     return f"redirects to {match.group(1)}" if match else "a page in its own right"
 
 
-def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
+def check_removals(
+    orphaned: list[str],
+    build_dir: Path,
+    accept: bool,
+    redirects: Path = REDIRECTS,
+) -> None:
     """Refuse to turn a live page into a 404 without saying so out loud.
 
     Deleting what the build no longer produces is right for a renamed asset and
@@ -755,7 +914,7 @@ def check_removals(orphaned: list[str], build_dir: Path, accept: bool) -> None:
     A page that is genuinely retired with nowhere to send its readers is a real
     case, so it passes with --accept-404s.
     """
-    retired = retired_urls()
+    retired = retired_urls(redirects)
     # Brief pages are exempt, and only brief pages. They are generated per graph
     # node, so they appear and vanish as the graph is merged and pruned - 42 in
     # one deploy - and blocking on each would train whoever runs this to pass
@@ -831,7 +990,7 @@ def purge(api_key: str) -> None:
 
 def verify_live(
     build_dir: Path, paths: list[str], attempts: int = 6, wait: int = 5
-) -> None:
+) -> dict[str, bool]:
     """Assert the live page IS the page just built, not merely that it answers.
 
     A status code cannot tell "deployed and propagated" from "deployed, not yet
@@ -840,6 +999,7 @@ def verify_live(
     for new content, calls a working deploy a failure. Comparing the body hash
     against the built file answers exactly, and retrying covers the window.
     """
+    samples: dict[str, bool] = {}
     for path in paths:
         url = f"{LIVE_ORIGIN}{path}"
         local = build_dir / path.strip("/") / "index.html"
@@ -847,23 +1007,25 @@ def verify_live(
             hashlib.sha256(local.read_bytes()).hexdigest() if local.is_file() else None
         )
         for attempt in range(1, attempts + 1):
+            status = None
+            served = None
             try:
                 with urllib.request.urlopen(url, timeout=30) as response:
                     status = response.status
                     served = hashlib.sha256(response.read()).hexdigest()
             except urllib.error.HTTPError as exc:
-                raise DeployError(f"{url} served {exc.code}") from exc
-            if status != 200:
-                raise DeployError(f"{url} served {status}")
-            if expected is None or served == expected:
+                status = exc.code
+            except OSError:
+                pass
+            if status == 200 and (expected is None or served == expected):
                 log(f"  {status}  {url}")
+                samples[path] = True
                 break
             if attempt == attempts:
-                raise DeployError(
-                    f"{url} answers but does not match the build after "
-                    f"{attempts * wait}s - the purge did not take"
-                )
+                samples[path] = False
+                break
             time.sleep(wait)
+    return samples
 
 
 # --- entry point -------------------------------------------------------------
@@ -880,29 +1042,118 @@ def main() -> int:
         action="store_true",
         help="allow removed pages to 404 rather than redirect",
     )
+    parser.add_argument(
+        "--inherited-freshness",
+        type=Path,
+        help="JSON manifest of upstream freshness reason groups",
+    )
+    parser.add_argument(
+        "--inherited-freshness-sha256",
+        help="required exact SHA-256 guard for --inherited-freshness",
+    )
     args = parser.parse_args()
 
-    workspace = Path(tempfile.mkdtemp(prefix="anomalica-site-"))
-    build_dir = workspace / "site"
+    workspace: Path | None = None
+    build_dir: Path | None = None
+    site_source: Path | None = None
+    site_commit = None
+    content_commit = None
+    meta_commit = None
+    meta_input_hashes: dict[str, str] = {}
+    reason_codes: dict[str, set[str]] | None = None
+    local_hashes: dict[str, str] = {}
+    remote: dict[str, str] | None = None
+    dead_links: dict[str, set[str]] = {}
+    stripped_links: dict[str, int] = {}
+    dropped_redirects: list[str] = []
+    live_samples: dict[str, bool] | None = None
+    inherited_groups: list[dict] = []
+    inherited_source: dict[str, str] | None = None
+    build_failed = False
+    publication_started = False
+    storage_key = None
+    stage = "input"
     try:
-        check_diagram_current()
-        content_source = snapshot_content(workspace / "content")
-        build(build_dir, content_source)
-        apply_redirects(build_dir)
+        commit_error = None
+        try:
+            site_commit = repository_commit(REPO)
+        except Exception as exc:
+            commit_error = exc
+        try:
+            content_commit = repository_commit(CONTENT_REPO)
+        except Exception as exc:
+            commit_error = commit_error or exc
+        try:
+            meta_commit = repository_commit(META_REPO)
+        except Exception as exc:
+            commit_error = commit_error or exc
+        if commit_error:
+            raise commit_error
+
+        stage = "workspace"
+        workspace = Path(tempfile.mkdtemp(prefix="anomalica-site-"))
+        build_dir = workspace / "site"
+        site_source = snapshot_repository(REPO, workspace / "site-source", site_commit)
+        meta_source = workspace / "anomalica"
+        meta_input_hashes = committed_meta_inputs(meta_source, meta_commit)
+        reason_codes = committed_reason_codes(meta_source)
+
+        if bool(args.inherited_freshness) != bool(args.inherited_freshness_sha256):
+            raise DeployError(
+                "--inherited-freshness and --inherited-freshness-sha256 must be used together"
+            )
+        if args.inherited_freshness:
+            inherited_groups = guarded_inherited_groups(
+                args.inherited_freshness,
+                args.inherited_freshness_sha256,
+                reason_codes,
+            )
+            inherited_source = {
+                "path": str(args.inherited_freshness.resolve()),
+                "sha256": args.inherited_freshness_sha256.lower(),
+            }
+
+        stage = "build"
+        build_failed = True
+        check_diagram_current(
+            meta_source / "reference/pipeline.mmd",
+            site_source / "assets/architecture/pipeline.svg",
+        )
+        content_source, archived_commit = snapshot_content(
+            workspace / "content", content_commit
+        )
+        content_commit = archived_commit
+        build(build_dir, site_source, content_source, meta_source)
+        redirects = site_source / "data/redirects.yaml"
+        apply_redirects(build_dir, redirects)
         log("Verifying the build")
         verify_assets_fingerprinted(build_dir)
-        verify_no_dead_links(build_dir)
-        report_unresolved_links(
-            build_dir, content_source=content_source, persist=not args.dry_run
-        )
-        report_alias_changes(build_dir, persist=not args.dry_run)
+        build_failed = False
 
+        stage = "validation"
+        dead_links = verify_no_dead_links(build_dir)
+        if dead_links:
+            raise DeployError(
+                f"{len(dead_links)} dead internal link target(s); refusing to deploy"
+            )
+        stripped_links = report_unresolved_links(
+            build_dir,
+            content_source=content_source,
+            site_source=site_source,
+            persist=False,
+        )
+        dropped_redirects = report_alias_changes(
+            build_dir, persist=False, redirects=redirects
+        )
+
+        stage = "remote-state"
         storage_key = secret("BUNNY_SITE_STORAGE_PASSWORD")
         local = local_files(build_dir)
         remote = remote_files(storage_key)
 
+        local_hashes = {name: digest for name, (_, digest) in local.items()}
         changed = [
-            name for name, (_, digest) in local.items() if remote.get(name) != digest
+            name for name, digest in local_hashes.items() if remote.get(name) != digest
         ]
         orphaned = sorted(set(remote) - set(local))
         log(
@@ -910,22 +1161,46 @@ def main() -> int:
             f"{len(orphaned)} to remove"
         )
 
-        check_resurrected(local, remote)
-        check_removals(orphaned, build_dir, args.accept_404s)
+        check_resurrected(local, remote, redirects)
+        check_removals(orphaned, build_dir, args.accept_404s, redirects)
 
         if args.dry_run:
             for name in sorted(changed)[:40]:
                 log(f"  would upload {name}")
             for name in orphaned[:40]:
                 log(f"  would delete {name}")
+            emit_deployment_freshness(
+                site_commit=site_commit,
+                content_commit=content_commit,
+                meta_commit=meta_commit,
+                meta_input_hashes=meta_input_hashes,
+                local_hashes=local_hashes,
+                remote_hashes=remote,
+                dead_links=dead_links,
+                stripped_links=stripped_links,
+                dropped_redirects=dropped_redirects,
+                live_samples=None,
+                inherited_groups=inherited_groups,
+                inherited_source=inherited_source,
+                reason_codes=reason_codes,
+            )
             return 0
 
+        stage = "publish"
+        publication_started = True
         if changed:
             in_parallel(lambda name: upload(storage_key, name, local[name][0]), changed)
             log(f"  uploaded {len(changed)}")
         if orphaned:
             in_parallel(lambda name: delete(storage_key, name), orphaned)
             log(f"  deleted {len(orphaned)}")
+
+        if changed or orphaned:
+            remote = remote_files(storage_key)
+            if remote != local_hashes:
+                raise DeployError(
+                    "remote storage does not match the verified build after publish"
+                )
 
         if changed or orphaned:
             purge(secret("BUNNY_API_KEY"))
@@ -935,17 +1210,74 @@ def main() -> int:
                 if name.endswith("/index.html")
             ][:3]
             log("Verifying live")
-            verify_live(build_dir, checks)
+            stage = "live-validation"
+            live_samples = verify_live(build_dir, checks)
+            mismatches = [path for path, matches in live_samples.items() if not matches]
+            if mismatches:
+                url = f"{LIVE_ORIGIN}{mismatches[0]}"
+                raise DeployError(
+                    f"{url} answers but does not match the build after 30s - "
+                    "the purge did not take"
+                )
         else:
             log("Nothing to publish; the zone already matches the build")
+        write_state("targets", stripped_links)
+        write_state("aliases", built_aliases(build_dir))
+        emit_deployment_freshness(
+            site_commit=site_commit,
+            content_commit=content_commit,
+            meta_commit=meta_commit,
+            meta_input_hashes=meta_input_hashes,
+            local_hashes=local_hashes,
+            remote_hashes=remote,
+            dead_links=dead_links,
+            stripped_links=stripped_links,
+            dropped_redirects=dropped_redirects,
+            live_samples=live_samples,
+            inherited_groups=inherited_groups,
+            inherited_source=inherited_source,
+            reason_codes=reason_codes,
+        )
         return 0
-    except (DeployError, subprocess.CalledProcessError) as exc:
+    except Exception as exc:
+        if publication_started and storage_key:
+            try:
+                remote = remote_files(storage_key)
+            except Exception:
+                remote = None
+        try:
+            emit_deployment_freshness(
+                site_commit=site_commit,
+                content_commit=content_commit,
+                meta_commit=meta_commit,
+                meta_input_hashes=meta_input_hashes,
+                local_hashes=local_hashes,
+                remote_hashes=remote,
+                dead_links=dead_links,
+                stripped_links=stripped_links,
+                dropped_redirects=dropped_redirects,
+                live_samples=live_samples,
+                inherited_groups=inherited_groups,
+                inherited_source=inherited_source,
+                reason_codes=reason_codes,
+                build_failed=build_failed,
+                failure={
+                    "stage": stage,
+                    "type": type(exc).__name__,
+                    "message": str(exc),
+                },
+            )
+        except Exception as result_exc:
+            print(
+                f"could not construct deployment freshness result: {result_exc}",
+                file=sys.stderr,
+            )
         print(f"deploy failed: {exc}", file=sys.stderr)
         return 1
     finally:
-        if args.keep_build:
+        if args.keep_build and build_dir is not None:
             log(f"build left at {build_dir}")
-        else:
+        elif workspace is not None:
             shutil.rmtree(workspace, ignore_errors=True)
 
 
