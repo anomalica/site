@@ -2,8 +2,8 @@
      (model + token counts per pipeline stage, carried forward by the pipeline)
      and a NOTIONAL cost computed from data/model_prices.yaml (list price) -
      identical whether the record ran on subscription or metered, so it reveals
-     nothing about the actual billing path. See anomalica/CLAUDE.md: per-record
-     model/tokens/list-price cost is public; actual spend is internal. */}}
+     nothing about the actual billing path. See the repository AGENTS.md:
+     per-record model/tokens/list-price cost is public; actual spend is internal. */}}
 {{ with .Params.ai_usage }}
   {{ $prices := site.Data.model_prices.models }}
   <section class="mt-12 border-t border-border pt-8">
