@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page moved | {{ site.Title }}</title>
+    <link rel="canonical" href="{{ .Permalink }}">
+    <meta http-equiv="refresh" content="0; url={{ .Permalink }}">
+  </head>
+  <body>
+    <main>
+      <h1>Page moved</h1>
+      <p>
+        Continue to <a href="{{ .Permalink }}">{{ site.Title }}</a>.
+      </p>
+    </main>
+  </body>
+</html>
