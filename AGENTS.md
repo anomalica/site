@@ -1,8 +1,8 @@
 # Anomalica site
 
-The shared instructions in `/home/mark/repos/anomalica/AGENTS.md` apply. If they are not already in the current context, read that file before working here.
+Parent Product and root Core instructions are loaded through `opencode.json` and remain mandatory.
 
-This repository owns the public Hugo site's templates, styling, build configuration and deployment checks. Reader-facing content is produced upstream in `/home/mark/repos/anomalica/content/`; do not add or hand-correct assembled content here.
+This repository owns the public Hugo site's templates, styling, build configuration and deployment checks. Reader-facing content is produced upstream in `../content/`; do not add or hand-correct assembled content here.
 
 ## Development
 
