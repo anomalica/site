@@ -4,18 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ if not .IsHome }}{{ .Title }} - {{ end }}{{ site.Title }}</title>
-  <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}Encyclopaedia of Anomalous Phenomena{{ end }}">
+  {{ $record := partial "public-record-state.html" . }}
+  {{ $metaDescription := "Encyclopaedia of Anomalous Phenomena" }}
+  {{/* A v2 shell must remain metadata-only even if malformed upstream output
+       accidentally carries generated description text. */}}
+  {{ if or (not $record.isV2) $record.enriched }}
+    {{ with .Params.description }}{{ $metaDescription = . }}{{ end }}
+  {{ end }}
+  <meta name="description" content="{{ $metaDescription }}">
 
-  {{/* Publication eligibility is decided upstream and carried by the page.
-       Legacy/malformed Records and the retired Documents surface remain
-       noindex until their files disappear. */}}
-  {{ $invalidRecord := and
-    .IsPage
-    (eq .Section "records")
-    (or (ne .Params.schema "anomalica/public-record/1") (ne .Params.content_kind "record"))
-  }}
-  {{ if or .Params.noindex (eq .Section "documents") $invalidRecord }}
-    <meta name="robots" content="noindex, nofollow">
+  {{/* Concrete v1 pages remain live during migration. v2 shells and malformed
+       Record pages fail closed, while aliases carry their own noindex rule. */}}
+  {{ if or .Params.noindex (and $record.isRecord (not $record.indexable)) (eq .Section "documents") }}
+    <meta name="robots" content="noindex">
+  {{ end }}
+  {{ if $record.validV2Route }}
+    <link rel="canonical" href="{{ .Permalink }}">
   {{ end }}
 
   <!-- Fonts -->

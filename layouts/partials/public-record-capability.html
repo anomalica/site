@@ -1,0 +1,146 @@
+{{- /* Normalise one public-record/2 capability. Permission is granted only by
+      the exact allowed mode/reason/payload combination. Unknown, missing and
+      internally inconsistent values become a payload-free denial. */ -}}
+{{- $kind := .kind -}}
+{{- $capability := .capability | default dict -}}
+{{- $allowed := false -}}
+{{- $valid := false -}}
+{{- $reason := "unavailable" -}}
+{{- $url := "" -}}
+{{- $items := slice -}}
+{{- $youtubeID := "" -}}
+{{- $deniedReasons := slice "copyright" "unavailable" "unsupported" -}}
+{{- $allowedKeys := dict
+  "source_body" (slice "mode" "reason" "resource")
+  "archived_original" (slice "mode" "reason" "url")
+  "media" (slice "mode" "reason" "items")
+  "provider_embed" (slice "mode" "reason" "url")
+  "external_link" (slice "mode" "reason" "url")
+-}}
+
+{{- if and (reflect.IsMap $capability) (isset $allowedKeys $kind) -}}
+  {{- $keysOK := true -}}
+  {{- range $key, $_ := $capability -}}
+    {{- if not (in (index $allowedKeys $kind) $key) -}}{{- $keysOK = false -}}{{- end -}}
+  {{- end -}}
+  {{- $mode := $capability.mode | default "" -}}
+  {{- $capabilityReason := $capability.reason | default "" -}}
+
+  {{- if and
+    $keysOK
+    (eq $mode "none")
+    (in $deniedReasons $capabilityReason)
+    (eq (len $capability) 2)
+  -}}
+    {{- $valid = true -}}
+    {{- $reason = $capabilityReason -}}
+  {{- else if and $keysOK (eq $capabilityReason "allowed") -}}
+    {{- if eq $kind "source_body" -}}
+      {{- $candidate := $capability.resource | default "" -}}
+      {{- if and
+        (eq $mode "display")
+        (eq (printf "%T" $candidate) "string")
+        (eq (len $capability) 3)
+        (eq (len (findRE `^/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+$` $candidate)) 1)
+        (not (findRE `^/(?:private|home|tmp|var)(?:/|$)` $candidate))
+        (not (in $candidate "/../"))
+        (not (hasSuffix $candidate "/.."))
+      -}}
+        {{- $allowed = true -}}
+        {{- $valid = true -}}
+        {{- $url = $candidate -}}
+      {{- end -}}
+    {{- else if eq $kind "archived_original" -}}
+      {{- $candidate := $capability.url | default "" -}}
+      {{- if and
+        (eq $mode "public")
+        (eq (printf "%T" $candidate) "string")
+        (eq (len $capability) 3)
+        (eq (len (findRE `^/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+$` $candidate)) 1)
+        (not (findRE `^/(?:private|home|tmp|var)(?:/|$)` $candidate))
+        (not (in $candidate "/../"))
+        (not (hasSuffix $candidate "/.."))
+      -}}
+        {{- $allowed = true -}}
+        {{- $valid = true -}}
+        {{- $url = $candidate -}}
+      {{- end -}}
+    {{- else if eq $kind "media" -}}
+      {{- $mediaOK := and
+        (eq $mode "display")
+        (eq (len $capability) 3)
+        (reflect.IsSlice $capability.items)
+        (gt (len $capability.items) 0)
+      -}}
+      {{- if $mediaOK -}}
+        {{- range $capability.items -}}
+          {{- if not (reflect.IsMap .) -}}
+            {{- $mediaOK = false -}}
+          {{- else -}}
+            {{- $candidate := .url | default "" -}}
+            {{- $mediaType := .media_type | default "" -}}
+            {{- if or
+              (ne (len .) 2)
+              (ne (printf "%T" $candidate) "string")
+              (ne (printf "%T" $mediaType) "string")
+              (ne (len (findRE `^/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+$` $candidate)) 1)
+              (findRE `^/(?:private|home|tmp|var)(?:/|$)` $candidate)
+              (in $candidate "/../")
+              (hasSuffix $candidate "/..")
+              (ne (len (findRE `^(?:image|audio|video)/[A-Za-z0-9.+-]+$` $mediaType)) 1)
+            -}}
+              {{- $mediaOK = false -}}
+            {{- else -}}
+              {{- $items = $items | append (dict "url" $candidate "mediaType" $mediaType) -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if $mediaOK -}}
+        {{- $allowed = true -}}
+        {{- $valid = true -}}
+      {{- else -}}
+        {{- $items = slice -}}
+      {{- end -}}
+    {{- else if eq $kind "provider_embed" -}}
+      {{- $candidate := $capability.url | default "" -}}
+      {{- if and
+        (eq $mode "embed")
+        (eq (printf "%T" $candidate) "string")
+        (eq (len $capability) 3)
+      -}}
+        {{- if findRE `^https://(?:www\.)?youtube\.com/watch\?(?:[^#]*&)?v=[A-Za-z0-9_-]{6,}(?:[&#].*)?$` $candidate -}}
+          {{- $youtubeID = replaceRE `^https://(?:www\.)?youtube\.com/watch\?(?:[^#]*&)?v=([A-Za-z0-9_-]{6,}).*$` "$1" $candidate -}}
+        {{- else if findRE `^https://youtu\.be/[A-Za-z0-9_-]{6,}(?:[?&#].*)?$` $candidate -}}
+          {{- $youtubeID = replaceRE `^https://youtu\.be/([A-Za-z0-9_-]{6,}).*$` "$1" $candidate -}}
+        {{- end -}}
+        {{- if ne $youtubeID "" -}}
+          {{- $allowed = true -}}
+          {{- $valid = true -}}
+          {{- $url = $candidate -}}
+        {{- end -}}
+      {{- end -}}
+    {{- else if eq $kind "external_link" -}}
+      {{- $candidate := $capability.url | default "" -}}
+      {{- if and
+        (eq $mode "link")
+        (eq (printf "%T" $candidate) "string")
+        (eq (len $capability) 3)
+        (eq (len (findRE `^https?://[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]{1,5})?(?:[/?#]|$)` $candidate)) 1)
+      -}}
+        {{- $allowed = true -}}
+        {{- $valid = true -}}
+        {{- $url = $candidate -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return (dict
+  "allowed" $allowed
+  "valid" $valid
+  "reason" $reason
+  "url" $url
+  "items" $items
+  "youtubeID" $youtubeID
+) -}}

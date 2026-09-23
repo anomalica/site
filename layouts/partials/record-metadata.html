@@ -1,0 +1,39 @@
+{{- /* Render only the bibliographic metadata allow-list shared by the v1
+      transition pages and public-record/2. */ -}}
+{{- with .Params.metadata -}}
+  {{- $parts := slice -}}
+  {{- if reflect.IsSlice .source_types -}}
+    {{- $types := slice -}}
+    {{- range .source_types -}}
+      {{- if eq (printf "%T" .) "string" -}}{{- $types = $types | append (. | humanize) -}}{{- end -}}
+    {{- end -}}
+    {{- with $types -}}{{- $parts = $parts | append (delimit . ", ") -}}{{- end -}}
+  {{- else -}}
+    {{- with .source_type -}}
+      {{- if eq (printf "%T" .) "string" -}}{{- $parts = $parts | append (. | humanize) -}}{{- end -}}
+    {{- else -}}
+      {{- with .medium -}}
+        {{- if eq (printf "%T" .) "string" -}}{{- $parts = $parts | append (. | humanize) -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with .document_type -}}{{- if eq (printf "%T" .) "string" -}}{{- $parts = $parts | append (. | humanize) -}}{{- end -}}{{- end -}}
+  {{- if reflect.IsSlice .creators -}}
+    {{- $creators := slice -}}
+    {{- range .creators -}}{{- if eq (printf "%T" .) "string" -}}{{- $creators = $creators | append . -}}{{- end -}}{{- end -}}
+    {{- with $creators -}}{{- $parts = $parts | append (delimit . ", ") -}}{{- end -}}
+  {{- end -}}
+  {{- with .publisher -}}{{- if eq (printf "%T" .) "string" -}}{{- $parts = $parts | append . -}}{{- end -}}{{- end -}}
+  {{- with .published_date -}}
+    {{- if eq (printf "%T" .) "string" -}}{{- $parts = $parts | append . -}}{{- end -}}
+  {{- else -}}
+    {{- with .date -}}
+      {{- if eq (printf "%T" .) "string" -}}{{- $parts = $parts | append . -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with .duration -}}{{- $parts = $parts | append (partial "fmt-duration.html" .) -}}{{- end -}}
+  {{- with .pages -}}{{- $parts = $parts | append (printf "%v pages" .) -}}{{- end -}}
+  {{- with $parts -}}
+    <p class="break-words font-ui text-sm leading-relaxed text-on-surface-muted">{{ delimit . "  ·  " }}</p>
+  {{- end -}}
+{{- end -}}

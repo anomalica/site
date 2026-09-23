@@ -1,0 +1,134 @@
+{{- $sourceState := partial "public-record-source-state.html" (.Params.source | default dict) -}}
+{{- if $sourceState.valid -}}
+  {{- $assets := $sourceState.assets -}}
+  {{- $allBodiesAllowed := true -}}
+  {{- range $assets -}}
+    {{- $capabilities := .capabilities -}}
+    {{- $body := partial "public-record-capability.html" (dict "kind" "source_body" "capability" ($capabilities.source_body | default dict)) -}}
+    {{- if not $body.allowed -}}{{- $allBodiesAllowed = false -}}{{- end -}}
+  {{- end -}}
+
+  <section class="mb-10 mt-8" aria-labelledby="source-heading">
+    <h2 id="source-heading" class="section-label mb-3">{{ if gt (len $assets) 1 }}The sources{{ else }}The source{{ end }}</h2>
+
+    <div class="space-y-5">
+      {{- range $i, $asset := $assets }}
+        {{- $capabilities := $asset.capabilities -}}
+        {{- $body := partial "public-record-capability.html" (dict "kind" "source_body" "capability" ($capabilities.source_body | default dict)) -}}
+        {{- $original := partial "public-record-capability.html" (dict "kind" "archived_original" "capability" ($capabilities.archived_original | default dict)) -}}
+        {{- $media := partial "public-record-capability.html" (dict "kind" "media" "capability" ($capabilities.media | default dict)) -}}
+        {{- $embed := partial "public-record-capability.html" (dict "kind" "provider_embed" "capability" ($capabilities.provider_embed | default dict)) -}}
+        {{- $link := partial "public-record-capability.html" (dict "kind" "external_link" "capability" ($capabilities.external_link | default dict)) -}}
+        {{- $assetNumber := add $i 1 -}}
+        {{- $safeAcquiredAt := "" -}}
+        {{- if isset $asset "acquired_at" -}}
+          {{- $safeAcquiredAt = partial "public-record-acquired-at.html" $asset.acquired_at -}}
+        {{- end -}}
+
+        <section class="overflow-hidden rounded-lg border border-border bg-surface-raised" aria-labelledby="source-asset-{{ $assetNumber }}">
+          <div class="px-4 py-4 sm:px-5 sm:py-5">
+            <h3 id="source-asset-{{ $assetNumber }}" class="font-ui text-base font-semibold text-on-surface">
+              {{ if gt (len $assets) 1 }}Source {{ $assetNumber }}{{ else }}Source material{{ end }}
+            </h3>
+            <p class="mt-1 break-words font-ui text-xs leading-relaxed text-on-surface-muted">
+              {{ $asset.source_type | humanize }}
+              &middot; {{ $asset.file_format | upper }}
+              {{ with $asset.pages }} &middot; {{ . }} {{ if eq . 1 }}page{{ else }}pages{{ end }}{{ end }}
+            </p>
+            <p class="mt-1 break-words font-ui text-xs leading-relaxed text-on-surface-muted">
+              Selected record {{ if eq (len $asset.selected_record_pages) 1 }}page{{ else }}pages{{ end }} {{ delimit $asset.selected_record_pages ", " }}
+            </p>
+            {{ with $safeAcquiredAt }}
+              <p class="mt-1 break-words font-ui text-xs leading-relaxed text-on-surface-muted">Acquired <time datetime="{{ . }}">{{ . }}</time></p>
+            {{ end }}
+
+            {{ if $embed.allowed }}
+              <div class="mt-4 overflow-hidden rounded-lg border border-border bg-surface" x-data="{ playing: false }">
+                <div class="relative aspect-video w-full">
+                  <template x-if="!playing">
+                    <button type="button" @click="playing = true" class="group absolute inset-0 flex w-full flex-col items-center justify-center gap-3 bg-surface transition-colors hover:bg-surface-raised" aria-label="Play source {{ $assetNumber }}">
+                      <span class="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface-raised transition-colors group-hover:border-primary">
+                        <svg viewBox="0 0 24 24" class="ml-1 h-6 w-6 fill-current text-on-surface-secondary transition-colors group-hover:text-primary" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                      </span>
+                      <span class="px-6 text-center font-ui text-sm text-on-surface-muted">Play here<span class="mt-1 block text-xs">Nothing loads from YouTube until you press play</span></span>
+                    </button>
+                  </template>
+                  <template x-if="playing">
+                    <iframe class="absolute inset-0 h-full w-full" src="https://www.youtube-nocookie.com/embed/{{ $embed.youtubeID }}?autoplay=1" title="Source {{ $assetNumber }} for {{ $.Title }}" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                  </template>
+                </div>
+              </div>
+            {{ end }}
+
+            {{ with $media.items }}
+              <div class="mt-4 space-y-4">
+                {{ range . }}
+                  {{ if hasPrefix .mediaType "image/" }}
+                    <img src="{{ .url }}" alt="Source media from {{ $.Title }}" loading="lazy" class="w-full rounded-lg border border-border">
+                  {{ else if hasPrefix .mediaType "audio/" }}
+                    <audio controls preload="none" class="w-full"><source src="{{ .url }}" type="{{ .mediaType }}"></audio>
+                  {{ else if hasPrefix .mediaType "video/" }}
+                    <video controls preload="metadata" class="w-full rounded-lg border border-border"><source src="{{ .url }}" type="{{ .mediaType }}"></video>
+                  {{ end }}
+                {{ end }}
+              </div>
+            {{ end }}
+
+            {{ if and $allBodiesAllowed $body.allowed }}
+              <iframe src="{{ $body.url }}" title="Source text for source {{ $assetNumber }}" loading="lazy" sandbox class="mt-4 w-full rounded-lg border border-border bg-surface" style="min-height: min(32rem, 70vh)"></iframe>
+            {{ end }}
+
+            {{- /* Keep the five permissions visibly independent. A denied or
+                  malformed capability never contributes a locator to the DOM. */}}
+            <dl class="mt-5 divide-y divide-border border-t border-border font-ui text-sm">
+              <div class="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
+                <dt class="font-medium text-on-surface">Source text</dt>
+                <dd class="min-w-0 text-on-surface-secondary">
+                  {{ if and $allBodiesAllowed $body.allowed }}
+                    <a href="{{ $body.url }}" class="break-words underline decoration-border underline-offset-4 transition-colors hover:text-primary hover:decoration-primary">Open the source text</a>
+                  {{ else if and $body.allowed (not $allBodiesAllowed) }}
+                    Not available unless every source permits text display
+                  {{ else }}
+                    {{ partial "public-record-capability-denial.html" $body.reason }}
+                  {{ end }}
+                </dd>
+              </div>
+              <div class="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
+                <dt class="font-medium text-on-surface">Archived copy</dt>
+                <dd class="min-w-0 text-on-surface-secondary">
+                  {{ if $original.allowed }}
+                    <a href="{{ $original.url }}" class="break-words underline decoration-border underline-offset-4 transition-colors hover:text-primary hover:decoration-primary">Open Anomalica's public copy</a>
+                  {{ else }}
+                    {{ partial "public-record-capability-denial.html" $original.reason }}
+                  {{ end }}
+                </dd>
+              </div>
+              <div class="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
+                <dt class="font-medium text-on-surface">Media</dt>
+                <dd class="min-w-0 text-on-surface-secondary">
+                  {{ if $media.allowed }}Displayed above{{ else }}{{ partial "public-record-capability-denial.html" $media.reason }}{{ end }}
+                </dd>
+              </div>
+              <div class="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
+                <dt class="font-medium text-on-surface">Provider player</dt>
+                <dd class="min-w-0 text-on-surface-secondary">
+                  {{ if $embed.allowed }}Available above{{ else }}{{ partial "public-record-capability-denial.html" $embed.reason }}{{ end }}
+                </dd>
+              </div>
+              <div class="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
+                <dt class="font-medium text-on-surface">Original source</dt>
+                <dd class="min-w-0 text-on-surface-secondary">
+                  {{ if $link.allowed }}
+                    <a href="{{ $link.url }}" target="_blank" rel="noopener noreferrer" class="break-words underline decoration-border underline-offset-4 transition-colors hover:text-primary hover:decoration-primary">Open the original website</a>
+                  {{ else }}
+                    {{ partial "public-record-capability-denial.html" $link.reason }}
+                  {{ end }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      {{- end }}
+    </div>
+  </section>
+{{- end -}}

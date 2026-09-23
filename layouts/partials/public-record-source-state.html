@@ -1,0 +1,96 @@
+{{- /* Validate the structural, reader-visible part of public-record/2 source.
+      Capability payloads are normalised independently by
+      public-record-capability.html: a missing or inconsistent capability is a
+      denial, not permission to fall back to a legacy scalar display mode. */ -}}
+{{- $source := . -}}
+{{- $assets := slice -}}
+{{- $valid := reflect.IsMap $source -}}
+{{- $numberTypes := slice "int" "int8" "int16" "int32" "int64" "uint" "uint8" "uint16" "uint32" "uint64" -}}
+{{- $assetKeys := slice "ordinal" "source_type" "file_format" "acquired_at" "pages" "selected_record_pages" "capabilities" -}}
+
+{{- if $valid -}}
+  {{- /* `source` is exactly `{assets: [...]}`. In particular, a legacy
+        `display` scalar alongside assets invalidates the projection. */ -}}
+  {{- if or (ne (len $source) 1) (not (isset $source "assets")) -}}
+    {{- $valid = false -}}
+  {{- else -}}
+    {{- $candidateAssets := index $source "assets" -}}
+    {{- if or (not (reflect.IsSlice $candidateAssets)) (eq (len $candidateAssets) 0) -}}
+      {{- $valid = false -}}
+    {{- else -}}
+      {{- $assets = $candidateAssets -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $valid -}}
+  {{- range $i, $asset := $assets -}}
+    {{- if not (reflect.IsMap $asset) -}}
+      {{- $valid = false -}}
+      {{- continue -}}
+    {{- end -}}
+
+    {{- range $key, $_ := $asset -}}
+      {{- if not (in $assetKeys $key) -}}{{- $valid = false -}}{{- end -}}
+    {{- end -}}
+
+    {{- $ordinal := $asset.ordinal | default 0 -}}
+    {{- if or
+      (not (in $numberTypes (printf "%T" $ordinal)))
+      (ne (int $ordinal) (add $i 1))
+    -}}
+      {{- $valid = false -}}
+    {{- end -}}
+
+    {{- $sourceType := $asset.source_type | default "" -}}
+    {{- if or
+      (ne (printf "%T" $sourceType) "string")
+      (not (in (slice "pdf" "audio" "video" "web" "ebook" "image") $sourceType))
+    -}}
+      {{- $valid = false -}}
+    {{- end -}}
+
+    {{- $fileFormat := $asset.file_format | default "" -}}
+    {{- if or
+      (ne (printf "%T" $fileFormat) "string")
+      (ne (len (findRE `^[A-Za-z0-9][A-Za-z0-9.+-]{0,20}$` $fileFormat)) 1)
+    -}}
+      {{- $valid = false -}}
+    {{- end -}}
+
+    {{- if isset $asset "pages" -}}
+      {{- $pages := $asset.pages -}}
+      {{- if or
+        (not (in $numberTypes (printf "%T" $pages)))
+        (lt (int $pages) 1)
+      -}}
+        {{- $valid = false -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- $selectedPages := $asset.selected_record_pages | default slice -}}
+    {{- if or (not (reflect.IsSlice $selectedPages)) (eq (len $selectedPages) 0) -}}
+      {{- $valid = false -}}
+    {{- else -}}
+      {{- $seenPages := dict -}}
+      {{- range $recordPage := $selectedPages -}}
+        {{- $pageKey := printf "%v" $recordPage -}}
+        {{- if or
+          (not (in $numberTypes (printf "%T" $recordPage)))
+          (lt (int $recordPage) 1)
+          (isset $seenPages $pageKey)
+        -}}
+          {{- $valid = false -}}
+        {{- else -}}
+          {{- $seenPages = merge $seenPages (dict $pageKey true) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- if or (not (isset $asset "capabilities")) (not (reflect.IsMap $asset.capabilities)) -}}
+      {{- $valid = false -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return (dict "valid" $valid "assets" $assets) -}}

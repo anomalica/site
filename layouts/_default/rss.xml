@@ -1,0 +1,45 @@
+{{- /* Hugo's embedded RSS template serialises .Summary directly. A malformed
+      public-record/2 shell could therefore leak body text that the HTML layout
+      correctly suppresses. Apply the same Record state at every list output. */ -}}
+{{- $pages := .RegularPages -}}
+{{- if .IsHome -}}{{- $pages = site.RegularPages -}}{{- end -}}
+{{- $items := slice -}}
+{{- range $pages -}}
+  {{- if eq .Section "documents" -}}{{- continue -}}{{- end -}}
+  {{- if eq .Section "records" -}}
+    {{- $record := partial "public-record-state.html" . -}}
+    {{- if not $record.publishable -}}{{- continue -}}{{- end -}}
+  {{- end -}}
+  {{- $items = $items | append . -}}
+{{- end -}}
+{{- printf `<?xml version="1.0" encoding="utf-8" standalone="yes"?>` | safeHTML }}
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ if eq .Title site.Title }}{{ site.Title }}{{ else }}{{ with .Title }}{{ . }} on {{ end }}{{ site.Title }}{{ end }}</title>
+    <link>{{ .Permalink }}</link>
+    <description>Recent content in {{ if ne .Title site.Title }}{{ with .Title }}{{ . }} on {{ end }}{{ end }}{{ site.Title }}</description>
+    <generator>Hugo</generator>
+    <language>{{ site.Language.LanguageCode }}</language>
+    {{- with .OutputFormats.Get "RSS" }}
+    <atom:link href="{{ .Permalink }}" rel="self" type="application/rss+xml" />
+    {{- end }}
+    {{- range $items }}
+    {{- $description := .Summary }}
+    {{- if eq .Section "records" }}
+      {{- $record := partial "public-record-state.html" . }}
+      {{- if and $record.isV2 (not $record.enriched) }}{{ $description = "" }}{{ end }}
+    {{- end }}
+    <item>
+      <title>{{ .Title }}</title>
+      <link>{{ .Permalink }}</link>
+      {{- if not .Date.IsZero }}
+      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
+      {{- end }}
+      <guid>{{ .Permalink }}</guid>
+      {{- with $description }}
+      <description>{{ . | transform.XMLEscape | safeHTML }}</description>
+      {{- end }}
+    </item>
+    {{- end }}
+  </channel>
+</rss>

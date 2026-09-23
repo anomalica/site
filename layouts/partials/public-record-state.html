@@ -1,0 +1,92 @@
+{{- $isRecord := and .IsPage (eq .Section "records") -}}
+{{- $isLegacy := and
+  $isRecord
+  (eq .Params.schema "anomalica/public-record/1")
+  (eq .Params.content_kind "record")
+-}}
+{{- $isV2 := and
+  $isRecord
+  (eq .Params.schema "anomalica/public-record/2")
+  (eq .Params.content_kind "record")
+-}}
+
+{{- /* A v2 page is canonical only at the language-relative hash route. A
+      title URL can exist as a Hugo alias, but never becomes page identity. */ -}}
+{{- $recordHash := .Params.record_hash | default "" -}}
+{{- $hashOK := and
+  (eq (printf "%T" $recordHash) "string")
+  (eq (len (findRE `^[0-9a-f]{56}$` $recordHash)) 1)
+-}}
+{{- $routeOK := false -}}
+{{- if $hashOK -}}
+  {{- $expectedRoute := printf "/records/%s/" $recordHash | relLangURL -}}
+  {{- $routeOK = eq
+    (strings.TrimSuffix "/" .RelPermalink)
+    (strings.TrimSuffix "/" $expectedRoute)
+  -}}
+{{- end -}}
+{{- $validV2Route := and $isV2 $hashOK $routeOK -}}
+
+{{- /* The producer decides eligibility. The site nevertheless requires the
+      complete enriched projection before it will render or index generated
+      material. Any incomplete v2 projection falls back to the safe shell. */ -}}
+{{- $description := .Params.description | default "" -}}
+{{- $descriptionOK := and
+  (eq (printf "%T" $description) "string")
+  (ne (strings.TrimSpace $description) "")
+-}}
+{{- $sourceState := partial "public-record-source-state.html" (.Params.source | default dict) -}}
+{{- $referencesOK := and
+  (isset .Params "references")
+  (reflect.IsSlice .Params.references)
+-}}
+{{- if $referencesOK -}}
+  {{- range .Params.references -}}
+    {{- if not (reflect.IsMap .) -}}
+      {{- $referencesOK = false -}}
+      {{- continue -}}
+    {{- end -}}
+    {{- $anchorID := .source_anchor_id | default "" -}}
+    {{- $text := .text | default "" -}}
+    {{- $quote := .quote | default "" -}}
+    {{- if or
+      (ne (printf "%T" $anchorID) "string")
+      (ne (len (findRE `^[0-9a-f]{32}$` $anchorID)) 1)
+      (ne (printf "%T" $text) "string")
+      (eq (strings.TrimSpace $text) "")
+      (ne (printf "%T" $quote) "string")
+      (eq (strings.TrimSpace $quote) "")
+      (findRE `sha256:[0-9a-f]{64}` $text)
+      (findRE `sha256:[0-9a-f]{64}` $quote)
+      (findRE `(?:file://|/(?:home|private|tmp|var)/)` $text)
+      (findRE `(?:file://|/(?:home|private|tmp|var)/)` $quote)
+    -}}
+      {{- $referencesOK = false -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $builtByOK := and
+  (isset .Params "built_by")
+  (reflect.IsMap .Params.built_by)
+-}}
+{{- $bodyOK := ne (strings.TrimSpace .RawContent) "" -}}
+{{- $enriched := and
+  $validV2Route
+  (not (isset .Params "noindex"))
+  $descriptionOK
+  $sourceState.valid
+  $referencesOK
+  $builtByOK
+  $bodyOK
+-}}
+
+{{- return (dict
+  "isRecord" $isRecord
+  "isLegacy" $isLegacy
+  "isV2" $isV2
+  "validV2Route" $validV2Route
+  "enriched" $enriched
+  "shell" (and $validV2Route (not $enriched))
+  "indexable" (or $isLegacy $enriched)
+  "publishable" (or $isLegacy $validV2Route)
+) -}}

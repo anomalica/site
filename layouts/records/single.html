@@ -1,42 +1,46 @@
 {{ define "main" }}
+  {{ $record := partial "public-record-state.html" . }}
   <article class="bg-surface pt-14 pb-24">
     <div class="mx-auto max-w-3xl px-6">
-      {{ with .Section }}
-        <p class="section-label mb-1">{{ . | humanize | singularize }}</p>
+      <p class="section-label mb-1">Record</p>
+
+      {{ if $record.publishable }}
+        <h1 class="mb-2 text-3xl font-semibold">{{ .Title }}</h1>
+
+        {{ if or $record.isLegacy $record.enriched }}
+          {{ with .Params.description }}
+            <p class="mb-4 font-ui text-lg text-on-surface-muted">{{ . }}</p>
+          {{ end }}
+        {{ end }}
+
+        <div class="mb-8">
+          {{ partial "record-metadata.html" . }}
+        </div>
+
+        {{ if or $record.isLegacy $record.enriched }}
+          {{/* The source sits between the summary and the long form: a reader who
+               came here to check where something came from can reach the original
+               without reading the article first, and one who came to read is not
+               made to scroll past a player to start. */}}
+          {{ partial "record-source.html" . }}
+
+          {{/* The assembler-generated narrative article, with in-flow citations. */}}
+          {{ if ne (strings.TrimSpace .RawContent) "" }}
+            <div class="content" id="article-content">
+              {{ .Content }}
+            </div>
+          {{ end }}
+
+          {{ with .Params.references }}{{ partial "article-references.html" $ }}{{ end }}
+        {{ else }}
+          <div class="rounded-lg border border-border border-dashed px-5 py-4">
+            <p class="font-ui text-sm text-on-surface-secondary">A reviewed public account is not available for this Record yet.</p>
+          </div>
+        {{ end }}
+      {{ else }}
+        <h1 class="mb-2 text-3xl font-semibold">Record unavailable</h1>
+        <p class="font-ui text-on-surface-secondary">This page does not match a stable public Record route.</p>
       {{ end }}
-
-      <h1 class="mb-2 text-3xl font-semibold">{{ .Title }}</h1>
-
-      {{ with .Params.description }}
-        <p class="mb-4 font-ui text-lg text-on-surface-muted">{{ . }}</p>
-      {{ end }}
-
-      {{ with .Params.metadata }}
-        <p class="mb-8 font-ui text-sm text-on-surface-muted">
-          {{ $parts := slice }}
-          {{ with .source_type }}{{ $parts = $parts | append (title .) }}{{ else }}{{ with .medium }}{{ $parts = $parts | append (title .) }}{{ end }}{{ end }}
-          {{ with .document_type }}{{ $parts = $parts | append (title .) }}{{ end }}
-          {{ with .creators }}{{ $parts = $parts | append (delimit . ", ") }}{{ end }}
-          {{ with .publisher }}{{ $parts = $parts | append . }}{{ end }}
-          {{ with .published_date }}{{ $parts = $parts | append . }}{{ else }}{{ with .date }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
-          {{ with .duration }}{{ $parts = $parts | append (partial "fmt-duration.html" .) }}{{ end }}
-          {{ with .pages }}{{ $parts = $parts | append (printf "%v pages" .) }}{{ end }}
-          {{ delimit $parts "  ·  " }}
-        </p>
-      {{ end }}
-
-      {{/* The source sits between the summary and the long form: a reader who
-           came here to check where something came from can reach the original
-           without reading the article first, and one who came to read is not
-           made to scroll past a player to start. */}}
-      {{ partial "record-source.html" . }}
-
-      {{/* The assembler-generated narrative article, with in-flow citations. */}}
-      <div class="content" id="article-content">
-        {{ .Content }}
-      </div>
-
-      {{ partial "article-references.html" . }}
 
     </div>
   </article>

@@ -1,0 +1,8 @@
+{{- $reason := . | default "unavailable" -}}
+{{- if eq $reason "copyright" -}}
+  Not available for public reproduction
+{{- else if eq $reason "unsupported" -}}
+  Not supported
+{{- else -}}
+  Not available
+{{- end -}}

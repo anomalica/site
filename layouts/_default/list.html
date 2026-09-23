@@ -3,16 +3,19 @@
   {{ $isRecords := eq .Section "records" }}
   {{ $pages := .Pages.ByTitle }}
 
-  {{/* Records are conditional public projections. Legacy inspection pages and
-       malformed output remain absent from the catalogue even if their files
-       have not yet been reconciled upstream. */}}
+  {{/* Keep concrete v1 pages until Assembler migrates them. v2 entries appear
+       only at their stable hash route, whether currently a shell or enriched. */}}
   {{ if $isRecords }}
-    {{ $pages = where $pages "Params.schema" "anomalica/public-record/1" }}
-    {{ $pages = where $pages "Params.content_kind" "record" }}
+    {{ $recordPages := slice }}
+    {{ range $pages }}
+      {{ $record := partial "public-record-state.html" . }}
+      {{ if $record.publishable }}{{ $recordPages = $recordPages | append . }}{{ end }}
+    {{ end }}
+    {{ $pages = $recordPages }}
   {{ end }}
 
   {{ $nameOrder := dict }}
-  {{ range $i, $p := $pages.ByTitle }}
+  {{ range $i, $p := $pages }}
     {{ $nameOrder = merge $nameOrder (dict $p.RelPermalink $i) }}
   {{ end }}
 
@@ -98,7 +101,12 @@
     {{ range .Params.tags }}{{ $tags = $tags | append (lower .) }}{{ end }}
     {{ $tagStr := "" }}
     {{ with .Params.tags }}{{ $tagStr = delimit . " " }}{{ end }}
-    {{ $search := lower (printf "%s %s %s" .Title (.Params.description | default "") $tagStr) }}
+    {{ $description := .Params.description | default "" }}
+    {{ if $isRecords }}
+      {{ $record := partial "public-record-state.html" . }}
+      {{ if and $record.isV2 (not $record.enriched) }}{{ $description = "" }}{{ end }}
+    {{ end }}
+    {{ $search := lower (printf "%s %s %s" .Title $description $tagStr) }}
     {{ $initial := upper (substr .Title 0 1) }}
     {{ if lt $initial "A" }}{{ $initial = "#" }}{{ else if gt $initial "Z" }}{{ $initial = "#" }}{{ end }}
     {{ $entries = $entries | append (dict
@@ -222,8 +230,18 @@
               <h3 class="font-ui text-base font-semibold text-on-surface transition-colors group-hover:text-primary">
                 {{ .Title }}
               </h3>
-              {{ with .Params.description }}
-                <p class="mt-2 text-sm leading-relaxed text-on-surface-secondary line-clamp-2">{{ . }}</p>
+              {{ $showDescription := true }}
+              {{ if $isRecords }}
+                {{ $record := partial "public-record-state.html" . }}
+                {{ if and $record.isV2 (not $record.enriched) }}{{ $showDescription = false }}{{ end }}
+              {{ end }}
+              {{ if $showDescription }}
+                {{ with .Params.description }}
+                  <p class="mt-2 text-sm leading-relaxed text-on-surface-secondary line-clamp-2">{{ . }}</p>
+                {{ end }}
+              {{ end }}
+              {{ if $isRecords }}
+                <div class="mt-2">{{ partial "record-metadata.html" . }}</div>
               {{ end }}
               {{ with .Params.tags }}
                 <div class="mt-3.5 flex flex-wrap gap-1.5">

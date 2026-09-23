@@ -465,9 +465,6 @@
   .inline-block {
     display: inline-block;
   }
-  .inline-flex {
-    display: inline-flex;
-  }
   .aspect-video {
     aspect-ratio: var(--aspect-video);
   }
@@ -566,9 +563,6 @@
   }
   .flex-none {
     flex: none;
-  }
-  .shrink-0 {
-    flex-shrink: 0;
   }
   .-translate-y-1 {
     --tw-translate-y: calc(var(--spacing) * -1);
@@ -872,15 +866,6 @@
   .fill-current {
     fill: currentcolor;
   }
-  .fill-none {
-    fill: none;
-  }
-  .stroke-current {
-    stroke: currentcolor;
-  }
-  .stroke-2 {
-    stroke-width: 2;
-  }
   .p-2 {
     padding: calc(var(--spacing) * 2);
   }
@@ -1105,6 +1090,9 @@
     --tw-tracking: var(--tracking-wider);
     letter-spacing: var(--tracking-wider);
   }
+  .break-words {
+    overflow-wrap: break-word;
+  }
   .text-accent {
     color: var(--color-accent);
   }
@@ -1173,6 +1161,10 @@
   }
   .italic {
     font-style: italic;
+  }
+  .ordinal {
+    --tw-ordinal: ordinal;
+    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
   }
   .tabular-nums {
     --tw-numeric-spacing: tabular-nums;
@@ -1398,6 +1390,13 @@
       }
     }
   }
+  .hover\:bg-surface-raised {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-surface-raised);
+      }
+    }
+  }
   .hover\:text-on-chrome-active {
     &:hover {
       @media (hover: hover) {
@@ -1605,6 +1604,16 @@
       grid-template-columns: 9rem 1fr;
     }
   }
+  .sm\:grid-cols-\[9rem_minmax\(0\,1fr\)\] {
+    @media (width >= 40rem) {
+      grid-template-columns: 9rem minmax(0,1fr);
+    }
+  }
+  .sm\:gap-4 {
+    @media (width >= 40rem) {
+      gap: calc(var(--spacing) * 4);
+    }
+  }
   .sm\:p-6 {
     @media (width >= 40rem) {
       padding: calc(var(--spacing) * 6);
@@ -1613,6 +1622,16 @@
   .sm\:p-8 {
     @media (width >= 40rem) {
       padding: calc(var(--spacing) * 8);
+    }
+  }
+  .sm\:px-5 {
+    @media (width >= 40rem) {
+      padding-inline: calc(var(--spacing) * 5);
+    }
+  }
+  .sm\:py-5 {
+    @media (width >= 40rem) {
+      padding-block: calc(var(--spacing) * 5);
     }
   }
   .md\:block {

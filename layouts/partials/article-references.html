@@ -4,57 +4,84 @@
      <sup>N</sup> citations 1-indexed into references. Shared by the entity
      single template and the record digest template. */}}
 {{ with .Params.references }}
+  {{ $isPublicRecordV2 := eq $.Params.schema "anomalica/public-record/2" }}
+  {{ $seenSourceAnchors := dict }}
   {{/* Closed by default: an article of 40 references opened to a wall of source
        text the reader had not asked for, pushing everything else off the page.
        A reader who follows a citation never has to open this by hand - clicking
        one expands the list and scrolls to the reference it belongs to. */}}
   <details id="references" class="mt-12 border-t border-border pt-6">
     <summary class="mb-4 cursor-pointer select-none font-ui text-base font-semibold text-on-surface">
-      References <span class="font-normal text-on-surface-muted">({{ len . }}){{ if ne $.Params.schema "anomalica/public-record/1" }} &middot; each quote links to the claim it came from{{ end }}</span>
+      References <span class="font-normal text-on-surface-muted">({{ len . }}){{ if $isPublicRecordV2 }} &middot; evidence passages can be linked directly{{ else if ne $.Params.schema "anomalica/public-record/1" }} &middot; each quote links to the claim it came from{{ end }}</span>
     </summary>
     <ol class="list-decimal space-y-3 pl-4 text-sm mt-3">
       {{ range $i, $r := . }}
         {{ $n := add $i 1 }}
+        {{ $sourceAnchorID := $r.source_anchor_id | default "" }}
+        {{ $sourceAnchorOK := and
+          $isPublicRecordV2
+          (eq (printf "%T" $sourceAnchorID) "string")
+          (eq (len (findRE `^[0-9a-f]{32}$` $sourceAnchorID)) 1)
+        }}
+        {{ $sourceLabel := $r.source | default "" }}
+        {{ $locationLabel := $r.location | default "" }}
+        {{ if $isPublicRecordV2 }}
+          {{ if or
+            (ne (printf "%T" $sourceLabel) "string")
+            (findRE `sha256:[0-9a-f]{64}` $sourceLabel)
+            (findRE `(?:file://|/(?:home|private|tmp|var)/)` $sourceLabel)
+          }}{{ $sourceLabel = "" }}{{ end }}
+          {{ if or
+            (ne (printf "%T" $locationLabel) "string")
+            (findRE `sha256:[0-9a-f]{64}` $locationLabel)
+            (findRE `(?:file://|/(?:home|private|tmp|var)/)` $locationLabel)
+          }}{{ $locationLabel = "" }}{{ end }}
+        {{ end }}
         <li id="ref-{{ $n }}">
-          {{/* A claim uuid names the same claim on every page that cites it,
+          {{ if and $sourceAnchorOK (not (isset $seenSourceAnchors $sourceAnchorID)) }}
+            <span id="source-{{ $sourceAnchorID }}" class="block scroll-mt-24" aria-hidden="true"></span>
+            {{ $seenSourceAnchors = merge $seenSourceAnchors (dict $sourceAnchorID true) }}
+          {{ end }}
+          {{/* A legacy claim UUID names the same claim on every page that cites it,
                where reference NUMBERING is per page - reference 7 here and
                reference 7 on another article are different claims. So the uuid
                is what an inspection_url can point at, and without this anchor
                those links land at the top of the page and leave the reader to
-               hunt. Its own element rather than a second id on the li: ref-N is
-               what the in-flow citations address. */}}
-          {{ with .claim_id }}
-            <span id="claim-{{ . }}" class="block scroll-mt-24" aria-hidden="true"></span>
+               hunt. public-record/2 uses only its stable source evidence anchor. */}}
+          {{ if not $isPublicRecordV2 }}
+            {{ with .claim_id }}
+              <span id="claim-{{ . }}" class="block scroll-mt-24" aria-hidden="true"></span>
+            {{ end }}
           {{ end }}
           <div>{{ .text }}</div>
-          {{/* The quote IS the link. A record page carries only some of the
-               claims drawn from its source, so for most references the review
-               app is the only place the cited claim can be read against the
-               document it came from. The claim TEXT above is our own paraphrase
-               and public for every record; the verbatim quote and the source
-               body stay behind the possession gate, which the review app
-               applies when it builds its snapshot rather than relying on this
-               link being hidden. The reader is following a citation, not being
-               asked to review. */}}
+          {{/* Legacy/entity references may link their quote to the Workbench.
+               v2 supporting quotations are public evidence and never expose a
+               reviewer URL, even if malformed frontmatter contains one. */}}
           {{ with .quote }}
             {{ $quote := . }}
-            {{ with $r.workbench_url }}
-              <a href="{{ . }}" target="_blank" rel="noopener" class="mt-1 block" title="See this claim against its source">
-                <blockquote class="pl-3 border-l-2 border-border text-xs italic text-on-surface-secondary transition-colors hover:border-primary hover:text-on-surface">
-                  &ldquo;{{ $quote }}&rdquo;
-                </blockquote>
-              </a>
-            {{ else }}
-              <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-muted">
+            {{ if $isPublicRecordV2 }}
+              <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-secondary">
                 &ldquo;{{ $quote }}&rdquo;
               </blockquote>
+            {{ else }}
+              {{ with $r.workbench_url }}
+                <a href="{{ . }}" target="_blank" rel="noopener" class="mt-1 block" title="See this claim against its source">
+                  <blockquote class="pl-3 border-l-2 border-border text-xs italic text-on-surface-secondary transition-colors hover:border-primary hover:text-on-surface">
+                    &ldquo;{{ $quote }}&rdquo;
+                  </blockquote>
+                </a>
+              {{ else }}
+                <blockquote class="mt-1 pl-3 border-l-2 border-border text-xs italic text-on-surface-muted">
+                  &ldquo;{{ $quote }}&rdquo;
+                </blockquote>
+              {{ end }}
             {{ end }}
           {{ end }}
           <div class="mt-1 text-xs flex flex-wrap items-center gap-x-2">
-            {{ with .source }}
+            {{ with $sourceLabel }}
               <span class="text-on-surface-secondary">{{ . }}</span>
             {{ end }}
-            {{ with .location }}
+            {{ with $locationLabel }}
               <span class="text-on-surface-muted">{{ . }}</span>
             {{ end }}
             {{/* Public claim -> source: links to an eligible public Record.
@@ -64,12 +91,22 @@
               {{ $p := split . "#" }}
               {{ $path := index $p 0 }}
               {{ $target := site.GetPage $path }}
-              {{ $eligible := and
-                $target
-                (eq $target.Params.schema "anomalica/public-record/1")
-                (eq $target.Params.content_kind "record")
-              }}
-              {{ $href := relLangURL $path }}
+              {{ $eligible := false }}
+              {{ $targetIsV2 := false }}
+              {{ if $target }}
+                {{ $targetRecord := partial "public-record-state.html" $target }}
+                {{ $targetIsV2 = $targetRecord.isV2 }}
+                {{ $eligible = or $targetRecord.isLegacy $targetRecord.enriched }}
+                {{ if $targetIsV2 }}
+                  {{ $eligible = and
+                    $eligible
+                    (eq (len $p) 2)
+                    (eq (len (findRE `^source-[0-9a-f]{32}$` (index $p 1))) 1)
+                  }}
+                {{ end }}
+              {{ end }}
+              {{ $href := "" }}
+              {{ if $target }}{{ $href = $target.RelPermalink }}{{ end }}
               {{/* On a record page every claim comes from that record, so this
                     link pointed at the page the reader is already on - 93 of them
                     saying "view the source record" about the source record. */}}
@@ -97,7 +134,23 @@
        reviewer-only workbench_url and the private record_hash out of the public
        HTML source entirely - the tooltip never needs them. */}}
   {{ $tip := slice }}
-  {{ range . }}{{ $tip = $tip | append (dict "text" .text "source" .source "location" .location) }}{{ end }}
+  {{ range . }}
+    {{ $tipSource := .source | default "" }}
+    {{ $tipLocation := .location | default "" }}
+    {{ if $isPublicRecordV2 }}
+      {{ if or
+        (ne (printf "%T" $tipSource) "string")
+        (findRE `sha256:[0-9a-f]{64}` $tipSource)
+        (findRE `(?:file://|/(?:home|private|tmp|var)/)` $tipSource)
+      }}{{ $tipSource = "" }}{{ end }}
+      {{ if or
+        (ne (printf "%T" $tipLocation) "string")
+        (findRE `sha256:[0-9a-f]{64}` $tipLocation)
+        (findRE `(?:file://|/(?:home|private|tmp|var)/)` $tipLocation)
+      }}{{ $tipLocation = "" }}{{ end }}
+    {{ end }}
+    {{ $tip = $tip | append (dict "text" .text "source" $tipSource "location" $tipLocation) }}
+  {{ end }}
   <script id="article-references" type="application/json">{{ $tip | jsonify | safeJS }}</script>
 
   <script>
@@ -150,7 +203,7 @@
         /* A claim anchor sits inside the collapsed references list, so the
            browser's own scroll misses it exactly as it does for #ref-N.
            Reveal the list item that contains it instead. */
-        if (/^#claim-[0-9a-fA-F-]+$/.test(hash)) {
+        if (/^#(?:claim-[0-9a-fA-F-]+|source-[0-9a-f]{32})$/.test(hash)) {
           const anchor = document.getElementById(hash.slice(1));
           if (anchor) revealTarget(anchor.closest('li'), null);
         }

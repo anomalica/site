@@ -1,0 +1,40 @@
+baseURL = "https://fixture.invalid/"
+title = "Anomalica fixture"
+timeZone = "UTC"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = true
+
+[languages.en]
+languageName = "English"
+languageCode = "en-GB"
+weight = 1
+
+[outputs]
+home = ["HTML", "RSS", "JSON"]
+
+[module]
+[[module.mounts]]
+source = "tests/fixtures/public-records/content"
+target = "content"
+[[module.mounts]]
+source = "layouts"
+target = "layouts"
+[[module.mounts]]
+source = "assets"
+target = "assets"
+[[module.mounts]]
+source = "tests/fixtures/public-records/web"
+target = "static/public"
+[[module.mounts]]
+source = "static"
+target = "static"
+[[module.mounts]]
+source = "data"
+target = "data"
+[[module.mounts]]
+source = "i18n"
+target = "i18n"
+
+[markup]
+[markup.goldmark.renderer]
+unsafe = true

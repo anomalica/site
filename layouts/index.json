@@ -19,12 +19,17 @@
 {{- range site.RegularPages -}}
   {{- if eq .Section "briefs" }}{{ continue }}{{ end -}}
   {{- if eq .Section "documents" }}{{ continue }}{{ end -}}
-  {{- if and (eq .Section "records") (or (ne .Params.schema "anomalica/public-record/1") (ne .Params.content_kind "record")) }}{{ continue }}{{ end -}}
+  {{- $description := .Params.description | default "" -}}
+  {{- if eq .Section "records" -}}
+    {{- $record := partial "public-record-state.html" . -}}
+    {{- if not $record.publishable }}{{ continue }}{{ end -}}
+    {{- if and $record.isV2 (not $record.enriched) }}{{ $description = "" }}{{ end -}}
+  {{- end -}}
   {{- $tags := slice -}}
   {{- range .Params.tags }}{{ $tags = $tags | append . }}{{ end -}}
   {{- $entries = $entries | append (dict
       "t" .Title
-      "d" (.Params.description | default "" | truncate 160 | htmlUnescape)
+      "d" ($description | truncate 160 | htmlUnescape)
       "u" .RelPermalink
       "l" (T .Section | default (.Section | humanize))
       "g" $tags) -}}
