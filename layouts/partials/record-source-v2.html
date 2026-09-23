@@ -1,12 +1,9 @@
 {{- $sourceState := partial "public-record-source-state.html" (.Params.source | default dict) -}}
 {{- if $sourceState.valid -}}
   {{- $assets := $sourceState.assets -}}
-  {{- $allBodiesAllowed := true -}}
-  {{- range $assets -}}
-    {{- $capabilities := .capabilities -}}
-    {{- $body := partial "public-record-capability.html" (dict "kind" "source_body" "capability" ($capabilities.source_body | default dict)) -}}
-    {{- if not $body.allowed -}}{{- $allBodiesAllowed = false -}}{{- end -}}
-  {{- end -}}
+  {{- /* Upstream owns the complete eligibility and composite-output decision.
+        Render each Asset's declared capabilities independently; one member's
+        denial must neither widen nor suppress another member's projection. */ -}}
 
   <section class="mb-10 mt-8" aria-labelledby="source-heading">
     <h2 id="source-heading" class="section-label mb-3">{{ if gt (len $assets) 1 }}The sources{{ else }}The source{{ end }}</h2>
@@ -74,7 +71,7 @@
               </div>
             {{ end }}
 
-            {{ if and $allBodiesAllowed $body.allowed }}
+            {{ if $body.allowed }}
               <iframe src="{{ $body.url }}" title="Source text for source {{ $assetNumber }}" loading="lazy" sandbox class="mt-4 w-full rounded-lg border border-border bg-surface" style="min-height: min(32rem, 70vh)"></iframe>
             {{ end }}
 
@@ -84,10 +81,8 @@
               <div class="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
                 <dt class="font-medium text-on-surface">Source text</dt>
                 <dd class="min-w-0 text-on-surface-secondary">
-                  {{ if and $allBodiesAllowed $body.allowed }}
+                  {{ if $body.allowed }}
                     <a href="{{ $body.url }}" class="break-words underline decoration-border underline-offset-4 transition-colors hover:text-primary hover:decoration-primary">Open the source text</a>
-                  {{ else if and $body.allowed (not $allBodiesAllowed) }}
-                    Not available unless every source permits text display
                   {{ else }}
                     {{ partial "public-record-capability-denial.html" $body.reason }}
                   {{ end }}

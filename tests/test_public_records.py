@@ -53,6 +53,10 @@ class PublicRecordTemplateTests(unittest.TestCase):
         self.assertNotIn("SHELL_GENERATED_DESCRIPTION_MUST_NOT_RENDER", html)
         self.assertNotIn("SHELL_BODY_MUST_NOT_RENDER", html)
         self.assertNotIn("/private/shell-source.pdf", html)
+        self.assertNotIn("SHELL_SOURCE_BODY_MUST_NOT_RENDER", html)
+        self.assertNotIn("SHELL_EXTERNAL_LINK_MUST_NOT_RENDER", html)
+        self.assertNotIn("SHELL_CLAIM_MUST_NOT_RENDER", html)
+        self.assertNotIn("SHELL_QUOTE_MUST_NOT_RENDER", html)
 
     def test_enriched_page_renders_evidence_and_five_independent_capabilities(self):
         html = self.rendered_record(ENRICHED_HASH)
@@ -79,6 +83,17 @@ class PublicRecordTemplateTests(unittest.TestCase):
         ):
             self.assertIn(label, html)
 
+    def test_entity_claim_links_to_stable_record_evidence_site(self):
+        html = (
+            self.output / "en" / "people" / "evidence-link" / "index.html"
+        ).read_text()
+
+        self.assertIn(
+            f'href="/en/records/{ENRICHED_HASH}/#source-11111111111111111111111111111111"',
+            html,
+        )
+        self.assertIn("View the source record", html)
+
     def test_multi_asset_panels_preserve_order_and_do_not_widen_permissions(self):
         html = self.rendered_record(MULTI_ASSET_HASH)
 
@@ -88,7 +103,8 @@ class PublicRecordTemplateTests(unittest.TestCase):
         self.assertIn("Selected record page 2", html)
         self.assertIn("2026-02-28T23:59:59Z", html)
         self.assertNotIn("2026-02-31T12:00:00Z", html)
-        self.assertNotIn("/public/asset-one-body.html", html)
+        self.assertIn("/public/asset-one-body.html", html)
+        self.assertNotIn("GATED_BODY_MUST_NOT_RENDER", html)
         self.assertNotIn("GATED_ARCHIVE_MUST_NOT_RENDER", html)
         self.assertNotIn("GATED_LOCATOR_MUST_NOT_RENDER", html)
         self.assertIn("/public/asset-one.pdf", html)

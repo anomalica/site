@@ -46,6 +46,7 @@ source:
         source_body:
           mode: none
           reason: copyright
+          resource: /private/GATED_BODY_MUST_NOT_RENDER.html
         archived_original:
           mode: none
           reason: copyright
